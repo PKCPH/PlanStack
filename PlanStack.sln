@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36616.10 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanStack.Backend.WebAPI", "PlanStack.Backend.WebAPI\PlanStack.Backend.WebAPI.csproj", "{920F6F6A-5DF0-4964-9F22-EEC66756FD71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanStack.Backend.Database", "..\PlanStack.Backend.Database\PlanStack.Backend.Database.csproj", "{0EE7BABD-82C0-488F-BB19-0A07560B4F1E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanStack.Backend.Database", "PlanStack.Backend.Database\PlanStack.Backend.Database.csproj", "{3A4B88FE-EA15-41BD-9BB6-5D7A45F46DAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{920F6F6A-5DF0-4964-9F22-EEC66756FD71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{920F6F6A-5DF0-4964-9F22-EEC66756FD71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{920F6F6A-5DF0-4964-9F22-EEC66756FD71}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0EE7BABD-82C0-488F-BB19-0A07560B4F1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0EE7BABD-82C0-488F-BB19-0A07560B4F1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0EE7BABD-82C0-488F-BB19-0A07560B4F1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0EE7BABD-82C0-488F-BB19-0A07560B4F1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A4B88FE-EA15-41BD-9BB6-5D7A45F46DAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A4B88FE-EA15-41BD-9BB6-5D7A45F46DAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A4B88FE-EA15-41BD-9BB6-5D7A45F46DAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A4B88FE-EA15-41BD-9BB6-5D7A45F46DAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
