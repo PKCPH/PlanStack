@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDevelopment", builder => builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+    //options.AddPolicy("AllowProduction"), builder => builder.WithOrigins("https://128.251.224.93").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 });
 
 //Adding Connection
@@ -86,6 +87,8 @@ if (app.Environment.IsDevelopment())
 
 // Enables Cors
 app.UseCors("AllowDevelopment");
+
+app.UseCors("AllowProduction");
 
 app.UseHttpsRedirection();
 

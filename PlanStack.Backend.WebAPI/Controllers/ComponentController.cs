@@ -111,7 +111,8 @@ namespace Api.Controllers
                 {
                     Model = entity.Model,
                     Price = entity.Price,
-                    SquareMeters = entity.SquareMeters
+                    SquareMeters = entity.SquareMeters,
+                    Name = entity.Name
                 }),
                 Count = queryResult.Count
             };
