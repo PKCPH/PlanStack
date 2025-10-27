@@ -86,7 +86,7 @@ namespace Api.Controllers
         #endregion
 
         #region GetAll
-        [HttpGet, Authorize]
+        [HttpGet]
         public async Task<ActionResult<BaseQueryResultResource<ComponentResource>>> GetAll([FromQuery] ComponentQueryResource filter)
         {
             if (filter.PageSize == 0)
