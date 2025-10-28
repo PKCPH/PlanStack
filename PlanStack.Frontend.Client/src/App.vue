@@ -7,7 +7,7 @@ const error = ref(null)
 
 onMounted(async () => {
   try {
-    const response = await fetch('/api/components')
+    const response = await fetch('/api/api/components')
     if (!response.ok) throw new Error('Failed to fetch data')
     const data = await response.json()
     products.value = data
