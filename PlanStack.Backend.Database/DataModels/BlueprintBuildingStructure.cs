@@ -1,6 +1,6 @@
 ﻿namespace PlanStack.Backend.Database.DataModels
 {
-    public class BlueprintBuildingStructure : BaseRelationModel
+    public class BlueprintBuildingStructure : BaseDataModel
     {
         public int positionX { get; set; }
         public int positionY { get; set; }

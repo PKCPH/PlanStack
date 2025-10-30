@@ -1,10 +1,9 @@
-﻿using PlanStack.Backend.Database.Shared.Enums;
+﻿using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.Database.DataModels
 {
     public class Project : BaseDataModel
     {
-        public string Description { get; set; }
         public BuildingTypeEnum BuildingType { get; set; }
         public int SquareMeters { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace PlanStack.Backend.Database.DataModels
 {
-    public class BlueprintStandard : BaseRelationModel
+    public class BlueprintStandard : BaseDataModel
     {
         #region Relations
         public virtual Blueprint Blueprint { get; set; }

@@ -46,7 +46,7 @@ builder.Services.AddAuthentication(opt =>
 builder.Services.AddScoped<UnitOfWork>();
 
 // Adding AutoMapper
-//builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(typeof(Program));
 
 // Adding Handlers
 builder.Services.AddScoped<JwtHandler>();
@@ -56,7 +56,15 @@ builder.Services.AddScoped<JwtHandler>();
 
 // Adding Repositories
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<BlueprintRepository>();
+builder.Services.AddScoped<BlueprintBuildingStructureRepository>();
+builder.Services.AddScoped<BlueprintComponentRepository>();
+builder.Services.AddScoped<BuildingStructureRepository>();
 builder.Services.AddScoped<ComponentRepository>();
+builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<RuleSetRepository>();
+builder.Services.AddScoped<StandardRepository>();
+builder.Services.AddScoped<StandardRuleSetRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -64,6 +72,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Adding Identity and Password Policy
+// TODO: put these values in a configuration file
 builder.Services.AddIdentity<User, IdentityRole>(opt =>
 {
     opt.Password.RequiredLength = 7;

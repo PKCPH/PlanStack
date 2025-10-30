@@ -1,4 +1,4 @@
-﻿namespace PlanStack.Backend.Database.Shared.Enums
+﻿namespace PlanStack.Shared.Enums
 {
     public enum RuleSetDefinitionEnum : int
     {

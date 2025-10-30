@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlanStack.Backend.Database.DataModels;
@@ -9,26 +10,27 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
-    [Route("api/users")]
+    [Route("users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        //private readonly IMapper _mapper;
+        private readonly IMapper _mapper;
         private readonly JwtHandler _jwtHandler;
         private readonly UserRepository _userRepository;
 
         public UsersController(
             UserManager<User> userManager,
-            //IMapper mapper,
+            IMapper mapper,
             JwtHandler jwtHandler,
             UserRepository userRepository)
         {
             _userManager = userManager;
-            //_mapper = mapper;
+            _mapper = mapper;
             _jwtHandler = jwtHandler;
             _userRepository = userRepository;
         }
+
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegistrationPostRequest request)
         {
@@ -41,13 +43,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             if (!request.Email.Contains("@"))
                 return BadRequest();
 
-            //var user = _mapper.Map<UserModel>(request);
-
-            var user = new User
-            {
-                UserName = request.Email,
-                Email = request.Email,
-            };
+            var user = _mapper.Map<User>(request);
 
             var result = await _userManager.CreateAsync(user, request.Password);
 
@@ -93,7 +89,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         //}
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ComponentResource>>> GetAll()
+        public async Task<ActionResult<IEnumerable<UserResource>>> GetAll()
         {
             var users = await _userManager.Users
                 .ToListAsync();
@@ -122,7 +118,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             if (!result.Succeeded)
                 return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
 
-            //var updatedResource = _mapper.Map<UserResource>(user);
+            var updatedResource = _mapper.Map<UserResource>(user);
             return Ok(result);
         }
 

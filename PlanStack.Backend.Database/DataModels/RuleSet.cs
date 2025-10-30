@@ -1,10 +1,9 @@
-﻿using PlanStack.Backend.Database.Shared.Enums;
+﻿using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.Database.DataModels
 {
     public class RuleSet : BaseDataModel
     {
-        public string Description { get; set; }
         public float Ratio { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }
 

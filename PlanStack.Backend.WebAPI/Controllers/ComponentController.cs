@@ -1,46 +1,42 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
-using PlanStack.Backend.WebAPI.Controllers.Resources.User;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
 
 namespace Api.Controllers
 {
-    [Route("api/components")]
+    [Route("components")]
     [ApiController]
     public class ComponentController : ControllerBase
     {
         private readonly ComponentRepository _componentRepository;
         private readonly UnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
         public ComponentController(
             ComponentRepository componentRepository,
-            UnitOfWork unitOfWork
-            )
+            UnitOfWork unitOfWork,
+            IMapper mapper
+        )
         {
             _componentRepository = componentRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         #region Create
         [HttpPost()]
         public async Task<ActionResult<ComponentResource>> Create([FromBody] ComponentCreateResource createResource)
         {
-            // Map entity
-            //var entity = this.mapper.Map<ProductCreateResource, Product>(createResource);
+            createResource.CreatedAt = DateTime.Now;
+            createResource.UpdatedAt = DateTime.Now;
 
-            var entity = new Component
-            {
-                Model = createResource.Model,
-                Price = createResource.Price,
-                SquareMeters = createResource.SquareMeters,
-                Name = createResource.Name,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+            //Map entity
+            var entity = _mapper.Map<ComponentCreateResource, Component>(createResource);
 
             // Add entity
             _componentRepository.Add(entity);
@@ -49,14 +45,7 @@ namespace Api.Controllers
             await _unitOfWork.SaveChangesAsync();
 
             // Map entity to resource
-            //var resource = this.mapper.Map<Product, ProductResource>(entity);
-
-            var resource = new ComponentResource
-            {
-                Model = entity.Model,
-                Price = entity.Price,
-                SquareMeters = entity.SquareMeters
-            };
+            var resource = _mapper.Map<Component, ComponentResource>(entity);
 
             return Ok(resource);
         }
@@ -72,14 +61,7 @@ namespace Api.Controllers
                 return NotFound();
 
             // Map entity to resource
-            //var resource = this.mapper.Map<Product, ProductResource>(entity);
-
-            var resource = new ComponentResource
-            {
-                Model = entity.Model,
-                Price = entity.Price,
-                SquareMeters = entity.SquareMeters
-            };
+            var resource = _mapper.Map<Component, ComponentResource>(entity);
 
             return Ok(resource);
         }
@@ -103,21 +85,9 @@ namespace Api.Controllers
             var queryResult = await _componentRepository.GetAllAsync(query, true);
 
             // Map entities to resource
-            //var resource = this.mapper.Map<BaseQueryResult<Product>, BaseQueryResultResource<ProductResource>>(queryResult);
+            var resource = _mapper.Map<BaseQueryResult<Component>, BaseQueryResultResource<ComponentResource>>(queryResult);
 
-            var resource = new BaseQueryResultResource<ComponentResource>
-            {
-                Entities = queryResult.Entities.Select(entity => new ComponentResource
-                {
-                    Model = entity.Model,
-                    Price = entity.Price,
-                    SquareMeters = entity.SquareMeters,
-                    Name = entity.Name
-                }),
-                Count = queryResult.Count
-            };
-
-            return resource;
+            return Ok(resource);
         }
         #endregion
 
@@ -125,14 +95,13 @@ namespace Api.Controllers
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] ComponentUpdateResource updateResource)
         {
+            updateResource.UpdatedAt = DateTime.Now;
+
             var entity = await _componentRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
 
-            entity.Model = updateResource.Model;
-            entity.Price = updateResource.Price;
-            entity.SquareMeters = updateResource.SquareMeters;
-            entity.UpdatedAt = updateResource.UpdatedAt;
+            _mapper.Map<ComponentUpdateResource, Component>(updateResource, entity);
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -141,7 +110,7 @@ namespace Api.Controllers
         #endregion
 
         #region Delete
-        [HttpDelete("delete/{entityId}")]
+        [HttpDelete("{entityId}")]
         public async Task<ActionResult> Delete(int entityId)
         {
             // Get entitty

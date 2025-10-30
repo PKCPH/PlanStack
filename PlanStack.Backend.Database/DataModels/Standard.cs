@@ -1,10 +1,9 @@
-﻿using PlanStack.Backend.Database.Shared.Enums;
+﻿using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.Database.DataModels
 {
     public class Standard : BaseDataModel
     {
-        public string Description { get; set; }
         public StandardTypeEnum Type { get; set; }
         public bool IsPublic { get; set; }
 

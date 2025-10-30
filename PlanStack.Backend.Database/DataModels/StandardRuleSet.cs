@@ -1,6 +1,6 @@
 ﻿namespace PlanStack.Backend.Database.DataModels
 {
-    public class StandardRuleSet : BaseRelationModel
+    public class StandardRuleSet : BaseDataModel
     {
         #region Relations
         public virtual Standard Standard { get; set; }

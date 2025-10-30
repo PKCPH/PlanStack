@@ -166,6 +166,9 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Floor")
                         .HasColumnType("int");
 
@@ -188,7 +191,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Blueprints", (string)null);
+                    b.ToTable("Blueprints");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintBuildingStructure", b =>
@@ -208,6 +211,12 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -223,7 +232,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BuildingStructureId");
 
-                    b.ToTable("BlueprintBuildingStructures", (string)null);
+                    b.ToTable("BlueprintBuildingStructures");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintComponent", b =>
@@ -243,6 +252,12 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -258,7 +273,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ComponentId");
 
-                    b.ToTable("BlueprintComponents", (string)null);
+                    b.ToTable("BlueprintComponents");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintStandard", b =>
@@ -275,6 +290,12 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("StandardId")
                         .HasColumnType("int");
 
@@ -287,7 +308,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("StandardId");
 
-                    b.ToTable("BlueprintStandards", (string)null);
+                    b.ToTable("BlueprintStandards");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BuildingStructure", b =>
@@ -298,8 +319,14 @@ namespace PlanStack.Backend.Database.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Material")
                         .HasColumnType("nvarchar(max)");
@@ -318,7 +345,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BuildingStructures", (string)null);
+                    b.ToTable("BuildingStructures");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Component", b =>
@@ -329,8 +356,17 @@ namespace PlanStack.Backend.Database.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImgPath")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Model")
                         .HasColumnType("nvarchar(max)");
@@ -349,7 +385,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Components", (string)null);
+                    b.ToTable("Components");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Project", b =>
@@ -385,7 +421,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.RuleSet", b =>
@@ -421,7 +457,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ComponentId");
 
-                    b.ToTable("RuleSets", (string)null);
+                    b.ToTable("RuleSets");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Standard", b =>
@@ -457,7 +493,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Standards", (string)null);
+                    b.ToTable("Standards");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.StandardRuleSet", b =>
@@ -470,6 +506,12 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RuleSetId")
                         .HasColumnType("int");
@@ -486,7 +528,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("StandardId");
 
-                    b.ToTable("StandardRuleSets", (string)null);
+                    b.ToTable("StandardRuleSets");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.User", b =>
