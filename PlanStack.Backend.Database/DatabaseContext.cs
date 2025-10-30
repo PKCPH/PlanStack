@@ -13,20 +13,10 @@ namespace PlanStack.Backend.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Entity<IdentityRole>().HasData(
-            //    new IdentityRole
-            //    {
-            //        Id = "b2e8c3e2-8db9-4c4c-b4f2-879b2f41f001",
-            //        Name = "User",
-            //        NormalizedName = "USER"
-            //    },
-            //    new IdentityRole
-            //    {
-            //        Id = "2b5fbc8a-1b5c-4e09-bf5e-9e0b0b41e002",
-            //        Name = "Admin",
-            //        NormalizedName = "ADMIN"
-            //    }
-            //);
+            modelBuilder.Entity<IdentityRole>().HasData(
+                new IdentityRole { Id = "b2e8c3e2-8db9-4c4c-b4f2-879b2f41f001", Name = "Player", NormalizedName = "PLAYER" },
+                new IdentityRole { Id = "3da92c92-794e-4624-809e-77198ed828b9", Name = "Admin", NormalizedName = "ADMIN" }
+            );
 
             base.OnModelCreating(modelBuilder);
         }

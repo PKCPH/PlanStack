@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PlanStack.Backend.Database;
+using PlanStack.Backend.Database.Core;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Handlers;
@@ -14,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDevelopment", builder => builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
-    //options.AddPolicy("AllowProduction"), builder => builder.WithOrigins("https://128.251.224.93").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+    options.AddPolicy("AllowProduction", builder => builder.WithOrigins("https://planstack.dk").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 });
 
 //Adding Connection
@@ -86,6 +87,17 @@ builder.Services.AddIdentity<User, IdentityRole>(opt =>
 
 var app = builder.Build();
 
+// Apply migrations in Live
+if (app.Environment.IsProduction())
+{
+    var databaseContext = app.Services.GetRequiredService<DatabaseContext>();
+    databaseContext.Database.SetCommandTimeout(0);
+    databaseContext.Database.Migrate();
+}
+
+// Seed the database with admin user if it doesnt exist
+await DatabaseInitializer.SeedAdminUserAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 // Enable Swagger
 if (app.Environment.IsDevelopment())
@@ -96,7 +108,6 @@ if (app.Environment.IsDevelopment())
 
 // Enables Cors
 app.UseCors("AllowDevelopment");
-
 app.UseCors("AllowProduction");
 
 app.UseHttpsRedirection();
