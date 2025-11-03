@@ -4,6 +4,7 @@ import HomeView from '../views/HomeView.vue'
 import FloorplannerView from '../views/FloorplannerView.vue'
 import StandardsView from '../views/StandardsView.vue'
 import AccountView from '../views/AccountView.vue'
+import ComponentsView from '../views/ComponentsView.vue'
 
 export const routes = [
     {   
@@ -23,6 +24,12 @@ export const routes = [
         name: 'Standards',
         component: StandardsView,
         icon: 'mdi-pencil-ruler',
+    },
+    { 
+        path: '/components', 
+        name: 'Components',
+        component: ComponentsView,
+        icon: 'mdi-palette-swatch-variant',
     },
     { 
         path: '/account', 
