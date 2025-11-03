@@ -3,16 +3,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import FloorplannerView from '../views/FloorplannerView.vue'
 
-const routes = [
+export const routes = [
     {   
         path: '/', 
         name: 'Home',
-        component: HomeView 
+        component: HomeView,
+        icon: 'mdi-home', 
     },
     { 
         path: '/floorplanner', 
-        name: 'Floorplanner',
-        component: FloorplannerView
+        name: 'Floorplanner123',
+        component: FloorplannerView,
+        icon: 'mdi-floor-plan',
     },
 ]
 
