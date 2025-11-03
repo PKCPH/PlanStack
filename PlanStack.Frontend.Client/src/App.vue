@@ -2,14 +2,14 @@
   <v-app>
     <v-app-bar app color="blue" dark>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>Floorplan Designer</v-toolbar-title>
+      <v-toolbar-title>Planstack</v-toolbar-title>
     </v-app-bar>
 
     <v-navigation-drawer 
       v-model="drawer" 
       app
     >
-      <v-list-item title="PlanStack" subtitle="Main Menu"></v-list-item>
+      <v-list-item title="Menu"></v-list-item>
       <v-divider></v-divider>
 
       <v-list density="compact" nav>

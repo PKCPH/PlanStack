@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '../views/HomeView.vue'
 import FloorplannerView from '../views/FloorplannerView.vue'
+import StandardsView from '../views/StandardsView.vue'
+import AccountView from '../views/AccountView.vue'
 
 export const routes = [
     {   
@@ -12,10 +14,23 @@ export const routes = [
     },
     { 
         path: '/floorplanner', 
-        name: 'Floorplanner123',
+        name: 'Floorplans',
         component: FloorplannerView,
         icon: 'mdi-floor-plan',
     },
+    { 
+        path: '/standards', 
+        name: 'Standards',
+        component: StandardsView,
+        icon: 'mdi-pencil-ruler',
+    },
+    { 
+        path: '/account', 
+        name: 'Account',
+        component: AccountView,
+        icon: 'mdi-account',
+    },
+    
 ]
 
 const router = createRouter({
