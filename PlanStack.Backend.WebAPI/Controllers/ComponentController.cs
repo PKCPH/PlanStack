@@ -4,8 +4,9 @@ using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Backend.Services;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
 namespace Api.Controllers
 {
@@ -16,27 +17,33 @@ namespace Api.Controllers
         private readonly ComponentRepository _componentRepository;
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ImageService _imageService;
 
         public ComponentController(
             ComponentRepository componentRepository,
             UnitOfWork unitOfWork,
-            IMapper mapper
+            IMapper mapper,
+            ImageService imageService
         )
         {
             _componentRepository = componentRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _imageService = imageService;
         }
 
         #region Create
         [HttpPost()]
-        public async Task<ActionResult<ComponentResource>> Create([FromBody] ComponentCreateResource createResource)
+        public async Task<ActionResult<ComponentResource>> Create([FromForm] ComponentCreateResource createResource)
         {
-            createResource.CreatedAt = DateTime.Now;
-            createResource.UpdatedAt = DateTime.Now;
-
             //Map entity
             var entity = _mapper.Map<ComponentCreateResource, Component>(createResource);
+
+            var imagePath = _imageService.SaveImage(entity.Name, createResource.ImgFile);
+
+            entity.CreatedAt = DateTime.Now;
+            entity.UpdatedAt = DateTime.Now;
+            entity.ImgPath = imagePath;
 
             // Add entity
             _componentRepository.Add(entity);
@@ -123,11 +130,13 @@ namespace Api.Controllers
             {
                 _componentRepository.Remove(entity);
 
+                _imageService.DeleteImage(entity.ImgPath);
+
                 await _unitOfWork.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                return BadRequest(e.Message);
             }
 
             return Ok();

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanStack.Backend.Database"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanStack.Shared", "PlanStack.Shared\PlanStack.Shared.csproj", "{C352853F-2F10-438F-BA20-725E31045C0A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanStack.Backend.Services", "PlanStack.Backend.Services\PlanStack.Backend.Services.csproj", "{5571C88D-26AF-4809-B257-643E5A6AAC90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{C352853F-2F10-438F-BA20-725E31045C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C352853F-2F10-438F-BA20-725E31045C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C352853F-2F10-438F-BA20-725E31045C0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5571C88D-26AF-4809-B257-643E5A6AAC90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5571C88D-26AF-4809-B257-643E5A6AAC90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5571C88D-26AF-4809-B257-643E5A6AAC90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5571C88D-26AF-4809-B257-643E5A6AAC90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

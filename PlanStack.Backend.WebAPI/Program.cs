@@ -6,6 +6,7 @@ using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.Core;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
+using PlanStack.Backend.Services;
 using PlanStack.Backend.WebAPI.Handlers;
 using System.Text;
 
@@ -53,7 +54,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<JwtHandler>();
 
 // Adding Services
-//builder.Services.AddScoped<StatsService>();
+builder.Services.AddScoped<ImageService>();
 
 // Adding Repositories
 builder.Services.AddScoped<UserRepository>();
@@ -97,6 +98,7 @@ if (app.Environment.IsProduction())
 
 // Seed the database with admin user if it doesnt exist
 await DatabaseInitializer.SeedAdminUserAsync(app.Services);
+await DatabaseInitializer.SeedComponentsAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 // Enable Swagger

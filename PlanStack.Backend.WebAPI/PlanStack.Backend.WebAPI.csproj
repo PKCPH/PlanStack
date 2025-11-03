@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="CompressedStaticFiles" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
@@ -20,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PlanStack.Backend.Database\PlanStack.Backend.Database.csproj" />
+    <ProjectReference Include="..\PlanStack.Backend.Services\PlanStack.Backend.Services.csproj" />
   </ItemGroup>
 
 </Project>
