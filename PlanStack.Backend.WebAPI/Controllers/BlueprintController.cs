@@ -7,7 +7,7 @@ using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint;
 
-namespace Api.Controllers
+namespace PlanStack.Backend.WebAPI.Controllers
 {
     [Route("blueprints")]
     [ApiController]

@@ -10,11 +10,14 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
         public int Floor { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
-        public int SquareMeters { get; set; }
 
         #region Relations
         public virtual ICollection<ComponentResource> Components { get; set; }
         public virtual ICollection<BuildingStructureResource> BuildingStructures { get; set; }
+        #endregion
+
+        #region Helpers
+        public int CanvasSquareMeters => Height * Width;
         #endregion
     }
 }

@@ -8,7 +8,7 @@ using PlanStack.Backend.Services;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
-namespace Api.Controllers
+namespace PlanStack.Backend.WebAPI.Controllers
 {
     [Route("components")]
     [ApiController]
