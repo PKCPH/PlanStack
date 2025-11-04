@@ -3,7 +3,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class BlueprintStandardRepository : BaseRepository<BlueprintStandard, BlueprintStandardQuery>
+    public class BlueprintStandardRepository : BaseRelationRepository<BlueprintStandard, BlueprintStandardQuery>
     {
         public BlueprintStandardRepository(DatabaseContext context) : base(context)
         {

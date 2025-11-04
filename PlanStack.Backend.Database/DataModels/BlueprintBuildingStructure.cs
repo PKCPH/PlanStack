@@ -1,9 +1,12 @@
 ﻿namespace PlanStack.Backend.Database.DataModels
 {
-    public class BlueprintBuildingStructure : BaseDataModel
+    public class BlueprintBuildingStructure : BaseRelationDataModel
     {
-        public int positionX { get; set; }
-        public int positionY { get; set; }
+
+        public int Length { get; set; }
+        public int Width { get; set; }
+
+        public float TotalPrice { get; set; }
 
         #region Relations
         public virtual Blueprint Blueprint { get; set; }
@@ -11,6 +14,8 @@
 
         public virtual BuildingStructure BuildingStructure { get; set; }
         public int? BuildingStructureId { get; set; }
+
+        public virtual ICollection<BSBlueprintPosition> Positions { get; set; }
         #endregion
     }
 }

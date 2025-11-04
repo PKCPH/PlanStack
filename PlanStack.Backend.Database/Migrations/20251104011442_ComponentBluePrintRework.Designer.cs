@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PlanStack.Backend.Database;
 
@@ -11,9 +12,11 @@ using PlanStack.Backend.Database;
 namespace PlanStack.Backend.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251104011442_ComponentBluePrintRework")]
+    partial class ComponentBluePrintRework
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,7 +199,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BlueprintBuildingStructureId");
 
-                    b.ToTable("BSBlueprintPosition", (string)null);
+                    b.ToTable("BSBlueprintPosition");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Blueprint", b =>
@@ -235,7 +238,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Blueprints", (string)null);
+                    b.ToTable("Blueprints");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintBuildingStructure", b =>
@@ -273,7 +276,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BuildingStructureId");
 
-                    b.ToTable("BlueprintBuildingStructures", (string)null);
+                    b.ToTable("BlueprintBuildingStructures");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintComponent", b =>
@@ -308,7 +311,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ComponentId");
 
-                    b.ToTable("BlueprintComponents", (string)null);
+                    b.ToTable("BlueprintComponents");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintStandard", b =>
@@ -337,7 +340,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("StandardId");
 
-                    b.ToTable("BlueprintStandards", (string)null);
+                    b.ToTable("BlueprintStandards");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BuildingStructure", b =>
@@ -371,7 +374,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BuildingStructures", (string)null);
+                    b.ToTable("BuildingStructures");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.CBlueprintPosition", b =>
@@ -401,7 +404,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BlueprintComponentId");
 
-                    b.ToTable("CBlueprintPosition", (string)null);
+                    b.ToTable("CBlueprintPosition");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Component", b =>
@@ -441,7 +444,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Components", (string)null);
+                    b.ToTable("Components");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Project", b =>
@@ -477,7 +480,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.RuleSet", b =>
@@ -513,7 +516,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ComponentId");
 
-                    b.ToTable("RuleSets", (string)null);
+                    b.ToTable("RuleSets");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Standard", b =>
@@ -549,7 +552,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Standards", (string)null);
+                    b.ToTable("Standards");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.StandardRuleSet", b =>
@@ -578,7 +581,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("StandardId");
 
-                    b.ToTable("StandardRuleSets", (string)null);
+                    b.ToTable("StandardRuleSets");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.User", b =>

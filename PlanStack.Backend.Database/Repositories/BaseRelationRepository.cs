@@ -2,17 +2,16 @@
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Extensions;
 using PlanStack.Backend.Database.QueryModels;
-using System.Linq.Expressions;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public abstract class BaseRepository<T, Q>
-           where T : BaseDataModel, new()
+    public abstract class BaseRelationRepository<T, Q>
+           where T : BaseRelationDataModel, new()
            where Q : BaseQueryModel
     {
         protected readonly DatabaseContext context;
 
-        public BaseRepository(
+        public BaseRelationRepository(
             DatabaseContext context
         )
         {
@@ -30,9 +29,6 @@ namespace PlanStack.Backend.Database.Repositories
             {
                 var query = context.Set<T>().AsQueryable();
 
-                // Relations
-                query = ApplyRelations(query);
-
                 result = await query.SingleOrDefaultAsync(x => x.Id == entityId);
             }
 
@@ -46,49 +42,15 @@ namespace PlanStack.Backend.Database.Repositories
             var result = new BaseQueryResult<T>();
             var query = context.Set<T>().AsQueryable();
 
-            // Filtering
-            query = ApplyFiltering(query, queryModel);
-
-            // Ordering
-            query = query.ApplyOrdering(queryModel, ApplyOrderingMap());
-
             // Count
             result.Count = await query.CountAsync();
 
             // Paging
             query = query.ApplyPaging(queryModel);
 
-            // Relations
-            if (includeRelated)
-                query = ApplyRelations(query);
-
             result.Entities = await query.ToListAsync();
 
             return result;
-        }
-        #endregion
-
-        #region ApplyFiltering
-        protected virtual IQueryable<T> ApplyFiltering(IQueryable<T> query, Q queryModel)
-        {
-            return query;
-        }
-        #endregion
-
-        #region ApplyOrderingMap
-        protected virtual Dictionary<string, Expression<Func<T, object>>> ApplyOrderingMap()
-        {
-            return new Dictionary<string, Expression<Func<T, object>>>()
-            {
-                ["id"] = x => x.Id,
-            };
-        }
-        #endregion
-
-        #region ApplyRelations
-        protected virtual IQueryable<T> ApplyRelations(IQueryable<T> query)
-        {
-            return query;
         }
         #endregion
 

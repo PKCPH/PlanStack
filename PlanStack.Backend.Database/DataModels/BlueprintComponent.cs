@@ -1,6 +1,6 @@
 ﻿namespace PlanStack.Backend.Database.DataModels
 {
-    public class BlueprintComponent : BaseDataModel
+    public class BlueprintComponent : BaseRelationDataModel
     {
         public int positionX { get; set; }
         public int positionY { get; set; }
@@ -11,6 +11,8 @@
 
         public virtual Component Component { get; set; }
         public int? ComponentId { get; set; }
+
+        public virtual ICollection<CBlueprintPosition> Positions { get; set; }
         #endregion
     }
 }

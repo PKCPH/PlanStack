@@ -3,7 +3,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class StandardRuleSetRepository : BaseRepository<StandardRuleSet, StandardRuleSetQuery>
+    public class StandardRuleSetRepository : BaseRelationRepository<StandardRuleSet, StandardRuleSetQuery>
     {
         public StandardRuleSetRepository(DatabaseContext context) : base(context)
         {
