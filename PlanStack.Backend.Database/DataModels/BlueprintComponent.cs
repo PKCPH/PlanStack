@@ -2,9 +2,6 @@
 {
     public class BlueprintComponent : BaseRelationDataModel
     {
-        public int positionX { get; set; }
-        public int positionY { get; set; }
-
         #region Relations
         public virtual Blueprint Blueprint { get; set; }
         public int? BlueprintId { get; set; }

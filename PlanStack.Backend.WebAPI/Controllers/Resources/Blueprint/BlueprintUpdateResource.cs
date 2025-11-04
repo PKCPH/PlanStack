@@ -4,8 +4,10 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 {
     public class BlueprintUpdateResource : BaseResource
     {
-        public string Model { get; set; }
-        public int Price { get; set; }
+        public int MaxOccupancy { get; set; }
+        public int Floor { get; set; }
+        public int Height { get; set; }
+        public int Width { get; set; }
         public int SquareMeters { get; set; }
     }
 }
