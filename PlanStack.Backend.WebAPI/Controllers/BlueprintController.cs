@@ -6,6 +6,7 @@ using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint;
+using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
@@ -14,16 +15,19 @@ namespace PlanStack.Backend.WebAPI.Controllers
     public class BlueprintController : ControllerBase
     {
         private readonly BlueprintRepository _blueprintRepository;
+        private readonly BlueprintService _blueprintService;
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public BlueprintController(
             BlueprintRepository blueprintRepository,
+            BlueprintService blueprintService,
             UnitOfWork unitOfWork,
             IMapper mapper
         )
         {
             _blueprintRepository = blueprintRepository;
+            _blueprintService = blueprintService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -32,11 +36,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<BlueprintResource>> Create([FromBody] BlueprintCreateResource createResource)
         {
-            createResource.CreatedAt = DateTime.Now;
-            createResource.UpdatedAt = DateTime.Now;
-
             //Map entity
             var entity = _mapper.Map<BlueprintCreateResource, Blueprint>(createResource);
+
+            entity.CreatedAt = DateTime.Now;
+            entity.UpdatedAt = DateTime.Now;
 
             // Add entity
             _blueprintRepository.Add(entity);
@@ -131,6 +135,26 @@ namespace PlanStack.Backend.WebAPI.Controllers
             }
 
             return Ok();
+        }
+        #endregion
+
+        #region Update
+        [HttpPut("save/{entityId}")]
+        public async Task<ActionResult> Save(int entityId, [FromBody] BlueprintSaveResource saveResource)
+        {
+            var entity = await _blueprintRepository.GetAsync(entityId, true);
+            if (entity == null)
+                return NotFound();
+
+            await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity, saveResource.BuildingStructures);
+
+            _mapper.Map<BlueprintSaveResource, Blueprint>(saveResource, entity);
+
+            entity.UpdatedAt = DateTime.Now;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return NoContent();
         }
         #endregion
     }

@@ -1,6 +1,8 @@
-﻿namespace PlanStack.Backend.Database.DataModels
+﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+
+namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 {
-    public class BlueprintBuildingStructure : BaseRelationDataModel
+    public class BlueprintBuildingStructureSaveResource
     {
         public int Height { get; set; }
         public int Width { get; set; }
@@ -11,13 +13,10 @@
         public float TotalPrice { get; set; }
 
         #region Relations
-        public virtual Blueprint Blueprint { get; set; }
         public int? BlueprintId { get; set; }
-
-        public virtual BuildingStructure BuildingStructure { get; set; }
         public int? BuildingStructureId { get; set; }
 
-        //public virtual ICollection<BSBlueprintPosition> Positions { get; set; }
+        //public virtual List<BSBlueprintPositionSaveResource> Positions { get; set; }
         #endregion
     }
 }

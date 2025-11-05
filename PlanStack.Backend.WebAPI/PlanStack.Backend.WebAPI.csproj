@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PlanStack.Backend.Database\PlanStack.Backend.Database.csproj" />
-    <ProjectReference Include="..\PlanStack.Backend.Services\PlanStack.Backend.Services.csproj" />
   </ItemGroup>
 
 </Project>

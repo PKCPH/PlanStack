@@ -3,7 +3,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure
 {
-    public class BuildingStructureUpdateResource : BaseResource
+    public class BuildingStructureUpdateResource
     {
         public BuildingStructureCategoryEnum Category { get; set; }
         public string Material { get; set; }

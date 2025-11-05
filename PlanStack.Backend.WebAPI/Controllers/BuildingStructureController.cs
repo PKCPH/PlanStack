@@ -32,11 +32,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<BuildingStructureResource>> Create([FromBody] BuildingStructureCreateResource createResource)
         {
-            createResource.CreatedAt = DateTime.Now;
-            createResource.UpdatedAt = DateTime.Now;
-
             //Map entity
             var entity = _mapper.Map<BuildingStructureCreateResource, BuildingStructure>(createResource);
+
+            entity.CreatedAt = DateTime.Now;
+            entity.UpdatedAt = DateTime.Now;
 
             // Add entity
             _buildingStructureRepository.Add(entity);
@@ -95,11 +95,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] BuildingStructureUpdateResource updateResource)
         {
-            updateResource.UpdatedAt = DateTime.Now;
-
             var entity = await _buildingStructureRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
+
+            entity.UpdatedAt = DateTime.Now;
 
             _mapper.Map<BuildingStructureUpdateResource, BuildingStructure>(updateResource, entity);
 

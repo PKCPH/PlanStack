@@ -6,8 +6,8 @@ using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.Core;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
-using PlanStack.Backend.Services;
 using PlanStack.Backend.WebAPI.Handlers;
+using PlanStack.Backend.WebAPI.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,6 +55,7 @@ builder.Services.AddScoped<JwtHandler>();
 
 // Adding Services
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<BlueprintService>();
 
 // Adding Repositories
 builder.Services.AddScoped<UserRepository>();
@@ -102,11 +103,11 @@ await DatabaseInitializer.SeedComponentsAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 // Enable Swagger
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
 
 // Enables Cors
 app.UseCors("AllowDevelopment");

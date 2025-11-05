@@ -4,9 +4,9 @@ using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
-using PlanStack.Backend.Services;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
@@ -102,11 +102,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] ComponentUpdateResource updateResource)
         {
-            updateResource.UpdatedAt = DateTime.Now;
-
             var entity = await _componentRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
+
+            entity.UpdatedAt = DateTime.Now;
 
             _mapper.Map<ComponentUpdateResource, Component>(updateResource, entity);
 
