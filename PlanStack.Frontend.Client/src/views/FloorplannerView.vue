@@ -34,8 +34,83 @@
         />
 
         <Teleport to="#right-tools-container">
-          <!-- Blueprint info and saving -->
-          <v-list-subheader>Blueprint Details</v-list-subheader>
+          <v-list-subheader>Blueprints</v-list-subheader>
+
+          <!-- Error State -->
+          <v-alert
+            v-if="listErrorMessage"
+            type="error"
+            density="compact"
+            class="mb-2"
+          >
+            {{ listErrorMessage }}
+          </v-alert>
+
+          <!-- Empty State -->
+          <v-list-item
+            v-if="
+              !isLoadingList && blueprintsList.length === 0 && !listErrorMessage
+            "
+          >
+            <v-list-item-title class="text-caption"
+              >No saved blueprints found.</v-list-item-title
+            >
+          </v-list-item>
+
+          <!-- Blueprint List -->
+          <v-list
+            v-if="!isLoadingList && blueprintsList.length > 0"
+            density="compact"
+            nav
+            class="mb-2"
+            style="
+              max-height: 250px;
+              overflow-y: auto;
+              border: 1px solid #eee;
+              border-radius: 4px;
+            "
+          >
+            <v-list-item
+              v-for="blueprint in blueprintsList"
+              :key="blueprint.id"
+              @click="loadBlueprint(blueprint)"
+              :active="blueprint.id === activeBlueprintId"
+              color="primary"
+            >
+              <v-list-item-title>{{ blueprint.name }}</v-list-item-title>
+              <v-list-item-subtitle>
+                Floor {{ blueprint.floor }} | {{ blueprint.width }}x{{
+                  blueprint.height
+                }}
+              </v-list-item-subtitle>
+              <template v-slot:append>
+                <v-icon size="small">
+                  {{
+                    blueprint.id === activeBlueprintId
+                      ? "mdi-select-inverse"
+                      : "mdi-select"
+                  }}
+                </v-icon>
+              </template>
+            </v-list-item>
+          </v-list>
+
+          <v-btn
+            block
+            color="info"
+            @click="fetchBlueprints"
+            :loading="isLoadingList"
+            size="small"
+            variant="tonal"
+            class="mb-4"
+          >
+            <v-icon start>mdi-refresh</v-icon>
+            Refresh
+          </v-btn>
+
+          <v-divider class="my-6"></v-divider>
+
+          <v-list-subheader>Blueprint Details (Create/Update)</v-list-subheader>
 
           <v-text-field
             v-model="blueprintName"
@@ -243,18 +318,57 @@ const blueprintName = ref("");
 const blueprintDescription = ref("");
 const maxOccupancy = ref(0);
 const floor = ref(1);
+const activeBlueprintId = ref(null); // Keep track of the loaded blueprint ID
 
 // API Logic Integration from useBlueprintsApi.js
 // Using a CORS proxy to bypass cross-origin restrictions in the browser
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/api/blueprints";
 
+//saving states
 const isSaving = ref(false);
 const saveMessage = ref("");
-const lastSavedBlueprint = ref(null);
 
-// request to create blueprint using native fetch (not using axios for now)
+// loading states
+const blueprintsList = ref([]);
+const isLoadingList = ref(false);
+const listErrorMessage = ref("");
 
+// get blueprints
+const fetchBlueprints = async () => {
+  isLoadingList.value = true;
+  listErrorMessage.value = "";
+  try {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(BLUEPRINTS_API_URL)}`;
+    const response = await fetch(proxiedUrl, {
+      method: "GET",
+      headers: {
+        Host: "planstack.dk",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    blueprintsList.value = data.entities;
+
+    if (data.entities.length === 0) {
+      updateStatus(
+        "No saved blueprints found in the database.",
+        "text-blue-600"
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching blueprints:", error);
+    listErrorMessage.value = `Error fetching list: ${error.message}`;
+  } finally {
+    isLoadingList.value = false;
+  }
+};
+// post blueprints
 const saveBlueprintToAPI = async (blueprintData) => {
   if (!blueprintData.name) {
     saveMessage.value = "Error: Blueprint Name is required.";
@@ -263,8 +377,8 @@ const saveBlueprintToAPI = async (blueprintData) => {
 
   isSaving.value = true;
   saveMessage.value = "Saving blueprint...";
-  lastSavedBlueprint.value = null;
 
+  //TODO: add PUT
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(BLUEPRINTS_API_URL)}`;
 
@@ -290,10 +404,10 @@ const saveBlueprintToAPI = async (blueprintData) => {
 
     const data = await response.json();
     console.log("API Response:", data);
-
-    lastSavedBlueprint.value = data;
     saveMessage.value = `Blueprint saved successfully!`;
-    return data;
+
+    // refresh blueprint list after saving
+    fetchBlueprints();
   } catch (error) {
     console.error("Error saving blueprint:", error);
     saveMessage.value = `Error saving blueprint: ${error.message || "An unknown error occurred"}.`;
@@ -364,17 +478,6 @@ const draw = () => {
     }
     drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, WALL_COLOR);
   });
-
-  if (hoveredWall.value && currentTool.value === "eraseWall") {
-    drawWall(
-      ctx,
-      hoveredWall.value.startX,
-      hoveredWall.value.startY,
-      hoveredWall.value.endX,
-      hoveredWall.value.endY,
-      ERASE_HIGHLIGHT_COLOR
-    );
-  }
 
   if (isDrawing.value && currentTool.value === "drawWall") {
     drawWall(
@@ -459,7 +562,6 @@ const handleMouseUp = () => {
 
       const updatedWalls = [...walls.value, newWall];
       walls.value = updatedWalls;
-      saveWallsToDb(updatedWalls);
     }
   } else if (currentTool.value === "eraseWall") {
     // Erase logic: check if the click point is near any wall
@@ -534,7 +636,6 @@ const handleMouseLeave = () => {
 
 const clearFloorplan = () => {
   walls.value = [];
-  saveWallsToDb([]);
   updateStatus("Floorplan cleared. Syncing empty plan...", "text-gray-600");
 };
 
@@ -620,6 +721,9 @@ const handleSave = async () => {
 
   // main payload
   const apiPayload = {
+    // add id if updating
+    ...(activeBlueprintId.value && { id: activeBlueprintId.value }),
+
     name: blueprintName.value,
     description: blueprintDescription.value,
     max_occupancy: maxOccupancy.value,
@@ -628,18 +732,47 @@ const handleSave = async () => {
     // Canvas size
     height: canvasHeightCells.value,
     width: canvasWidthCells.value,
+
+    // add walls as json string
+    floorplan_data: JSON.stringify(drawingDataPayload),
   };
 
   await saveBlueprintToAPI(apiPayload);
 };
 
+const loadBlueprint = (blueprint) => {
+  console.log("Loading blueprint:", blueprint);
+
+  activeBlueprintId.value = blueprint.id;
+  blueprintName.value = blueprint.name;
+  blueprintDescription.value = blueprint.description || "";
+  maxOccupancy.value = blueprint.maxOccupancy || 0;
+  floor.value = blueprint.floor || 1;
+  canvasWidthCells.value = blueprint.width || 40;
+  canvasHeightCells.value = blueprint.height || 40;
+
+  createCanvas();
+
+  if (blueprint.floorplan_data) {
+    try {
+      const drawingData = JSON.parse(blueprint.floorplan_data);
+    } catch (e) {
+      console.error("Failed to parse floorplan data", e);
+      updateStatus(
+        "Failed to load drawing data. It might be corrupt.",
+        "text-red-500"
+      );
+    }
+  } else {
+  }
+
+  updateStatus(`Loaded blueprint: ${blueprint.name}`, "text-green-600");
+};
+
 // Firebase Init (this iscalled after canvas is creation)
 const startFirebaseInitialization = async () => {
   if (Object.keys(firebaseConfig).length === 0) {
-    updateStatus(
-      "Database is unavailable. Data will not be synced. (Missing config)",
-      "text-red-500"
-    );
+    updateStatus("Database is unavailable", "text-red-500");
     return;
   }
 
@@ -705,6 +838,10 @@ const listenForPlanUpdates = () => {
     }
   );
 };
+
+onMounted(() => {
+  fetchBlueprints();
+});
 </script>
 
 <style scoped>
