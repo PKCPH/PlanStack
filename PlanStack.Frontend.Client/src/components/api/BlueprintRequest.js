@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import axios from "axios";
 
-const BLUEPRINTS_API_URL = "http://planstack.dk/api/api/blueprints";
+const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
 
 export function useBlueprintsApi() {
   const isSaving = ref(false);

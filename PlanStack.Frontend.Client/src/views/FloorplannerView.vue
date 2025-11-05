@@ -323,7 +323,7 @@ const activeBlueprintId = ref(null); // Keep track of the loaded blueprint ID
 // API Logic Integration from useBlueprintsApi.js
 // Using a CORS proxy to bypass cross-origin restrictions in the browser
 const CORS_PROXY_URL = "https://corsproxy.io/?";
-const BLUEPRINTS_API_URL = "http://planstack.dk/api/api/blueprints";
+const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
 
 //saving states
 const isSaving = ref(false);
