@@ -404,23 +404,6 @@ const isPointNearWall = (px, py, wall) => {
   return distance <= WALL_THICKNESS + ERASE_TOLERANCE;
 };
 
-// const saveWallsToDb = async (newWalls) => {
-//   if (!isDbReady.value || !userId.value || !db) return;
-
-//   const docRef = getWallDocRef();
-//   updateStatus("Syncing floorplan data...", "text-yellow-600");
-//   try {
-//     await setDoc(docRef, {
-//       walls: newWalls,
-//       updatedAt: Date.now(),
-//     });
-//     updateStatus("Drawing data synced.", "text-green-600");
-//   } catch (error) {
-//     console.error("Error saving document: ", error);
-//     updateStatus("Error syncing drawing data. Check console.", "text-red-500");
-//   }
-// };
-
 // Event Handlers
 
 const getCanvasCoords = (event) => {
@@ -682,8 +665,6 @@ const startFirebaseInitialization = async () => {
     isDbReady.value = false;
   }
 };
-
-// Vue Lifecycle an Watchers
 
 // Watch walls state to trigger redraw when data is loaded from Firebase
 watch(walls, draw, { deep: true });
