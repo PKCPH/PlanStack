@@ -58,9 +58,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
                 return Ok(resource);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return BadRequest(e.Message);
+                // [THE FIX] Return 200 OK, but with a success=false flag and the error message
+                return Ok(new { success = false, message = $"Server Crash: {ex.Message}" });
             }
         }
         #endregion
