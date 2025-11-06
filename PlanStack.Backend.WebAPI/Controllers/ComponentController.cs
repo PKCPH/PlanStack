@@ -36,25 +36,32 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<ComponentResource>> Create([FromForm] ComponentCreateResource createResource)
         {
-            //Map entity
-            var entity = _mapper.Map<ComponentCreateResource, Component>(createResource);
+            try
+            {
+                //Map entity
+                var entity = _mapper.Map<ComponentCreateResource, Component>(createResource);
 
-            var imagePath = _imageService.SaveImage(entity.Name, createResource.ImgFile);
+                var imagePath = _imageService.SaveImage(entity.Name, createResource.ImgFile);
 
-            entity.CreatedAt = DateTime.Now;
-            entity.UpdatedAt = DateTime.Now;
-            entity.ImgPath = imagePath;
+                entity.CreatedAt = DateTime.Now;
+                entity.UpdatedAt = DateTime.Now;
+                entity.ImgPath = imagePath;
 
-            // Add entity
-            _componentRepository.Add(entity);
+                // Add entity
+                _componentRepository.Add(entity);
 
-            // Save changes
-            await _unitOfWork.SaveChangesAsync();
+                // Save changes
+                await _unitOfWork.SaveChangesAsync();
 
-            // Map entity to resource
-            var resource = _mapper.Map<Component, ComponentResource>(entity);
+                // Map entity to resource
+                var resource = _mapper.Map<Component, ComponentResource>(entity);
 
-            return Ok(resource);
+                return Ok(resource);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
         #endregion
 
