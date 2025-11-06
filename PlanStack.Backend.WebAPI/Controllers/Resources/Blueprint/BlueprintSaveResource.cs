@@ -1,4 +1,5 @@
 ﻿using PlanStack.Backend.Database.DataModels;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint

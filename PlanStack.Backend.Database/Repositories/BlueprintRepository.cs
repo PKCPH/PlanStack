@@ -1,4 +1,5 @@
-﻿using PlanStack.Backend.Database.DataModels;
+﻿using Microsoft.EntityFrameworkCore;
+using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
@@ -8,5 +9,16 @@ namespace PlanStack.Backend.Database.Repositories
         public BlueprintRepository(DatabaseContext context) : base(context)
         {
         }
+
+        #region ApplyRelations
+        protected override IQueryable<Blueprint> ApplyRelations(IQueryable<Blueprint> query)
+        {
+            query = query
+                .Include(x => x.BuildingStructures)
+                .ThenInclude(x => x.BuildingStructure);
+
+            return base.ApplyRelations(query);
+        }
+        #endregion
     }
 }

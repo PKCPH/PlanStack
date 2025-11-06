@@ -1,4 +1,5 @@
-﻿using PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure;
+﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure;
+using PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
@@ -12,8 +13,8 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
         public int Width { get; set; }
 
         #region Relations
-        public virtual ICollection<ComponentResource> Components { get; set; }
-        public virtual ICollection<BuildingStructureResource> BuildingStructures { get; set; }
+        //public virtual ICollection<BlueprintComponentResource> Components { get; set; }
+        public virtual ICollection<BlueprintBuildingStructureResource> BuildingStructures { get; set; }
         #endregion
 
         #region Helpers

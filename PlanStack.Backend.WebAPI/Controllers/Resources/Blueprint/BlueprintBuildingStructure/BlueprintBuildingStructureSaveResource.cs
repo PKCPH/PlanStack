@@ -1,6 +1,6 @@
 ﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
-namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
+namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure
 {
     public class BlueprintBuildingStructureSaveResource
     {
