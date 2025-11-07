@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Adding CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowDevelopment", builder => builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+    options.AddPolicy("AllowDevelopment", builder => builder.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
     options.AddPolicy("AllowProduction", builder => builder.WithOrigins("https://planstack.dk").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 });
 

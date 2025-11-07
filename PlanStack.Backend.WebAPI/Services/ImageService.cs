@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace PlanStack.Backend.WebAPI.Services
@@ -17,10 +18,17 @@ namespace PlanStack.Backend.WebAPI.Services
         {
             try
             {
-                var contentPath = this.environment.ContentRootPath;
-                var folderName = "Uploads";
+                var rootPath = "";
 
-                var path = Path.Combine(contentPath, folderName);
+                if (environment.IsDevelopment())
+                    rootPath = this.environment.ContentRootPath;
+
+                if (environment.IsProduction())
+                    rootPath = this.environment.WebRootPath;
+
+                var folderName = "Uploads";
+                var path = Path.Combine(rootPath, folderName);
+
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
