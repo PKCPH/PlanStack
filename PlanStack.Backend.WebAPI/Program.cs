@@ -109,6 +109,13 @@ app.UseSwagger();
 app.UseSwaggerUI();
 //}
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
+    RequestPath = "/api/Uploads"
+});
+
 // Enables Cors
 app.UseCors("AllowDevelopment");
 app.UseCors("AllowProduction");
