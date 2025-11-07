@@ -56,7 +56,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
                 // Map entity to resource
                 var resource = _mapper.Map<Component, ComponentResource>(entity);
 
-                return Ok(resource);
+                return Ok(new { success = true });
             }
             catch (Exception ex)
             {

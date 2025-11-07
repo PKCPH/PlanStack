@@ -188,12 +188,10 @@ const handleSave = async () => {
   payload.append("Price", formData.value.price);
   payload.append("SquareMeters", formData.value.squareMeters);
 
-  if (formData.value.imgFile && formData.value.imgFile.length > 0) {
-    const fileToSend = formData.value.imgFile[0];
-    console.log("File being added to FormData:", fileToSend);
-
-    payload.append("ImgFile", fileToSend);
-  }
+if (formData.value.imgFile) {
+  console.log("File being added to FormData:", formData.value.imgFile);
+  payload.append("ImgFile", formData.value.imgFile);
+}
 
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace PlanStack.Backend.WebAPI.Services
@@ -17,14 +18,15 @@ namespace PlanStack.Backend.WebAPI.Services
         {
             try
             {
-                var contentPath = this.environment.ContentRootPath;
-                var folderName = "Uploads";
+                if (imgFile == null || imgFile.Length == 0)
+                    throw new IOException("Image file is null or empty.");
 
-                var path = Path.Combine(contentPath, folderName);
+                var rootPath = this.environment.ContentRootPath;
+
+                var path = Path.Combine(rootPath, "Uploads");
+
                 if (!Directory.Exists(path))
-                {
                     Directory.CreateDirectory(path);
-                }
 
                 var ext = Path.GetExtension(imgFile.FileName);
                 var allowedExtensions = new string[] { ".jpg", ".png", ".jpeg", ".avif" };
@@ -44,7 +46,7 @@ namespace PlanStack.Backend.WebAPI.Services
             }
             catch (Exception ex)
             {
-                throw new IOException($"Error saving image '{componentName}'.", ex);
+                throw new IOException($"Error saving image '{componentName}'. {ex.Message}", ex);
             }
         }
         #endregion
