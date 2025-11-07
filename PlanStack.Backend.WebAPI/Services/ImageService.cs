@@ -18,16 +18,9 @@ namespace PlanStack.Backend.WebAPI.Services
         {
             try
             {
-                var rootPath = "";
+                var rootPath = this.environment.ContentRootPath;
 
-                if (environment.IsDevelopment())
-                    rootPath = this.environment.ContentRootPath;
-
-                if (environment.IsProduction())
-                    rootPath = this.environment.WebRootPath;
-
-                var folderName = "Uploads";
-                var path = Path.Combine(rootPath, folderName);
+                var path = Path.Combine(rootPath, "Uploads");
 
                 if (!Directory.Exists(path))
                 {
