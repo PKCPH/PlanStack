@@ -18,14 +18,15 @@ namespace PlanStack.Backend.WebAPI.Services
         {
             try
             {
+                if (imgFile == null || imgFile.Length == 0)
+                    throw new IOException("Image file is null or empty.");
+
                 var rootPath = this.environment.ContentRootPath;
 
                 var path = Path.Combine(rootPath, "Uploads");
 
                 if (!Directory.Exists(path))
-                {
                     Directory.CreateDirectory(path);
-                }
 
                 var ext = Path.GetExtension(imgFile.FileName);
                 var allowedExtensions = new string[] { ".jpg", ".png", ".jpeg", ".avif" };
