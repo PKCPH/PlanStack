@@ -52,7 +52,7 @@ namespace PlanStack.Backend.WebAPI.Services
             }
             catch (Exception ex)
             {
-                throw new IOException($"Error saving image '{componentName}'.", ex);
+                throw new IOException($"Error saving image '{componentName}'. {ex.Message}", ex);
             }
         }
         #endregion
