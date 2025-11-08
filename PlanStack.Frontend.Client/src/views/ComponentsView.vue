@@ -12,11 +12,101 @@
       </v-col>
     </v-row>
 
-    <!-- create component -->
+    <!-- component table -->
+    <v-card>
+      <v-data-table
+        :headers="tableHeaders"
+        :items="componentsList"
+        :loading="isLoadingList"
+        :items-per-page="10"
+        class="elevation-1"
+      >
+        <!-- loading -->
+        <template v-slot:loading>
+          <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+        </template>
+
+        <!-- errors-->
+        <template v-slot:no-data>
+          <v-alert
+            :type="listError ? 'error' : 'info'"
+            variant="tonal"
+            class="ma-4"
+          >
+            {{
+              listError
+                ? listError
+                : 'No components found. Click "Add New Component" to get started.'
+            }}
+          </v-alert>
+        </template>
+
+        <!-- image -->
+        <template v-slot:item.imgPath="{ item }">
+          <v-avatar class="ma-2" rounded="0">
+            <v-img
+              :src="transformImageUrl(item.imgPath)"
+              :alt="item.name"
+              height="40"
+              width="40"
+              cover
+            >
+              <template v-slot:error>
+                <v-icon color="grey-lighten-1">mdi-image-off</v-icon>
+              </template>
+            </v-img>
+          </v-avatar>
+        </template>
+
+        <!-- categories -->
+        <template v-slot:item.category="{ item }">
+          <v-chip size="small" :color="getCategoryColor(item.category)">
+            {{ getCategoryName(item.category) }}
+          </v-chip>
+        </template>
+
+        <!-- prices -->
+        <template v-slot:item.price="{ item }">
+          <span class="text-green-darken-1 font-weight-bold">
+            ${{ item.price.toFixed(2) }}
+          </span>
+        </template>
+
+        <!-- size -->
+        <template v-slot:item.squareMeters="{ item }">
+          <span>{{ item.squareMeters }} m²</span>
+        </template>
+
+        <!-- table actions -->
+        <template v-slot:item.actions="{ item }">
+          <v-icon
+            small
+            class="me-2"
+            @click="editComponent(item)"
+            color="grey-darken-1"
+            aria-label="Edit item"
+          >
+            mdi-pencil
+          </v-icon>
+          <v-icon
+            small
+            @click="deleteComponent(item)"
+            color="red-darken-1"
+            aria-label="Delete item"
+          >
+            mdi-delete
+          </v-icon>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <!-- dialog for create and update -->
     <v-dialog v-model="dialog" max-width="800px" persistent>
       <v-card>
         <v-card-title>
-          <span class="text-h5">Add New Component</span>
+          <span class="text-h5">{{
+            editingId ? "Edit Component" : "Add New Component"
+          }}</span>
         </v-card-title>
 
         <v-card-text>
@@ -86,7 +176,13 @@
                 v-model="formData.imgFile"
                 label="Component Image"
                 accept="image/*"
-                :rules="rules.requiredFile"
+                :rules="editingId ? [] : rules.requiredFile"
+                :hint="
+                  editingId
+                    ? 'Leave this field blank to keep existing image'
+                    : ''
+                "
+                persistent-hint
                 density="compact"
                 class="mt-2"
                 show-size
@@ -120,18 +216,56 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- delete dialog -->
+    <v-dialog v-model="isDeletingDialog" max-width="500px" persistent>
+      <v-card>
+        <v-card-title class="text-h5"> Are you sure? </v-card-title>
+        <v-card-text>
+          Are you sure you want to delete the component
+          <strong>{{ componentToDelete?.name || "this item" }}</strong
+          >? This action cannot be undone.
+        </v-card-text>
+
+        <v-alert v-if="deleteError" type="error" density="compact" class="mx-4">
+          {{ deleteError }}
+        </v-alert>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey-darken-1"
+            variant="text"
+            @click="closeDeleteDialog"
+            :disabled="isDeleting"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="red-darken-1"
+            variant="elevated"
+            @click="confirmDelete"
+            :loading="isDeleting"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
-const COMPONENTS_API_URL = "http://planstack.dk/api/components";
+const API_BASE_URL = "http://planstack.dk";
+const COMPONENTS_API_URL = `${API_BASE_URL}/api/components`;
 
 const dialog = ref(false);
-
 const formRef = ref(null);
+const editingId = ref(null);
+
 const defaultFormData = {
   name: "",
   description: "",
@@ -139,26 +273,60 @@ const defaultFormData = {
   model: "",
   price: 0,
   squareMeters: 0,
-  imgFile: [], // v-file-input v-model (array)
+  imgFile: null,
 };
 const formData = ref({ ...defaultFormData });
 
+// saving
 const isSaving = ref(false);
 const saveError = ref(null);
 
+//table
+const componentsList = ref([]);
+const isLoadingList = ref(false);
+const listError = ref(null);
+
+// delete
+const isDeletingDialog = ref(false);
+const isDeleting = ref(false);
+const componentToDelete = ref(null);
+const deleteError = ref(null);
+
+const tableHeaders = ref([
+  {
+    title: "Image",
+    key: "imgPath",
+    sortable: false,
+    width: "80px",
+    align: "center",
+  },
+  { title: "Name", key: "name" },
+  { title: "Category", key: "category" },
+  { title: "Model/SKU", key: "model", sortable: false },
+  { title: "Price", key: "price" },
+  { title: "Size", key: "squareMeters" },
+  { title: "Actions", key: "actions", sortable: false, align: "end" },
+]);
+
 const categoryOptions = [
-  { title: "Table", value: 0 },
-  { title: "Toilet", value: 1 },
-  { title: "Chair", value: 2 },
-  { title: "Sofa", value: 3 },
-  { title: "Cabinet", value: 4 },
-  { title: "Wardrobe", value: 5 },
-  { title: "Other", value: 99 },
+  { title: "Table", value: 0, color: "blue-lighten-1" },
+  { title: "Toilet", value: 1, color: "teal-lighten-1" },
+  { title: "Chair", value: 2, color: "orange-lighten-1" },
+  { title: "Sofa", value: 3, color: "red-lighten-1" },
+  { title: "Cabinet", value: 4, color: "purple-lighten-1" },
+  { title: "Wardrobe", value: 5, color: "brown-lighten-1" },
+  { title: "Other", value: 99, color: "grey-lighten-1" },
 ];
 
-// validation (TODO)
-const rules = {};
+// validation
+const rules = {
+  required: [(v) => !!v || "This field is required"],
+  requiredFile: [(v) => !!v || "A file is required"],
+};
+
 const openDialog = () => {
+  editingId.value = null;
+  resetForm();
   dialog.value = true;
 };
 
@@ -170,9 +338,132 @@ const closeDialog = () => {
 const resetForm = () => {
   formData.value = { ...defaultFormData };
   saveError.value = null;
+  editingId.value = null;
   formRef.value?.resetValidation();
 };
 
+// functions for comp list
+
+const fetchComponents = async () => {
+  isLoadingList.value = true;
+  listError.value = null;
+  componentsList.value = [];
+
+  try {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;
+    const response = await fetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data && data.entities) {
+      componentsList.value = data.entities;
+    } else if (Array.isArray(data)) {
+      componentsList.value = data;
+    } else {
+      console.warn("Unexpected API response format:", data);
+    }
+  } catch (error) {
+    console.error("Error fetching components:", error);
+    listError.value = error.message;
+  } finally {
+    isLoadingList.value = false;
+  }
+};
+
+const transformImageUrl = (imgPath) => {
+  if (!imgPath) {
+    return "";
+  }
+  const fileName = imgPath.split(/[\\\/]/).pop();
+  const webUrl = `${API_BASE_URL}/api/Uploads/${fileName}`;
+  return `${CORS_PROXY_URL}${encodeURIComponent(webUrl)}`;
+};
+
+const getCategoryName = (value) => {
+  const category = categoryOptions.find((c) => c.value === value);
+  return category ? category.title : "Unknown";
+};
+
+const getCategoryColor = (value) => {
+  const category = categoryOptions.find((c) => c.value === value);
+  return category ? category.color : "grey";
+};
+
+const editComponent = (component) => {
+  editingId.value = component.id;
+  formData.value = {
+    name: component.name,
+    description: component.description,
+    category: component.category,
+    model: component.model,
+    price: component.price,
+    squareMeters: component.squareMeters,
+    imgFile: null,
+  };
+  dialog.value = true;
+};
+
+// delete funcs
+
+const deleteComponent = (component) => {
+  componentToDelete.value = component;
+  deleteError.value = null;
+  isDeletingDialog.value = true;
+};
+
+const closeDeleteDialog = () => {
+  isDeletingDialog.value = false;
+  isDeleting.value = false;
+  deleteError.value = null;
+  componentToDelete.value = null;
+};
+
+const confirmDelete = async () => {
+  if (!componentToDelete.value) return;
+
+  isDeleting.value = true;
+  deleteError.value = null;
+
+  const id = componentToDelete.value.id;
+  const url = `${COMPONENTS_API_URL}/${id}`;
+
+  try {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+
+    const response = await fetch(proxiedUrl, {
+      method: "DELETE",
+      headers: { Host: "planstack.dk" },
+    });
+
+    if (response.ok) {
+      console.log("Component deleted successfully");
+      closeDeleteDialog();
+      // to refresh list after deleting
+      fetchComponents();
+    } else {
+      let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || JSON.stringify(errorData);
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error deleting component:", error);
+    deleteError.value = error.message; // error to dialog
+  } finally {
+    isDeleting.value = false;
+  }
+};
+
+//to handle create and edit
 const handleSave = async () => {
   const { valid } = await formRef.value.validate();
   if (!valid) return;
@@ -188,16 +479,21 @@ const handleSave = async () => {
   payload.append("Price", formData.value.price);
   payload.append("SquareMeters", formData.value.squareMeters);
 
-if (formData.value.imgFile) {
-  console.log("File being added to FormData:", formData.value.imgFile);
-  payload.append("ImgFile", formData.value.imgFile);
-}
+  if (formData.value.imgFile) {
+    payload.append("ImgFile", formData.value.imgFile);
+  }
+
+  const isUpdating = !!editingId.value;
+  const method = isUpdating ? "PUT" : "POST";
+  const url = isUpdating
+    ? `${COMPONENTS_API_URL}/${editingId.value}`
+    : COMPONENTS_API_URL;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
     const response = await fetch(proxiedUrl, {
-      method: "POST",
+      method: method,
       headers: { Host: "planstack.dk" },
       body: payload,
     });
@@ -205,9 +501,9 @@ if (formData.value.imgFile) {
     const data = await response.json();
 
     if (data.success === true) {
-      console.log("component saved", data.data);
+      console.log("Component saved successfully", data.data);
       closeDialog();
-      // TODO: Refresh componentslist
+      fetchComponents();
     } else {
       throw new Error(data.message || "An unknown server error occurred.");
     }
@@ -218,4 +514,8 @@ if (formData.value.imgFile) {
     isSaving.value = false;
   }
 };
+
+onMounted(() => {
+  fetchComponents();
+});
 </script>
