@@ -379,7 +379,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
   const isUpdating = !!blueprintData.id;
   const method = isUpdating ? "PUT" : "POST";
   const url = isUpdating
-    ? `${BLUEPRINTS_API_URL}/${blueprintData.id}`
+    ? `${BLUEPRINTS_API_URL}/save/${blueprintData.id}`
     : BLUEPRINTS_API_URL;
 
   try {
@@ -738,7 +738,7 @@ const mapWallsToBlueprintStructures = () => {
       startingPositionX: startingPositionX,
       startingPositionY: startingPositionY,
       totalPrice: 0,
-      buildingStructureId: 0,
+      buildingStructureId: 1,
     };
   });
 };
