@@ -223,7 +223,30 @@
             class="mb-4"
             :loading="isLoadingStructureTypes"
             :error-messages="structureTypesError"
-          ></v-select>
+          >
+            <!-- colors for walls -->
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :title="item.raw.name">
+                <template v-slot:prepend>
+                  <v-avatar
+                    :color="item.raw.color"
+                    size="x-small"
+                    class="mr-2"
+                  ></v-avatar>
+                </template>
+              </v-list-item>
+            </template>
+            <template v-slot:selection="{ item }">
+              <div class="d-flex align-center">
+                <v-avatar
+                  :color="item.raw.color"
+                  size="x-small"
+                  class="mr-2"
+                ></v-avatar>
+                <span>{{ item.raw.name }}</span>
+              </div>
+            </template>
+          </v-select>
 
           <v-list-subheader>Drawing Tools</v-list-subheader>
           <div class="d-flex align-center flex-wrap ga-3">
@@ -259,37 +282,17 @@
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from "vue";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-  getAuth,
-  signInAnonymously,
-  signInWithCustomToken,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  onSnapshot,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { useTheme } from "vuetify";
 
 // --- Global Constants from Environment ---
 const theme = useTheme();
-const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
-const firebaseConfig =
-  typeof __firebase_config !== "undefined" ? JSON.parse(__firebase_config) : {};
-const initialAuthToken =
-  typeof __initial_auth_token !== "undefined" ? __initial_auth_token : null;
 
 // --- Configuration ---
 const GRID_SIZE = 20;
 const WALL_THICKNESS = 5;
 const GRID_COLOR = "#e5e7eb";
-const WALL_COLOR = theme.global.current.value.colors.primary;
-const TEMP_WALL_COLOR = "#818cf8";
-
-// building structures
 const DEFAULT_WALL_COLOR = theme.global.current.value.colors.primary;
+const ERASE_HIGHLIGHT_COLOR = "#ef4444";
 
 // Vuetify mapping for status
 const statusColorMap = {
@@ -309,10 +312,6 @@ const statusIconMap = {
   "text-red-500": "mdi-alert-circle",
 };
 
-// Globals for Firebase
-let db;
-let auth;
-
 // Vue Reactive States
 const walls = ref([]);
 const isDrawing = ref(false);
@@ -328,14 +327,13 @@ const canvasHeightCells = ref(40);
 const finalCanvasSize = ref({ width: 0, height: 0 });
 const ERASE_TOLERANCE = 10;
 const hoveredWall = ref(null);
-const ERASE_HIGHLIGHT_COLOR = "#ef4444";
 
 // Blueprint form fields state
 const blueprintName = ref("");
 const blueprintDescription = ref("");
 const maxOccupancy = ref(0);
 const floor = ref(1);
-const activeBlueprintId = ref(null); // Keep track of the loaded blueprint ID
+const activeBlueprintId = ref(null);
 // API Logic Integration
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
@@ -473,7 +471,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
       let errorDetail = response.statusText;
       try {
         const errorData = await response.json();
-        errorDetail = errorData.message || errorDetail;
+        errorDetail = errorData.message || JSON.stringify(errorData);
       } catch (e) {}
       throw new Error(
         `API returned error: Status ${response.status}. Detail: ${errorDetail}`
@@ -513,13 +511,6 @@ const saveBlueprintToAPI = async (blueprintData) => {
 const updateStatus = (message, colorClass = "text-gray-600") => {
   statusMessage.value = message;
   statusClass.value = colorClass;
-};
-
-/** Gets the Firestore document reference for the current user's plan. */
-const getWallDocRef = () => {
-  if (!db || !userId.value) return null;
-  const path = `/artifacts/${appId}/users/${userId.value}/floorplans/current_plan`;
-  return doc(db, path);
 };
 
 // Ensures coordinates snap to the nearest grid intersection.
@@ -735,6 +726,7 @@ const handleMouseLeave = () => {
 const clearFloorplan = () => {
   walls.value = [];
   updateStatus("Floorplan cleared.", "text-gray-600");
+  draw();
 };
 
 const setTool = (tool) => {
@@ -829,9 +821,13 @@ const mapBlueprintStructuresToWalls = (structures) => {
   return structures.map((structure) => {
     const startX = structure.startingPositionX * GRID_SIZE;
     const startY = structure.startingPositionY * GRID_SIZE;
-
     const endX = (structure.startingPositionX + structure.width) * GRID_SIZE;
     const endY = (structure.startingPositionY + structure.height) * GRID_SIZE;
+
+    // we get buildingstructure id from the nested object (maybe change?)
+    const buildingStructureId = structure.buildingStructure
+      ? structure.buildingStructure.id
+      : 1;
 
     if (structure.width > 0) {
       return {
@@ -839,7 +835,7 @@ const mapBlueprintStructuresToWalls = (structures) => {
         startY,
         endX,
         endY: startY,
-        buildingStructureId: structure.buildingStructureId,
+        buildingStructureId,
       };
     } else {
       return {
@@ -847,7 +843,7 @@ const mapBlueprintStructuresToWalls = (structures) => {
         startY,
         endX: startX,
         endY,
-        buildingStructureId: structure.buildingStructureId,
+        buildingStructureId,
       };
     }
   });
@@ -875,7 +871,7 @@ const handleSave = async () => {
     height: canvasHeightCells.value,
     width: canvasWidthCells.value,
 
-    BuildingStructures: buildingStructures,
+    buildingStructures: buildingStructures,
   };
   console.log("Saving to api:", JSON.stringify(apiPayload, null, 2));
 
@@ -914,6 +910,7 @@ const loadBlueprint = (blueprint) => {
   });
 };
 watch(walls, draw, { deep: true });
+watch(buildingStructureTypes, draw, { deep: true });
 
 onMounted(() => {
   fetchBlueprints();
