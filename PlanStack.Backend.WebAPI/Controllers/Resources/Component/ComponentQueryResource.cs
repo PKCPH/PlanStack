@@ -4,6 +4,6 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Component
 {
     public class ComponentQueryResource : BaseQueryResource
     {
-
+        public int? Category { get; set; }
     }
 }
