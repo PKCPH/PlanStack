@@ -209,6 +209,22 @@
           <v-divider class="my-6"></v-divider>
 
           <!-- drawing -->
+
+          <v-divider class="my-6"></v-divider>
+
+          <v-list-subheader>Wall Type</v-list-subheader>
+          <v-select
+            v-model="currentBuildingStructureId"
+            :items="buildingStructureTypes"
+            item-title="name"
+            item-value="id"
+            label="Select wall type to draw"
+            density="compact"
+            class="mb-4"
+            :loading="isLoadingStructureTypes"
+            :error-messages="structureTypesError"
+          ></v-select>
+
           <v-list-subheader>Drawing Tools</v-list-subheader>
           <div class="d-flex align-center flex-wrap ga-3">
             <v-btn color="pink" @click="clearFloorplan" size="small">
@@ -272,6 +288,9 @@ const GRID_COLOR = "#e5e7eb";
 const WALL_COLOR = theme.global.current.value.colors.primary;
 const TEMP_WALL_COLOR = "#818cf8";
 
+// building structures
+const DEFAULT_WALL_COLOR = theme.global.current.value.colors.primary;
+
 // Vuetify mapping for status
 const statusColorMap = {
   "text-gray-600": "grey",
@@ -302,8 +321,6 @@ const tempEndPoint = ref({ x: 0, y: 0 });
 const currentTool = ref("drawWall");
 const statusMessage = ref("Initializing application...");
 const statusClass = ref("text-gray-600");
-const userId = ref(null);
-const isDbReady = ref(false);
 const canvasRef = ref(null);
 const showCanvas = ref(false);
 const canvasWidthCells = ref(40);
@@ -322,6 +339,25 @@ const activeBlueprintId = ref(null); // Keep track of the loaded blueprint ID
 // API Logic Integration
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
+const BUILDING_STRUCTURES_API_URL =
+  "http://planstack.dk/api/buildingstructures";
+
+//building structure states
+const buildingStructureTypes = ref([]);
+const isLoadingStructureTypes = ref(false);
+const structureTypesError = ref(null);
+const currentBuildingStructureId = ref(1);
+
+const COLOR_PALETTE = [
+  theme.global.current.value.colors.primary,
+  "#FF5733",
+  "#33FF57",
+  "#3357FF",
+  "#FF33A1",
+  "#33FFA1",
+  "#A133FF",
+  "#FF8F33",
+];
 
 //saving states
 const isSaving = ref(false);
@@ -331,6 +367,45 @@ const saveMessage = ref("");
 const blueprintsList = ref([]);
 const isLoadingList = ref(false);
 const listErrorMessage = ref("");
+
+// get building structures
+const fetchBuildingStructureTypes = async () => {
+  isLoadingStructureTypes.value = true;
+  structureTypesError.value = null;
+  try {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(BUILDING_STRUCTURES_API_URL)}`;
+    const response = await fetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
+    }
+    const data = await response.json();
+
+    // assign colors to each
+    buildingStructureTypes.value = data.entities.map((type, index) => ({
+      ...type,
+      // colors
+      color: type.color || COLOR_PALETTE[index % COLOR_PALETTE.length],
+    }));
+
+    // default drawing ID
+    if (buildingStructureTypes.value.length > 0) {
+      currentBuildingStructureId.value = buildingStructureTypes.value[0].id;
+    }
+  } catch (error) {
+    console.error("Error fetching building structure types:", error);
+    structureTypesError.value = `Failed to load wall types: ${error.message}`;
+  } finally {
+    isLoadingStructureTypes.value = false;
+  }
+};
+
+const getColorForStructureId = (id) => {
+  const structure = buildingStructureTypes.value.find((s) => s.id === id);
+  return structure ? structure.color : DEFAULT_WALL_COLOR;
+};
 
 // get blueprints
 const fetchBlueprints = async () => {
@@ -490,18 +565,23 @@ const draw = () => {
   walls.value.forEach((wall) => {
     // highlighting hovered wall when in erase mode
     const isHovered = hoveredWall.value && wall === hoveredWall.value;
-    const color = isHovered ? ERASE_HIGHLIGHT_COLOR : WALL_COLOR;
+
+    const color = isHovered
+      ? ERASE_HIGHLIGHT_COLOR
+      : getColorForStructureId(wall.buildingStructureId);
+
     drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, color);
   });
 
   if (isDrawing.value && currentTool.value === "drawWall") {
+    const tempColor = getColorForStructureId(currentBuildingStructureId.value);
     drawWall(
       ctx,
       startPoint.value.x,
       startPoint.value.y,
       tempEndPoint.value.x,
       tempEndPoint.value.y,
-      TEMP_WALL_COLOR
+      tempColor
     );
   }
 };
@@ -572,6 +652,7 @@ const handleMouseUp = () => {
         startY: startPoint.value.y,
         endX: tempEndPoint.value.x,
         endY: tempEndPoint.value.y,
+        buildingStructureId: currentBuildingStructureId.value,
       };
 
       const updatedWalls = [...walls.value, newWall];
@@ -738,7 +819,7 @@ const mapWallsToBlueprintStructures = () => {
       startingPositionX: startingPositionX,
       startingPositionY: startingPositionY,
       totalPrice: 0,
-      buildingStructureId: 1,
+      buildingStructureId: wall.buildingStructureId || 1,
     };
   });
 };
@@ -753,9 +834,21 @@ const mapBlueprintStructuresToWalls = (structures) => {
     const endY = (structure.startingPositionY + structure.height) * GRID_SIZE;
 
     if (structure.width > 0) {
-      return { startX, startY, endX, endY: startY };
+      return {
+        startX,
+        startY,
+        endX,
+        endY: start,
+        buildingStructureId: structure.buildingStructureId,
+      };
     } else {
-      return { startX, startY, endX: startX, endY };
+      return {
+        startX,
+        startY,
+        endX: startX,
+        endY,
+        buildingStructureId: structure.buildingStructureId,
+      };
     }
   });
 };
@@ -824,6 +917,7 @@ watch(walls, draw, { deep: true });
 
 onMounted(() => {
   fetchBlueprints();
+  fetchBuildingStructureTypes();
 });
 </script>
 
