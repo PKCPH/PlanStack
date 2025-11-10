@@ -838,7 +838,7 @@ const mapBlueprintStructuresToWalls = (structures) => {
         startX,
         startY,
         endX,
-        endY: start,
+        endY: startY,
         buildingStructureId: structure.buildingStructureId,
       };
     } else {
