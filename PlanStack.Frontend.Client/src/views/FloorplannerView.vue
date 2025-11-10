@@ -319,9 +319,7 @@ const blueprintDescription = ref("");
 const maxOccupancy = ref(0);
 const floor = ref(1);
 const activeBlueprintId = ref(null); // Keep track of the loaded blueprint ID
-
-// API Logic Integration from useBlueprintsApi.js
-// Using a CORS proxy to bypass cross-origin restrictions in the browser
+// API Logic Integration
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
 
@@ -368,7 +366,7 @@ const fetchBlueprints = async () => {
     isLoadingList.value = false;
   }
 };
-// post blueprints
+// post/put blueprints
 const saveBlueprintToAPI = async (blueprintData) => {
   if (!blueprintData.name) {
     saveMessage.value = "Error: Blueprint Name is required.";
@@ -378,12 +376,17 @@ const saveBlueprintToAPI = async (blueprintData) => {
   isSaving.value = true;
   saveMessage.value = "Saving blueprint...";
 
-  //TODO: add PUT
+  const isUpdating = !!blueprintData.id;
+  const method = isUpdating ? "PUT" : "POST";
+  const url = isUpdating
+    ? `${BLUEPRINTS_API_URL}/${blueprintData.id}`
+    : BLUEPRINTS_API_URL;
+
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(BLUEPRINTS_API_URL)}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
     const response = await fetch(proxiedUrl, {
-      method: "POST",
+      method: method,
       headers: {
         "Content-Type": "application/json",
         Host: "planstack.dk",
@@ -402,9 +405,21 @@ const saveBlueprintToAPI = async (blueprintData) => {
       );
     }
 
-    const data = await response.json();
-    console.log("API Response:", data);
-    saveMessage.value = `Blueprint saved successfully!`;
+    let data = null;
+    if (response.status !== 204) {
+      data = await response.json();
+      console.log("API Response:", data);
+    } else {
+      console.log("API Response: no response");
+    }
+
+    saveMessage.value = `Blueprint ${
+      isUpdating ? "updated" : "saved"
+    } successfully!`;
+
+    if (!isUpdating && data && data.id) {
+      activeBlueprintId.value = data.id;
+    }
 
     // refresh blueprint list after saving
     fetchBlueprints();
@@ -473,10 +488,10 @@ const draw = () => {
 
   // Draw all walls normally
   walls.value.forEach((wall) => {
-    if (hoveredWall.value && wall === hoveredWall.value) {
-      return;
-    }
-    drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, WALL_COLOR);
+    // highlighting hovered wall when in erase mode
+    const isHovered = hoveredWall.value && wall === hoveredWall.value;
+    const color = isHovered ? ERASE_HIGHLIGHT_COLOR : WALL_COLOR;
+    drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, color);
   });
 
   if (isDrawing.value && currentTool.value === "drawWall") {
@@ -546,7 +561,6 @@ const handleMouseUp = () => {
   if (!isDrawing.value) return;
 
   isDrawing.value = false;
-  hoveredWall.value = null; // Clear hover state on mouse up
 
   if (currentTool.value === "drawWall") {
     if (
@@ -578,8 +592,7 @@ const handleMouseUp = () => {
         (_, index) => index !== wallIndexToErase
       );
       walls.value = updatedWalls;
-      saveWallsToDb(updatedWalls);
-      updateStatus("Wall erased. Syncing plan...", "text-yellow-600");
+      updateStatus("Wall erased.", "text-yellow-600");
     } else {
       updateStatus("No wall found to erase at that location.", "text-gray-600");
     }
@@ -632,15 +645,22 @@ const handleMouseLeave = () => {
     hoveredWall.value = null;
     draw();
   }
+
+  if (isDrawing.value) {
+    handleMouseUp();
+  }
 };
 
 const clearFloorplan = () => {
   walls.value = [];
-  updateStatus("Floorplan cleared. Syncing empty plan...", "text-gray-600");
+  updateStatus("Floorplan cleared.", "text-gray-600");
 };
 
 const setTool = (tool) => {
   currentTool.value = tool;
+  hoveredWall.value = null;
+  draw();
+
   if (tool === "drawWall") {
     updateStatus(
       "Drawing tool selected. Click and drag to create walls.",
@@ -667,11 +687,6 @@ const setupCanvasAndListeners = () => {
   canvas.height = heightPixels;
 
   draw();
-
-  // Start Firebase auth if not already started
-  if (!userId.value) {
-    startFirebaseInitialization();
-  }
 };
 
 const createCanvas = () => {
@@ -703,6 +718,48 @@ const createCanvas = () => {
   });
 };
 
+//converting canvas coordinates to gridcells for saving building strucutres to blueprint
+const mapWallsToBlueprintStructures = () => {
+  return walls.value.map((wall) => {
+    const startCellX = wall.startX / GRID_SIZE;
+    const startCellY = wall.startY / GRID_SIZE;
+    const endCellX = wall.endX / GRID_SIZE;
+    const endCellY = wall.endY / GRID_SIZE;
+
+    const width = Math.abs(endCellX - startCellX);
+    const height = Math.abs(endCellY - startCellY);
+
+    const startingPositionX = Math.min(startCellX, endCellX);
+    const startingPositionY = Math.min(startCellY, endCellY);
+
+    return {
+      height: height,
+      width: width,
+      startingPositionX: startingPositionX,
+      startingPositionY: startingPositionY,
+      totalPrice: 0,
+      buildingStructureId: 0,
+    };
+  });
+};
+
+const mapBlueprintStructuresToWalls = (structures) => {
+  if (!structures) return [];
+  return structures.map((structure) => {
+    const startX = structure.startingPositionX * GRID_SIZE;
+    const startY = structure.startingPositionY * GRID_SIZE;
+
+    const endX = (structure.startingPositionX + structure.width) * GRID_SIZE;
+    const endY = (structure.startingPositionY + structure.height) * GRID_SIZE;
+
+    if (structure.width > 0) {
+      return { startX, startY, endX, endY: startY };
+    } else {
+      return { startX, startY, endX: startX, endY };
+    }
+  });
+};
+
 /**
  * Handles the main save operation, structuring the data and calling the API.
  */
@@ -712,30 +769,22 @@ const handleSave = async () => {
     return;
   }
 
-  const drawingDataPayload = {
-    walls: walls.value,
-    gridSize: GRID_SIZE,
-    canvasWidth: finalCanvasSize.value.width,
-    canvasHeight: finalCanvasSize.value.height,
-  };
+  const buildingStructures = mapWallsToBlueprintStructures();
 
-  // main payload
   const apiPayload = {
-    // add id if updating
     ...(activeBlueprintId.value && { id: activeBlueprintId.value }),
 
     name: blueprintName.value,
     description: blueprintDescription.value,
-    max_occupancy: maxOccupancy.value,
+    maxOccupancy: maxOccupancy.value,
     floor: floor.value,
 
-    // Canvas size
     height: canvasHeightCells.value,
     width: canvasWidthCells.value,
 
-    // add walls as json string
-    floorplan_data: JSON.stringify(drawingDataPayload),
+    BuildingStructures: buildingStructures,
   };
+  console.log("Saving to api:", JSON.stringify(apiPayload, null, 2));
 
   await saveBlueprintToAPI(apiPayload);
 };
@@ -743,6 +792,7 @@ const handleSave = async () => {
 const loadBlueprint = (blueprint) => {
   console.log("Loading blueprint:", blueprint);
 
+  // form fields to set
   activeBlueprintId.value = blueprint.id;
   blueprintName.value = blueprint.name;
   blueprintDescription.value = blueprint.description || "";
@@ -751,93 +801,26 @@ const loadBlueprint = (blueprint) => {
   canvasWidthCells.value = blueprint.width || 40;
   canvasHeightCells.value = blueprint.height || 40;
 
+  //to create or resize canvas
   createCanvas();
 
-  if (blueprint.floorplan_data) {
-    try {
-      const drawingData = JSON.parse(blueprint.floorplan_data);
-    } catch (e) {
-      console.error("Failed to parse floorplan data", e);
-      updateStatus(
-        "Failed to load drawing data. It might be corrupt.",
-        "text-red-500"
-      );
-    }
+  if (blueprint.buildingStructures && blueprint.buildingStructures.length > 0) {
+    walls.value = mapBlueprintStructuresToWalls(blueprint.buildingStructures);
+    updateStatus(`Loaded blueprint: ${blueprint.name}`, "text-green-600");
   } else {
+    // no structures then clear walls
+    walls.value = [];
+    updateStatus(
+      `Loaded blueprint: ${blueprint.name} (No walls found)`,
+      "text-blue-600"
+    );
   }
 
-  updateStatus(`Loaded blueprint: ${blueprint.name}`, "text-green-600");
+  nextTick(() => {
+    draw();
+  });
 };
-
-// Firebase Init (this iscalled after canvas is creation)
-const startFirebaseInitialization = async () => {
-  if (Object.keys(firebaseConfig).length === 0) {
-    updateStatus("Database is unavailable", "text-red-500");
-    return;
-  }
-
-  try {
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isDbReady.value = true;
-
-    updateStatus("Authenticating...");
-    if (initialAuthToken) {
-      await signInWithCustomToken(auth, initialAuthToken);
-    } else {
-      await signInAnonymously(auth);
-    }
-
-    const currentUserId = auth.currentUser?.uid || crypto.randomUUID();
-    userId.value = currentUserId;
-    updateStatus(`User ID: ${currentUserId}. Loading and syncing plan...`);
-  } catch (error) {
-    console.error("Firebase Initialization Error:", error);
-    updateStatus("Authentication failed. Syncing disabled.", "text-red-500");
-    isDbReady.value = false;
-  }
-};
-
-// Watch walls state to trigger redraw when data is loaded from Firebase
 watch(walls, draw, { deep: true });
-
-// Watch user ID to start the Firebase listener once authenticated
-watch(userId, (newUserId) => {
-  if (isDbReady.value && newUserId) {
-    listenForPlanUpdates();
-  }
-});
-
-/** Listens for real-time changes to the plan from Firestore. */
-const listenForPlanUpdates = () => {
-  const docRef = getWallDocRef();
-  if (!docRef) return;
-
-  onSnapshot(
-    docRef,
-    (docSnap) => {
-      if (docSnap.exists() && docSnap.data().walls) {
-        const loadedWalls = docSnap.data().walls;
-
-        // Only update the local state if the incoming data is actually different
-        if (JSON.stringify(loadedWalls) !== JSON.stringify(walls.value)) {
-          walls.value = loadedWalls;
-          updateStatus("Drawing data loaded from database.", "text-blue-600");
-        }
-      } else {
-        updateStatus(
-          "Starting new floorplan (no existing drawing data found).",
-          "text-gray-600"
-        );
-      }
-    },
-    (error) => {
-      console.error("Snapshot Listener Error:", error);
-      updateStatus("Failed to listen for real-time updates.", "text-red-500");
-    }
-  );
-};
 
 onMounted(() => {
   fetchBlueprints();

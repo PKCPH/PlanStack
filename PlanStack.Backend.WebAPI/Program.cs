@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.Core;
 using PlanStack.Backend.Database.DataModels;
@@ -109,9 +110,18 @@ app.UseSwagger();
 app.UseSwaggerUI();
 //}
 
-// Enables Cors
+app.UseHttpsRedirection();
+app.UseRouting();
+
 app.UseCors("AllowDevelopment");
 app.UseCors("AllowProduction");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
+    RequestPath = "/Uploads"
+});
 
 app.UseHttpsRedirection();
 
