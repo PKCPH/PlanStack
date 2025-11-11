@@ -12,7 +12,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
         public int Width { get; set; }
 
         #region Relations
-        //public virtual List<BlueprintComponent> Components { get; set; }
+        public virtual List<BlueprintComponentSaveResource> Components { get; set; }
         public virtual List<BlueprintBuildingStructureSaveResource> BuildingStructures { get; set; }
         #endregion
     }

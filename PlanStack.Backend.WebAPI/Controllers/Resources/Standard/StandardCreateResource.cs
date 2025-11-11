@@ -9,7 +9,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Standard
         public StandardTypeEnum Type { get; set; }
 
         #region Relations
-        public string UserId { get; set; }
+        //public string UserId { get; set; }
         #endregion
     }
 }

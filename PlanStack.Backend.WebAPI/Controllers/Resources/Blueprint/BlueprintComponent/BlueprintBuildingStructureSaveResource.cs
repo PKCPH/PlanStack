@@ -6,7 +6,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuil
     {
         #region Relations
         public int? BlueprintId { get; set; }
-        public int? BuildingStructureId { get; set; }
+        public int? ComponentId { get; set; }
         #endregion
     }
 }

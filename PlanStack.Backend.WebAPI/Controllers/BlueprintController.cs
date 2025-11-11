@@ -146,7 +146,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
             if (entity == null)
                 return NotFound();
 
-            await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity, saveResource.BuildingStructures);
+            if (saveResource.BuildingStructures.Count > 0)
+                await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity, saveResource.BuildingStructures);
+            if (saveResource.Components.Count > 0)
+                await _blueprintService.SaveComponentsToBlueprintAsync(entity, saveResource.Components);
 
             _mapper.Map<BlueprintSaveResource, Blueprint>(saveResource, entity);
 

@@ -5,6 +5,8 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure
 {
     public class BuildingStructureUpdateResource
     {
+        public string Name { get; set; }
+        public string Description { get; set; }
         public BuildingStructureCategoryEnum Category { get; set; }
         public string Material { get; set; }
         public int Price { get; set; }
