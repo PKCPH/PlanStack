@@ -13,7 +13,6 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuil
         public float TotalPrice { get; set; }
 
         #region
-        //public virtual BlueprintResource Blueprint { get; set; }
         public virtual BuildingStructureResource BuildingStructure { get; set; }
         #endregion
     }
