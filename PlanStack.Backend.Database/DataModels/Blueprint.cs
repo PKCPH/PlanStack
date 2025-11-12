@@ -10,6 +10,7 @@
         #region Relations
         public virtual List<BlueprintComponent> Components { get; set; }
         public virtual List<BlueprintBuildingStructure> BuildingStructures { get; set; }
+        public virtual List<BlueprintStandard> Standards { get; set; }
         #endregion
     }
 }

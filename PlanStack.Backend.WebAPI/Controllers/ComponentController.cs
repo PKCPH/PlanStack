@@ -72,7 +72,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         public async Task<ActionResult<ComponentResource>> Get(int entityId)
         {
             // Get entity
-            var entity = await _componentRepository.GetAsync(entityId, true);
+            var entity = await _componentRepository.GetAsync(entityId);
             if (entity == null)
                 return NotFound();
 
@@ -101,7 +101,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             };
 
             // Get entities
-            var queryResult = await _componentRepository.GetAllAsync(query, true);
+            var queryResult = await _componentRepository.GetAllAsync(query);
 
             // Map entities to resource
             var resource = _mapper.Map<BaseQueryResult<Component>, BaseQueryResultResource<ComponentResource>>(queryResult);
@@ -112,11 +112,19 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
         #region Update
         [HttpPut("{entityId}")]
-        public async Task<ActionResult> Update(int entityId, [FromBody] ComponentUpdateResource updateResource)
+        public async Task<ActionResult> Update(int entityId, [FromForm] ComponentUpdateResource updateResource)
         {
             var entity = await _componentRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
+
+            var imagePath = "";
+            if (updateResource.ImgFile != null)
+            {
+                _imageService.DeleteImage(entity.ImgPath);
+                imagePath = _imageService.SaveImage(entity.Name, updateResource.ImgFile);
+                entity.ImgPath = imagePath;
+            }
 
             entity.UpdatedAt = DateTime.Now;
 

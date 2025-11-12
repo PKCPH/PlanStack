@@ -82,7 +82,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             };
 
             // Get entities
-            var queryResult = await _buildingStructureRepository.GetAllAsync(query, true);
+            var queryResult = await _buildingStructureRepository.GetAllAsync(query);
 
             // Map entities to resource
             var resource = _mapper.Map<BaseQueryResult<BuildingStructure>, BaseQueryResultResource<BuildingStructureResource>>(queryResult);
@@ -95,7 +95,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] BuildingStructureUpdateResource updateResource)
         {
-            var entity = await _buildingStructureRepository.GetAsync(entityId, true);
+            var entity = await _buildingStructureRepository.GetAsync(entityId);
             if (entity == null)
                 return NotFound();
 

@@ -19,6 +19,37 @@ namespace PlanStack.Backend.Database
             );
 
             base.OnModelCreating(modelBuilder);
+
+            // Setup Cascade Deletions
+            modelBuilder.Entity<BlueprintBuildingStructure>()
+                .HasOne(bbs => bbs.Blueprint)
+                .WithMany(b => b.BuildingStructures)
+                .HasForeignKey(bbs => bbs.BlueprintId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlueprintBuildingStructure>()
+                .HasOne(bc => bc.BuildingStructure)
+                .WithMany(c => c.BlueprintBuildingStructures)
+                .HasForeignKey(bc => bc.BuildingStructureId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlueprintComponent>()
+                .HasOne(bc => bc.Blueprint)
+                .WithMany(b => b.Components)
+                .HasForeignKey(bc => bc.BlueprintId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlueprintComponent>()
+                .HasOne(bc => bc.Component)
+                .WithMany(c => c.BlueprintComponents)
+                .HasForeignKey(bc => bc.ComponentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlueprintStandard>()
+                .HasOne(bs => bs.Blueprint)
+                .WithMany(b => b.Standards)
+                .HasForeignKey(bs => bs.BlueprintId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         #region DbSets

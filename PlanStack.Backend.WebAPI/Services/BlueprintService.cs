@@ -129,5 +129,7 @@ namespace PlanStack.Backend.WebAPI.Services
             }
         }
         #endregion
+
+        //public async Task DeleteComponentsAndBuildingStructures
     }
 }

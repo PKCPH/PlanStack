@@ -95,11 +95,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] RuleSetUpdateResource updateResource)
         {
-            updateResource.UpdatedAt = DateTime.Now;
-
             var entity = await _ruleSetRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
+
+            entity.UpdatedAt = DateTime.Now;
 
             _mapper.Map<RuleSetUpdateResource, RuleSet>(updateResource, entity);
 

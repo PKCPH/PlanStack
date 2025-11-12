@@ -99,11 +99,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] BlueprintUpdateResource updateResource)
         {
-            updateResource.UpdatedAt = DateTime.Now;
-
             var entity = await _blueprintRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
+
+            entity.UpdatedAt = DateTime.Now;
 
             _mapper.Map<BlueprintUpdateResource, Blueprint>(updateResource, entity);
 
