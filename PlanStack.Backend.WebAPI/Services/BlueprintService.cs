@@ -1,4 +1,6 @@
-﻿using PlanStack.Backend.Database.DataModels;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http.HttpResults;
+using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure;
 
@@ -73,9 +75,9 @@ namespace PlanStack.Backend.WebAPI.Services
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                throw new InvalidOperationException($"Error saving blueprint components for blueprint '{entity.Id}'.", ex);
             }
         }
         #endregion
@@ -123,9 +125,9 @@ namespace PlanStack.Backend.WebAPI.Services
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                throw new InvalidOperationException($"Error saving blueprint components for blueprint '{entity.Id}'.", ex);
             }
         }
         #endregion
