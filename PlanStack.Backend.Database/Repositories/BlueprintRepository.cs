@@ -15,7 +15,9 @@ namespace PlanStack.Backend.Database.Repositories
         {
             query = query
                 .Include(x => x.BuildingStructures)
-                .ThenInclude(x => x.BuildingStructure);
+                .ThenInclude(x => x.BuildingStructure)
+                .Include(x => x.Components)
+                .ThenInclude(x => x.Component);
 
             return base.ApplyRelations(query);
         }
