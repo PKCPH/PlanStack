@@ -68,7 +68,7 @@
         <!-- prices -->
         <template v-slot:item.price="{ item }">
           <span class="text-green-darken-1 font-weight-bold">
-            ${{ item.price.toFixed(2) }}
+            ${{ item.price ? item.price.toFixed(2) : "0.00" }}
           </span>
         </template>
 
@@ -498,14 +498,30 @@ const handleSave = async () => {
       body: payload,
     });
 
-    const data = await response.json();
+    if (response.ok) {
+      let data = null;
+      if (response.status !== 204) {
+        data = await response.json();
+        console.log("Component saved successfully", data);
+      } else {
+        console.log("Component updated successfully");
+      }
 
-    if (data.success === true) {
-      console.log("Component saved successfully", data.data);
       closeDialog();
       fetchComponents();
     } else {
-      throw new Error(data.message || "An unknown server error occurred.");
+      let errorMessage = `Error: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.title) {
+          errorMessage = errorData.title;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else {
+          errorMessage = JSON.stringify(errorData);
+        }
+      } catch (e) {}
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error("Error saving component:", error);
