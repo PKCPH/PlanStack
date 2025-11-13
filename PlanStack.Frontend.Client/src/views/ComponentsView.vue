@@ -14,11 +14,28 @@
 
     <!-- component table -->
     <v-card>
+      <v-toolbar flat density="compact">
+        <v-spacer></v-spacer>
+        <v-text-field
+          v-model="searchQuery"
+          label="Search Components"
+          prepend-inner-icon="mdi-magnify"
+          density="compact"
+          variant="solo"
+          hide-details
+          single-line
+          clearable
+          style="max-width: 300px"
+        ></v-text-field>
+      </v-toolbar>
+      <v-divider></v-divider>
+
       <v-data-table
         :headers="tableHeaders"
         :items="componentsList"
         :loading="isLoadingList"
         :items-per-page="10"
+        :search="searchQuery"
         class="elevation-1"
       >
         <!-- loading -->
@@ -75,6 +92,14 @@
         <!-- size -->
         <template v-slot:item.squareMeters="{ item }">
           <span>{{ item.squareMeters }} m²</span>
+        </template>
+
+        <template v-slot:item.height="{ item }">
+          <span>{{ item.height || 0 }} m</span>
+        </template>
+
+        <template v-slot:item.width="{ item }">
+          <span>{{ item.width || 0 }} m</span>
         </template>
 
         <!-- table actions -->
@@ -167,6 +192,29 @@
                     type="number"
                     min="0"
                     suffix="m²"
+                    density="compact"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model.number="formData.height"
+                    label="Height"
+                    type="number"
+                    min="0"
+                    suffix="m"
+                    density="compact"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model.number="formData.width"
+                    label="Width"
+                    type="number"
+                    min="0"
+                    suffix="m"
                     density="compact"
                   ></v-text-field>
                 </v-col>
@@ -273,6 +321,8 @@ const defaultFormData = {
   model: "",
   price: 0,
   squareMeters: 0,
+  height: 0,
+  width: 0,
   imgFile: null,
 };
 const formData = ref({ ...defaultFormData });
@@ -285,6 +335,7 @@ const saveError = ref(null);
 const componentsList = ref([]);
 const isLoadingList = ref(false);
 const listError = ref(null);
+const searchQuery = ref("");
 
 // delete
 const isDeletingDialog = ref(false);
@@ -305,6 +356,8 @@ const tableHeaders = ref([
   { title: "Model/SKU", key: "model", sortable: false },
   { title: "Price", key: "price" },
   { title: "Size", key: "squareMeters" },
+  { title: "Height", key: "height" },
+  { title: "Width", key: "width" },
   { title: "Actions", key: "actions", sortable: false, align: "end" },
 ]);
 
@@ -405,6 +458,8 @@ const editComponent = (component) => {
     model: component.model,
     price: component.price,
     squareMeters: component.squareMeters,
+    height: component.height || 0,
+    width: component.width || 0,
     imgFile: null,
   };
   dialog.value = true;
@@ -478,6 +533,8 @@ const handleSave = async () => {
   payload.append("Model", formData.value.model);
   payload.append("Price", formData.value.price);
   payload.append("SquareMeters", formData.value.squareMeters);
+  payload.append("Height", formData.value.height);
+  payload.append("Width", formData.value.width);
 
   if (formData.value.imgFile) {
     payload.append("ImgFile", formData.value.imgFile);
