@@ -258,6 +258,41 @@
             </template>
           </v-autocomplete>
 
+          <v-list-subheader>Component Type</v-list-subheader>
+          <v-autocomplete
+            v-model="currentComponentId"
+            :items="componentTypes"
+            item-title="name"
+            item-value="id"
+            label="Search and select component"
+            density="compact"
+            class="mb-4"
+            :loading="isLoadingComponentTypes"
+            :error-messages="componentTypesError"
+            auto-select-first
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :title="item.raw.name">
+                <template v-slot:prepend>
+                  <v-avatar
+                    :color="item.raw.color"
+                    size="x-small"
+                    class="mr-2"
+                  ></v-avatar>
+                </template>
+              </v-list-item>
+            </template>
+            <template v-slot:selection="{ item }">
+              <div class="d-flex align-center">
+                <v-avatar
+                  :color="item.raw.color"
+                  size="x-small"
+                  class="mr-2"
+                ></v-avatar>
+                <span>{{ item.raw.name }}</span>
+              </div>
+            </template>
+          </v-autocomplete>
           <v-list-subheader>Drawing Tools</v-list-subheader>
           <div class="d-flex align-center flex-wrap ga-3">
             <v-btn color="pink" @click="clearFloorplan" size="small">
@@ -272,7 +307,7 @@
               variant="flat"
               size="small"
             >
-              <v-icon start icon="mdi-eraser"></v-icon> Erase Wall
+              <v-icon start icon="mdi-eraser"></v-icon> Erase
             </v-btn>
 
             <v-btn
@@ -282,6 +317,29 @@
               size="small"
             >
               <v-icon start icon="mdi-pencil"></v-icon> Draw Wall
+            </v-btn>
+
+            <v-btn
+              :color="
+                currentTool === 'placeComponent' ? 'cyan' : 'grey-lighten-1'
+              "
+              @click="setTool('placeComponent')"
+              variant="flat"
+              size="small"
+            >
+              <v-icon start icon="mdi-plus-box"></v-icon> Place Component
+            </v-btn>
+
+            <v-btn
+              v-if="currentTool === 'placeComponent'"
+              @click="toggleComponentRotation"
+              variant="tonal"
+              color="cyan-darken-2"
+              size="small"
+              title="Toggle rotation"
+            >
+              <v-icon start icon="mdi-rotate-90"></v-icon>
+              {{ isPlacingHorizontal ? "Horizontal" : "Vertical" }}
             </v-btn>
           </div>
         </Teleport>
@@ -303,6 +361,7 @@ const WALL_THICKNESS = 5;
 const GRID_COLOR = "#e5e7eb";
 const DEFAULT_WALL_COLOR = theme.global.current.value.colors.primary;
 const ERASE_HIGHLIGHT_COLOR = "#ef4444";
+const DEFAULT_COMPONENT_COLOR = "#9e9e9e";
 
 // Vuetify mapping for status
 const statusColorMap = {
@@ -312,6 +371,7 @@ const statusColorMap = {
   "text-green-600": "success",
   "text-blue-600": "info",
   "text-red-500": "error",
+  "text-cyan-600": "cyan",
 };
 const statusIconMap = {
   "text-gray-600": "mdi-information",
@@ -320,10 +380,12 @@ const statusIconMap = {
   "text-green-600": "mdi-check-circle",
   "text-blue-600": "mdi-download",
   "text-red-500": "mdi-alert-circle",
+  "text-cyan-600": "mdi-plus-box",
 };
 
 // Vue Reactive States
 const walls = ref([]);
+const placedComponents = ref([]);
 const isDrawing = ref(false);
 const startPoint = ref({ x: 0, y: 0 });
 const tempEndPoint = ref({ x: 0, y: 0 });
@@ -337,6 +399,9 @@ const canvasHeightCells = ref(40);
 const finalCanvasSize = ref({ width: 0, height: 0 });
 const ERASE_TOLERANCE = 10;
 const hoveredWall = ref(null);
+const hoveredComponent = ref(null);
+const hoverPoint = ref(null);
+const isPlacingHorizontal = ref(true);
 
 // Blueprint form fields state
 const blueprintName = ref("");
@@ -349,12 +414,19 @@ const CORS_PROXY_URL = "https://corsproxy.io/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
 const BUILDING_STRUCTURES_API_URL =
   "http://planstack.dk/api/buildingstructures";
+const COMPONENTS_API_URL = "http://planstack.dk/api/components";
 
 //building structure states
 const buildingStructureTypes = ref([]);
 const isLoadingStructureTypes = ref(false);
 const structureTypesError = ref(null);
 const currentBuildingStructureId = ref(1);
+
+// component states
+const componentTypes = ref([]);
+const isLoadingComponentTypes = ref(false);
+const componentTypesError = ref(null);
+const currentComponentId = ref(null);
 
 const COLOR_PALETTE = [
   theme.global.current.value.colors.primary,
@@ -375,6 +447,11 @@ const saveMessage = ref("");
 const blueprintsList = ref([]);
 const isLoadingList = ref(false);
 const listErrorMessage = ref("");
+
+const toggleComponentRotation = () => {
+  isPlacingHorizontal.value = !isPlacingHorizontal.value;
+  draw();
+};
 
 // get building structures
 const fetchBuildingStructureTypes = async () => {
@@ -410,9 +487,52 @@ const fetchBuildingStructureTypes = async () => {
   }
 };
 
+// get components
+const fetchComponentTypes = async () => {
+  isLoadingComponentTypes.value = true;
+  componentTypesError.value = null;
+  try {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;
+    const response = await fetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
+    }
+    const data = await response.json();
+
+    // assigning colors
+    componentTypes.value = data.entities.map((type, index) => ({
+      ...type,
+      color: type.color || COLOR_PALETTE[index % COLOR_PALETTE.length],
+    }));
+  } catch (error) {
+    console.error("Error fetching component types:", error);
+    componentTypesError.value = `Failed to load component types: ${error.message}`;
+  } finally {
+    isLoadingComponentTypes.value = false;
+  }
+};
+
 const getColorForStructureId = (id) => {
   const structure = buildingStructureTypes.value.find((s) => s.id === id);
   return structure ? structure.color : DEFAULT_WALL_COLOR;
+};
+
+const getComponentDetails = (id) => {
+  const comp = componentTypes.value.find((c) => c.id === id);
+  return comp
+    ? {
+        color: comp.color || DEFAULT_COMPONENT_COLOR,
+        width: comp.width || 1,
+        height: comp.height || 1,
+      }
+    : {
+        color: DEFAULT_COMPONENT_COLOR,
+        width: 1,
+        height: 1,
+      };
 };
 
 // get blueprints
@@ -554,6 +674,39 @@ const drawWall = (ctx, x1, y1, x2, y2, color) => {
   ctx.stroke();
 };
 
+const drawComponent = (
+  ctx,
+  x,
+  y,
+  widthCells,
+  heightCells,
+  color,
+  isHorizontal,
+  isGhost = false,
+  isHoveredErase = false
+) => {
+  // dimension based on isHorisontal
+  const w_px = (isHorizontal ? widthCells : heightCells) * GRID_SIZE;
+  const h_px = (isHorizontal ? heightCells : widthCells) * GRID_SIZE;
+
+  if (isHoveredErase) {
+    ctx.fillStyle = ERASE_HIGHLIGHT_COLOR;
+    ctx.strokeStyle = "#000";
+  } else {
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "#333";
+  }
+
+  ctx.globalAlpha = isGhost ? 0.5 : 1.0;
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.rect(x, y, w_px, h_px);
+  ctx.fill();
+  ctx.stroke();
+  ctx.globalAlpha = 1.0;
+};
+
 const draw = () => {
   const canvas = canvasRef.value;
   if (!canvas) return;
@@ -562,15 +715,28 @@ const draw = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid(ctx, canvas);
 
-  // Draw all walls normally
-  walls.value.forEach((wall) => {
-    // highlighting hovered wall when in erase mode
-    const isHovered = hoveredWall.value && wall === hoveredWall.value;
+  placedComponents.value.forEach((comp) => {
+    const isHovered = hoveredComponent.value && comp === hoveredComponent.value;
+    const { color, width, height } = getComponentDetails(comp.componentId);
+    drawComponent(
+      ctx,
+      comp.x,
+      comp.y,
+      width,
+      height,
+      color,
+      comp.isHorizontal,
+      false,
+      isHovered
+    );
+  });
 
+  walls.value.forEach((wall) => {
+    // highlighting in erase mode
+    const isHovered = hoveredWall.value && wall === hoveredWall.value;
     const color = isHovered
       ? ERASE_HIGHLIGHT_COLOR
       : getColorForStructureId(wall.buildingStructureId);
-
     drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, color);
   });
 
@@ -583,6 +749,26 @@ const draw = () => {
       tempEndPoint.value.x,
       tempEndPoint.value.y,
       tempColor
+    );
+  }
+
+  if (
+    hoverPoint.value &&
+    currentTool.value === "placeComponent" &&
+    currentComponentId.value
+  ) {
+    const { color, width, height } = getComponentDetails(
+      currentComponentId.value
+    );
+    drawComponent(
+      ctx,
+      hoverPoint.value.x,
+      hoverPoint.value.y,
+      width,
+      height,
+      color,
+      isPlacingHorizontal.value,
+      true //ghosted
     );
   }
 };
@@ -601,6 +787,21 @@ const isPointNearWall = (px, py, wall) => {
   const distance = Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
 
   return distance <= WALL_THICKNESS + ERASE_TOLERANCE;
+};
+
+const isPointNearComponent = (px, py, component) => {
+  const { width, height } = getComponentDetails(component.componentId);
+
+  // dimensions based on rotation
+  const w_px = (component.isHorizontal ? width : height) * GRID_SIZE;
+  const h_px = (component.isHorizontal ? height : width) * GRID_SIZE;
+
+  const x1 = component.x;
+  const x2 = component.x + w_px;
+  const y1 = component.y;
+  const y2 = component.y + h_px;
+
+  return px >= x1 && px <= x2 && py >= y1 && py <= y2;
 };
 
 // Event Handlers
@@ -635,6 +836,19 @@ const handleMouseDown = (event) => {
     // Use non-snapped coords for accurate erase hit test
     startPoint.value = { x, y };
     isDrawing.value = true;
+  } else if (currentTool.value === "placeComponent") {
+    if (!currentComponentId.value) {
+      updateStatus("Please select a component type first.", "text-red-500");
+      return;
+    }
+    const newComponent = {
+      x: snappedPoint.x,
+      y: snappedPoint.y,
+      componentId: currentComponentId.value,
+      isHorizontal: isPlacingHorizontal.value,
+    };
+    placedComponents.value.push(newComponent);
+    draw();
   }
 };
 
@@ -660,7 +874,7 @@ const handleMouseUp = () => {
       walls.value = updatedWalls;
     }
   } else if (currentTool.value === "eraseWall") {
-    // Erase logic: check if the click point is near any wall
+    // Erase logic: check if the click point is near any wall or component
     const clickX = startPoint.value.x;
     const clickY = startPoint.value.y;
 
@@ -670,13 +884,23 @@ const handleMouseUp = () => {
 
     if (wallIndexToErase !== -1) {
       // Remove the wall
-      const updatedWalls = walls.value.filter(
+      walls.value = walls.value.filter(
         (_, index) => index !== wallIndexToErase
       );
-      walls.value = updatedWalls;
       updateStatus("Wall erased.", "text-yellow-600");
     } else {
-      updateStatus("No wall found to erase at that location.", "text-gray-600");
+      const compIndexToErase = placedComponents.value.findIndex((comp) =>
+        isPointNearComponent(clickX, clickY, comp)
+      );
+
+      if (compIndexToErase !== -1) {
+        placedComponents.value = placedComponents.value.filter(
+          (_, index) => index !== compIndexToErase
+        );
+        updateStatus("Component erased.", "text-yellow-600");
+      } else {
+        updateStatus("No wall or component found to erase.", "text-gray-600");
+      }
     }
   }
   draw();
@@ -684,17 +908,54 @@ const handleMouseUp = () => {
 
 const handleMouseMove = (event) => {
   const { x, y } = getCanvasCoords(event);
+  const snappedPoint = { x: snapToGrid(x), y: snapToGrid(y) };
 
   if (!isDrawing.value) {
+    let needsRedraw = false;
     // Handle hover highlighting in erase mode when not drawing
     if (currentTool.value === "eraseWall") {
       const wallUnderCursor = walls.value.find((wall) =>
         isPointNearWall(x, y, wall)
       );
-      if (wallUnderCursor !== hoveredWall.value) {
-        hoveredWall.value = wallUnderCursor;
-        draw();
+      const compUnderCursor = placedComponents.value.find((comp) =>
+        isPointNearComponent(x, y, comp)
+      );
+
+      let hWall = null;
+      let hComp = null;
+
+      if (wallUnderCursor) {
+        hWall = wallUnderCursor; // prioritise walls
+      } else if (compUnderCursor) {
+        hComp = compUnderCursor;
       }
+
+      if (hoveredWall.value !== hWall || hoveredComponent.value !== hComp) {
+        hoveredWall.value = hWall;
+        hoveredComponent.value = hComp;
+        needsRedraw = true;
+      }
+    }
+
+    // component placement preview
+    if (currentTool.value === "placeComponent") {
+      if (
+        !hoverPoint.value ||
+        hoverPoint.value.x !== snappedPoint.x ||
+        hoverPoint.value.y !== snappedPoint.y
+      ) {
+        hoverPoint.value = snappedPoint;
+        needsRedraw = true;
+      }
+    } else {
+      if (hoverPoint.value !== null) {
+        hoverPoint.value = null; // null preview if no placecomponent mode
+        needsRedraw = true;
+      }
+    }
+
+    if (needsRedraw) {
+      draw();
     }
     return;
   }
@@ -723,8 +984,21 @@ const handleMouseMove = (event) => {
 };
 
 const handleMouseLeave = () => {
-  if (currentTool.value === "eraseWall") {
+  let needsRedraw = false;
+  if (hoveredWall.value) {
     hoveredWall.value = null;
+    needsRedraw = true;
+  }
+  if (hoveredComponent.value) {
+    hoveredComponent.value = null;
+    needsRedraw = true;
+  }
+  if (hoverPoint.value) {
+    hoverPoint.value = null;
+    needsRedraw = true;
+  }
+
+  if (needsRedraw) {
     draw();
   }
 
@@ -735,6 +1009,7 @@ const handleMouseLeave = () => {
 
 const clearFloorplan = () => {
   walls.value = [];
+  placedComponents.value = [];
   updateStatus("Floorplan cleared.", "text-gray-600");
   draw();
 };
@@ -742,6 +1017,7 @@ const clearFloorplan = () => {
 const setTool = (tool) => {
   currentTool.value = tool;
   hoveredWall.value = null;
+  hoveredComponent.value = null;
   draw();
 
   if (tool === "drawWall") {
@@ -751,8 +1027,13 @@ const setTool = (tool) => {
     );
   } else if (tool === "eraseWall") {
     updateStatus(
-      "Eraser tool selected. Click on a wall to remove it.",
+      "Eraser tool selected. Click on a wall or component to remove it.",
       "text-red-500"
+    );
+  } else if (tool === "placeComponent") {
+    updateStatus(
+      "Place Component tool selected. Click on the grid to place.",
+      "text-cyan-600"
     );
   } else {
     updateStatus(`Tool ${tool} selected.`, "text-gray-600");
@@ -802,7 +1083,7 @@ const createCanvas = () => {
 };
 
 //converting canvas coordinates to gridcells for saving building strucutres to blueprint
-const mapWallsToBlueprintStructures = () => {
+const mapWallsToBlueprintPayload = () => {
   return walls.value.map((wall) => {
     const startCellX = wall.startX / GRID_SIZE;
     const startCellY = wall.startY / GRID_SIZE;
@@ -821,7 +1102,23 @@ const mapWallsToBlueprintStructures = () => {
       startingPositionX: startingPositionX,
       startingPositionY: startingPositionY,
       totalPrice: 0,
+      blueprintId: activeBlueprintId.value || 0,
       buildingStructureId: wall.buildingStructureId || 1,
+    };
+  });
+};
+
+const mapComponentsToBlueprintPayload = () => {
+  return placedComponents.value.map((comp) => {
+    const startCellX = comp.x / GRID_SIZE;
+    const startCellY = comp.y / GRID_SIZE;
+
+    return {
+      startingPositionX: startCellX,
+      startingPositionY: startCellY,
+      isHorizontal: comp.isHorizontal,
+      blueprintId: activeBlueprintId.value || 0,
+      componentId: comp.componentId,
     };
   });
 };
@@ -859,16 +1156,31 @@ const mapBlueprintStructuresToWalls = (structures) => {
   });
 };
 
-/**
- * Handles the main save operation, structuring the data and calling the API.
- */
+const mapBlueprintComponentsToPlaced = (componentsData) => {
+  if (!componentsData) return [];
+  return componentsData.map((comp) => {
+    const x = comp.startingPositionX * GRID_SIZE;
+    const y = comp.startingPositionY * GRID_SIZE;
+    // component id from nested object
+    const componentId = comp.component ? comp.component.id : 1;
+    return {
+      x,
+      y,
+      componentId,
+      isHorizontal: comp.isHorizontal ?? true,
+    };
+  });
+};
+
+// --- Handle Save ---
 const handleSave = async () => {
   if (!blueprintName.value) {
     saveMessage.value = "Error: Blueprint name is required to save.";
     return;
   }
 
-  const buildingStructures = mapWallsToBlueprintStructures();
+  const buildingStructures = mapWallsToBlueprintPayload();
+  const components = mapComponentsToBlueprintPayload();
 
   const apiPayload = {
     ...(activeBlueprintId.value && { id: activeBlueprintId.value }),
@@ -882,6 +1194,7 @@ const handleSave = async () => {
     width: canvasWidthCells.value,
 
     buildingStructures: buildingStructures,
+    components: components,
   };
   console.log("Saving to api:", JSON.stringify(apiPayload, null, 2));
 
@@ -915,16 +1228,37 @@ const loadBlueprint = (blueprint) => {
     );
   }
 
+  if (blueprint.components && blueprint.components.length > 0) {
+    placedComponents.value = mapBlueprintComponentsToPlaced(
+      blueprint.components
+    );
+  } else {
+    placedComponents.value = [];
+  }
+
   nextTick(() => {
     draw();
   });
 };
+
 watch(walls, draw, { deep: true });
+watch(placedComponents, draw, { deep: true });
 watch(buildingStructureTypes, draw, { deep: true });
+watch(componentTypes, draw, { deep: true });
+
+watch(currentComponentId, (newId) => {
+  if (newId) {
+    const { width, height } = getComponentDetails(newId);
+    // default rotation based on dimension
+    isPlacingHorizontal.value = width >= height;
+    draw();
+  }
+});
 
 onMounted(() => {
   fetchBlueprints();
   fetchBuildingStructureTypes();
+  fetchComponentTypes();
 });
 </script>
 
