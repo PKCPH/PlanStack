@@ -19,6 +19,7 @@ export const routes = [
     name: "Floorplans",
     component: FloorplannerView,
     icon: "mdi-floor-plan",
+    meta: { showToolsDrawer: true },
   },
   {
     path: "/standards",

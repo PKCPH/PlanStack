@@ -5,7 +5,11 @@
       <v-spacer></v-spacer>
       <v-toolbar-title>Planstack</v-toolbar-title>
 
-      <v-app-bar-nav-icon icon @click.stop="rightDrawer = !rightDrawer">
+      <v-app-bar-nav-icon
+        v-if="isToolsDrawerAvailable"
+        icon
+        @click.stop="userRightDrawerState = !userRightDrawerState"
+      >
         <v-icon>mdi-cog</v-icon>
       </v-app-bar-nav-icon>
     </v-app-bar>
@@ -27,7 +31,12 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-navigation-drawer v-model="rightDrawer" app location="right" width="300">
+    <v-navigation-drawer
+      v-model="showRightDrawer"
+      app
+      location="right"
+      width="300"
+    >
       <v-list-item title="Tools"></v-list-item>
       <v-divider></v-divider>
 
@@ -45,9 +54,24 @@
 <script setup>
 import { ref, computed } from "vue";
 import { routes } from "./router/index.js";
+import { useRoute } from "vue-router";
 
 const drawer = ref(true);
-const rightDrawer = ref(true);
+const userRightDrawerState = ref(true);
+
+const route = useRoute();
+// used for index.js to determine which views should have a toolsdrawer
+const isToolsDrawerAvailable = computed(() => {
+  return route.meta.showToolsDrawer === true;
+});
+const showRightDrawer = computed({
+  get() {
+    return isToolsDrawerAvailable.value && userRightDrawerState.value;
+  },
+  set(newValue) {
+    userRightDrawerState.value = newValue;
+  },
+});
 
 const menuItems = computed(() => {
   // getting routes from index.js for single source of truth
