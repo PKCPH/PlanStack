@@ -32,11 +32,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<RuleSetResource>> Create([FromBody] RuleSetCreateResource createResource)
         {
-            createResource.CreatedAt = DateTime.Now;
-            createResource.UpdatedAt = DateTime.Now;
-
             //Map entity
             var entity = _mapper.Map<RuleSetCreateResource, RuleSet>(createResource);
+
+            entity.CreatedAt = DateTime.Now;
+            entity.UpdatedAt = DateTime.Now;
 
             // Add entity
             _ruleSetRepository.Add(entity);

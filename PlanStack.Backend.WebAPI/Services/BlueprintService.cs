@@ -59,19 +59,6 @@ namespace PlanStack.Backend.WebAPI.Services
                             UpdatedAt = DateTime.Now
                         };
                         _blueprintBuildingStructureRepository.Add(newRelation);
-
-                        //saveResource.Positions?.ForEach(position =>
-                        //{
-                        //    var bsPosition = new BSBlueprintPosition
-                        //    {
-                        //        BlueprintBuildingStructureId = newRelation.Id,
-                        //        X = position.X,
-                        //        Y = position.Y,
-                        //        CreatedAt = DateTime.Now,
-                        //        UpdatedAt = DateTime.Now
-                        //    };
-                        //    newRelation.Positions.Add(bsPosition);
-                        //});
                     }
                 }
             }
@@ -109,19 +96,6 @@ namespace PlanStack.Backend.WebAPI.Services
                             UpdatedAt = DateTime.Now
                         };
                         _blueprintComponentRepository.Add(newRelation);
-
-                        //saveResource.Positions?.ForEach(position =>
-                        //{
-                        //    var bsPosition = new BSBlueprintPosition
-                        //    {
-                        //        BlueprintBuildingStructureId = newRelation.Id,
-                        //        X = position.X,
-                        //        Y = position.Y,
-                        //        CreatedAt = DateTime.Now,
-                        //        UpdatedAt = DateTime.Now
-                        //    };
-                        //    newRelation.Positions.Add(bsPosition);
-                        //});
                     }
                 }
             }
@@ -132,6 +106,42 @@ namespace PlanStack.Backend.WebAPI.Services
         }
         #endregion
 
-        //public async Task DeleteComponentsAndBuildingStructures
+
+        #region SaveStandardsToBlueprintAsync
+        //public async Task SaveStandardsToBlueprintAsync(Blueprint entity, List<BlueprintStandardSaveResource> saveResources)
+        //{
+        //    try
+        //    {
+        //        // Remove existing relations
+        //        var existingRelations = await _blueprintStandardRepository.GetAllByBlueprintIdAsync(entity.Id);
+        //        foreach (var relation in existingRelations.Entities)
+        //        {
+        //            _blueprintStandardRepository.Remove(relation);
+        //        }
+
+        //        // Add new relations
+        //        foreach (var saveResource in saveResources)
+        //        {
+        //            var standard = await _standardRepository.GetAsync(saveResource.StandardId.Value);
+        //            if (standard != null)
+        //            {
+        //                var newRelation = new BlueprintStandard
+        //                {
+        //                    BlueprintId = entity.Id,
+        //                    StandardId = standard.Id,
+
+        //                    CreatedAt = DateTime.Now,
+        //                    UpdatedAt = DateTime.Now
+        //                };
+        //                _blueprintStandardRepository.Add(newRelation);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new InvalidOperationException($"Error saving blueprint standards for blueprint '{entity.Id}'.", ex);
+        //    }
+        //}
+        #endregion
     }
 }

@@ -32,11 +32,11 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<StandardResource>> Create([FromBody] StandardCreateResource createResource)
         {
-            createResource.CreatedAt = DateTime.Now;
-            createResource.UpdatedAt = DateTime.Now;
-
             //Map entity
             var entity = _mapper.Map<StandardCreateResource, Standard>(createResource);
+
+            entity.CreatedAt = DateTime.Now;
+            entity.UpdatedAt = DateTime.Now;
 
             // Add entity
             _standardRepository.Add(entity);

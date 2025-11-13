@@ -3,7 +3,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet
 {
-    public class RuleSetCreateResource : BaseResource
+    public class RuleSetCreateResource : BaseUpdateCreateResource
     {
         public float Ratio { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }

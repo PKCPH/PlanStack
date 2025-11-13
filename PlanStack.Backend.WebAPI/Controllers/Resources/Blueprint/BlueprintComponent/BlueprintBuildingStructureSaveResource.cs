@@ -6,6 +6,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuil
     {
         public int StartingPositionX { get; set; }
         public int StartingPositionY { get; set; }
+        public bool IsHorizontal { get; set; }
 
         #region Relations
         public int? BlueprintId { get; set; }

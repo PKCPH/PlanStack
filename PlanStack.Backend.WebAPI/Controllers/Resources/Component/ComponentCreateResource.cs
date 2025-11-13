@@ -1,11 +1,10 @@
-﻿using PlanStack.Shared.Enums;
+﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Component
 {
-    public class ComponentCreateResource
+    public class ComponentCreateResource : BaseUpdateCreateResource
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
         public ComponentCategoryEnum Category { get; set; }

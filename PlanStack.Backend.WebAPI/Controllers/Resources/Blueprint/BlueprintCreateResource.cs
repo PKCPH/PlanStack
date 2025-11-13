@@ -2,7 +2,7 @@
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 {
-    public class BlueprintCreateResource
+    public class BlueprintCreateResource : BaseUpdateCreateResource
     {
         public int MaxOccupancy { get; set; }
         public int Floor { get; set; }
