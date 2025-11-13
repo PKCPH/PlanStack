@@ -213,40 +213,50 @@
           <v-divider class="my-6"></v-divider>
 
           <v-list-subheader>Wall Type</v-list-subheader>
-          <v-select
+          <v-autocomplete
             v-model="currentBuildingStructureId"
             :items="buildingStructureTypes"
             item-title="name"
             item-value="id"
-            label="Select wall type to draw"
+            label="Search for a wall type"
             density="compact"
             class="mb-4"
             :loading="isLoadingStructureTypes"
             :error-messages="structureTypesError"
+            auto-select-first
           >
             <!-- colors for walls -->
             <template v-slot:item="{ props, item }">
               <v-list-item v-bind="props" :title="item.raw.name">
                 <template v-slot:prepend>
-                  <v-avatar
-                    :color="item.raw.color"
-                    size="x-small"
-                    class="mr-2"
-                  ></v-avatar>
+                  <div
+                    class="mr-3"
+                    :style="{
+                      backgroundColor: item.raw.color,
+                      width: '24px',
+                      height: '4px',
+                      borderRadius: '2px',
+                    }"
+                  ></div>
                 </template>
               </v-list-item>
             </template>
+
             <template v-slot:selection="{ item }">
               <div class="d-flex align-center">
-                <v-avatar
-                  :color="item.raw.color"
-                  size="x-small"
+                <div
                   class="mr-2"
-                ></v-avatar>
+                  :style="{
+                    backgroundColor: item.raw.color,
+                    width: '20px',
+                    height: '4px',
+                    borderRadius: '2px',
+                  }"
+                ></div>
                 <span>{{ item.raw.name }}</span>
               </div>
             </template>
-          </v-select>
+          </v-autocomplete>
 
           <v-list-subheader>Drawing Tools</v-list-subheader>
           <div class="d-flex align-center flex-wrap ga-3">
