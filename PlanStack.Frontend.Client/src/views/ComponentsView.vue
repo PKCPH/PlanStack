@@ -14,11 +14,28 @@
 
     <!-- component table -->
     <v-card>
+      <v-toolbar flat density="compact">
+        <v-spacer></v-spacer>
+        <v-text-field
+          v-model="searchQuery"
+          label="Search Components"
+          prepend-inner-icon="mdi-magnify"
+          density="compact"
+          variant="solo"
+          hide-details
+          single-line
+          clearable
+          style="max-width: 300px"
+        ></v-text-field>
+      </v-toolbar>
+      <v-divider></v-divider>
+
       <v-data-table
         :headers="tableHeaders"
         :items="componentsList"
         :loading="isLoadingList"
         :items-per-page="10"
+        :search="searchQuery"
         class="elevation-1"
       >
         <!-- loading -->
@@ -285,6 +302,7 @@ const saveError = ref(null);
 const componentsList = ref([]);
 const isLoadingList = ref(false);
 const listError = ref(null);
+const searchQuery = ref("");
 
 // delete
 const isDeletingDialog = ref(false);
