@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
+    <v-app-bar app color="primary">
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-spacer></v-spacer>
       <v-toolbar-title>Planstack</v-toolbar-title>
@@ -41,7 +41,7 @@
       v-model="showRightDrawer"
       app
       location="right"
-      width="300"
+      width="350"
     >
       <v-list-item title="Tools"></v-list-item>
       <v-divider></v-divider>
@@ -62,7 +62,7 @@ import { ref, computed } from "vue";
 import { routes } from "./router/index.js";
 import { useRoute } from "vue-router";
 import { useRouter } from "vue-router";
-import { isLoggedIn, setToken } from './components/api/auth.js';
+import { isLoggedIn, setToken } from "./components/api/auth.js";
 
 const drawer = ref(true);
 const userRightDrawerState = ref(true);
@@ -85,7 +85,13 @@ const showRightDrawer = computed({
 
 const menuItems = computed(() => {
   const hiddenForLoggedIn = ["Register", "Login"];
-  const hiddenForLoggedOut = ["Floorplans", "Components", "Account", "Building Structures", "Standards"];
+  const hiddenForLoggedOut = [
+    "Floorplans",
+    "Components",
+    "Account",
+    "Building Structures",
+    "Standards",
+  ];
 
   return routes
     .filter((route) => {
@@ -112,5 +118,4 @@ const logout = () => {
   setToken(null);
   router.push("/");
 };
-
 </script>
