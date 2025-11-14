@@ -150,7 +150,8 @@ namespace PlanStack.Backend.WebAPI.Controllers
             {
                 _componentRepository.Remove(entity);
 
-                _imageService.DeleteImage(entity.ImgPath);
+                if (!string.IsNullOrEmpty(entity.ImgPath))
+                    _imageService.DeleteImage(entity.ImgPath);
 
                 await _unitOfWork.SaveChangesAsync();
             }
