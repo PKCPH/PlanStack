@@ -1,7 +1,9 @@
 <template>
-  <v-container class="py-10">
+  <v-container class="py-10" min-width="800">
     <div class="text-center mb-6">
-      <h1 class="text-h4 font-weight-bold text-grey-darken-3">Floorplans</h1>
+      <h1 class="text-h4 font-weight-bold text-grey-darken-3">
+        Floorplans for {{ projectName }}
+      </h1>
     </div>
 
     <div class="d-flex justify-center" v-if="showCanvas">
@@ -19,29 +21,28 @@
       />
     </div>
 
-    <v-alert
-      v-if="showCanvas"
-      :text="statusMessage"
-      :color="statusColorMap[statusClass]"
-      :icon="statusIconMap[statusClass]"
-      :variant="statusClass === 'text-red-500' ? 'tonal' : 'elevated'"
-      class="mt-4 mx-auto"
-      max-width="800"
-    />
-
     <Teleport to="#right-tools-container">
-      <v-list-subheader>Blueprints</v-list-subheader>
+      <div class="d-flex justify-space-between align-center mb-2">
+        <v-list-subheader class="pa-0">Blueprints</v-list-subheader>
 
-      <!-- Error State -->
+        <v-btn
+          color="secondary"
+          @click="openCreateDialog"
+          prepend-icon="mdi-plus"
+          size="small"
+          variant="tonal"
+        >
+          New
+        </v-btn>
+      </div>
+
       <v-alert
         v-if="listErrorMessage"
         type="error"
         density="compact"
         class="mb-2"
+        >{{ listErrorMessage }}</v-alert
       >
-        {{ listErrorMessage }}
-      </v-alert>
-
       <!-- Empty State -->
       <v-list-item
         v-if="
@@ -91,123 +92,50 @@
         </v-list-item>
       </v-list>
 
+      <v-list-subheader>Info</v-list-subheader>
+
+      <div v-if="activeBlueprintId" class="px-4 mb-4">
+        <div class="font-weight-bold">{{ blueprintName }}</div>
+        <div class="text-caption text-grey-darken-1">
+          {{ blueprintDescription || "No description." }}
+        </div>
+        <v-row dense class="mt-2 text-caption">
+          <v-col cols="6"><strong>Floor:</strong> {{ floor }}</v-col>
+          <v-col cols="6"><strong>Occupancy:</strong> {{ maxOccupancy }}</v-col>
+          <v-col cols="12"
+            ><strong>Size:</strong> {{ canvasWidthCells }} x
+            {{ canvasHeightCells }} cells</v-col
+          >
+        </v-row>
+      </div>
+      <div v-else class="px-4 mb-4 text-caption text-grey-darken-1">
+        Select a blueprint to see details, or create a new one.
+      </div>
+
       <v-btn
+        color="primary"
         block
-        color="info"
-        @click="fetchBlueprints"
-        :loading="isLoadingList"
-        size="small"
+        @click="openUpdateDialog"
+        :disabled="!activeBlueprintId"
         variant="tonal"
-        class="mb-4"
+        class="mb-2"
+        prepend-icon="mdi-pencil"
       >
-        <v-icon start>mdi-refresh</v-icon>
-        Refresh
+        Edit Details
       </v-btn>
-
-      <v-divider class="my-6"></v-divider>
-
-      <v-list-subheader>Blueprint Details (Create/Update)</v-list-subheader>
-
-      <v-text-field
-        v-model="blueprintName"
-        label="Name"
-        type="text"
-        density="compact"
-        class="mb-2"
-        :rules="[(v) => !!v || 'Name is required']"
-      ></v-text-field>
-      <v-textarea
-        v-model="blueprintDescription"
-        label="Description (Optional)"
-        rows="2"
-        density="compact"
-        class="mb-2"
-      ></v-textarea>
-
-      <v-row>
-        <v-col cols="6">
-          <v-text-field
-            v-model.number="maxOccupancy"
-            label="Max Occupancy"
-            type="number"
-            min="0"
-            density="compact"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="6">
-          <v-text-field
-            v-model.number="floor"
-            label="Floor"
-            type="number"
-            min="0"
-            density="compact"
-          ></v-text-field>
-        </v-col>
-      </v-row>
 
       <v-btn
         color="success"
         block
         @click="handleSave"
+        :disabled="!activeBlueprintId"
         :loading="isSaving"
-        :disabled="!blueprintName || isSaving"
-        class="mt-1"
+        variant="flat"
+        class="mb-4"
+        prepend-icon="mdi-content-save"
       >
-        <v-icon start>mdi-content-save</v-icon>
-        Save Blueprint to API
+        Save
       </v-btn>
-
-      <v-alert
-        v-if="saveMessage"
-        :type="saveMessage.includes('Error') ? 'error' : 'success'"
-        density="compact"
-        class="mt-3"
-        closable
-      >
-        {{ saveMessage }}
-      </v-alert>
-
-      <v-divider class="my-6"></v-divider>
-
-      <!-- setting up canvas -->
-      <v-list-subheader>Canvas Setup</v-list-subheader>
-      <p class="text-caption mb-4">
-        Set the initial grid dimensions for the canvas.
-      </p>
-
-      <v-row>
-        <v-col cols="6">
-          <v-text-field
-            v-model.number="canvasWidthCells"
-            label="Width (Cells)"
-            type="number"
-            min="10"
-            max="100"
-            density="compact"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="6">
-          <v-text-field
-            v-model.number="canvasHeightCells"
-            label="Height (Cells)"
-            type="number"
-            min="10"
-            max="100"
-            density="compact"
-          ></v-text-field>
-        </v-col>
-      </v-row>
-
-      <v-btn color="primary" block @click="createCanvas" class="mb-6">
-        Create/Resize Canvas
-      </v-btn>
-
-      <v-divider class="my-6"></v-divider>
-
-      <!-- drawing -->
-
-      <v-divider class="my-6"></v-divider>
-
       <v-list-subheader>Wall Type</v-list-subheader>
       <v-autocomplete
         v-model="currentBuildingStructureId"
@@ -289,9 +217,15 @@
           </div>
         </template>
       </v-autocomplete>
+
       <v-list-subheader>Drawing Tools</v-list-subheader>
       <div class="d-flex align-center flex-wrap ga-3">
-        <v-btn color="pink" @click="clearFloorplan" size="small">
+        <v-btn
+          color="pink"
+          @click="clearFloorplan"
+          size="small"
+          :disabled="!activeBlueprintId"
+        >
           <v-icon start icon="mdi-delete"></v-icon> Clear All
         </v-btn>
 
@@ -302,6 +236,7 @@
           @click="setTool('eraseWall')"
           variant="flat"
           size="small"
+          :disabled="!activeBlueprintId"
         >
           <v-icon start icon="mdi-eraser"></v-icon> Erase
         </v-btn>
@@ -311,6 +246,7 @@
           @click="setTool('drawWall')"
           variant="flat"
           size="small"
+          :disabled="!activeBlueprintId"
         >
           <v-icon start icon="mdi-pencil"></v-icon> Draw Wall
         </v-btn>
@@ -320,6 +256,7 @@
           @click="setTool('placeComponent')"
           variant="flat"
           size="small"
+          :disabled="!activeBlueprintId"
         >
           <v-icon start icon="mdi-plus-box"></v-icon> Place Component
         </v-btn>
@@ -330,6 +267,7 @@
           variant="tonal"
           color="cyan-darken-2"
           size="small"
+          :disabled="!activeBlueprintId"
           title="Toggle rotation"
         >
           <v-icon start icon="mdi-rotate-90"></v-icon>
@@ -337,43 +275,124 @@
         </v-btn>
       </div>
     </Teleport>
+
+    <v-dialog v-model="isDetailsDialogVisible" max-width="800" persistent>
+      <v-card>
+        <v-card-title class="pa-4">
+          <span class="text-h5">{{
+            activeBlueprintId ? "Edit Blueprint" : "Create New Blueprint"
+          }}</span>
+        </v-card-title>
+
+        <v-card-text>
+          <v-form ref="detailsFormRef">
+            <v-list-subheader>Details</v-list-subheader>
+            <v-text-field
+              v-model="blueprintName"
+              label="Name"
+              type="text"
+              density="compact"
+              class="mb-2"
+              :rules="[(v) => !!v || 'Name is required']"
+            ></v-text-field>
+            <v-textarea
+              v-model="blueprintDescription"
+              label="Description (Optional)"
+              rows="2"
+              density="compact"
+              class="mb-2"
+            ></v-textarea>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="maxOccupancy"
+                  label="Max Occupancy"
+                  type="number"
+                  min="0"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="floor"
+                  label="Floor"
+                  type="number"
+                  min="0"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-list-subheader>Canvas size (in cells)</v-list-subheader>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="canvasWidthCells"
+                  label="Width"
+                  type="number"
+                  min="10"
+                  max="100"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="canvasHeightCells"
+                  label="Height"
+                  type="number"
+                  min="10"
+                  max="100"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey-darken-1"
+            variant="text"
+            @click="isDetailsDialogVisible = false"
+            >Cancel</v-btn
+          >
+          <v-btn
+            color="success"
+            variant="flat"
+            :loading="isSaving"
+            @click="handleSave({ validate: true, closeDialog: true })"
+            >Save Blueprint</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000">
+      {{ snackbarText }}
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from "vue";
 import { useTheme } from "vuetify";
+import { useRoute } from "vue-router";
 
-// --- Global Constants from Environment ---
 const theme = useTheme();
+const route = useRoute();
 
-// --- Configuration ---
+// project id from url
+const projectId = ref(route.params.projectId);
+const projectName = ref();
+
+// config
 const GRID_SIZE = 20;
 const WALL_THICKNESS = 5;
 const GRID_COLOR = "#e5e7eb";
 const DEFAULT_WALL_COLOR = theme.global.current.value.colors.primary;
 const ERASE_HIGHLIGHT_COLOR = "#ef4444";
 const DEFAULT_COMPONENT_COLOR = "#9e9e9e";
-
-// Vuetify mapping for status
-const statusColorMap = {
-  "text-gray-600": "grey",
-  "text-indigo-600": "indigo",
-  "text-yellow-600": "warning",
-  "text-green-600": "success",
-  "text-blue-600": "info",
-  "text-red-500": "error",
-  "text-cyan-600": "cyan",
-};
-const statusIconMap = {
-  "text-gray-600": "mdi-information",
-  "text-indigo-600": "mdi-account-check",
-  "text-yellow-600": "mdi-content-save-edit",
-  "text-green-600": "mdi-check-circle",
-  "text-blue-600": "mdi-download",
-  "text-red-500": "mdi-alert-circle",
-  "text-cyan-600": "mdi-plus-box",
-};
 
 // Vue Reactive States
 const walls = ref([]);
@@ -382,8 +401,6 @@ const isDrawing = ref(false);
 const startPoint = ref({ x: 0, y: 0 });
 const tempEndPoint = ref({ x: 0, y: 0 });
 const currentTool = ref("drawWall");
-const statusMessage = ref("Initializing application...");
-const statusClass = ref("text-gray-600");
 const canvasRef = ref(null);
 const showCanvas = ref(false);
 const canvasWidthCells = ref(40);
@@ -401,12 +418,23 @@ const blueprintDescription = ref("");
 const maxOccupancy = ref(0);
 const floor = ref(1);
 const activeBlueprintId = ref(null);
+
+// dialog and form states
+const isDetailsDialogVisible = ref(false);
+const detailsFormRef = ref(null);
+
+// snackbar states
+const snackbar = ref(false);
+const snackbarText = ref("");
+const snackbarColor = ref("success");
+
 // API Logic Integration
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
 const BUILDING_STRUCTURES_API_URL =
   "http://planstack.dk/api/buildingstructures";
 const COMPONENTS_API_URL = "http://planstack.dk/api/components";
+const PROJECTS_API_URL = "http://planstack.dk/api/projects";
 
 //building structure states
 const buildingStructureTypes = ref([]);
@@ -433,12 +461,47 @@ const COLOR_PALETTE = [
 
 //saving states
 const isSaving = ref(false);
-const saveMessage = ref("");
 
 // loading states
 const blueprintsList = ref([]);
 const isLoadingList = ref(false);
 const listErrorMessage = ref("");
+
+const showSnackbar = (text, color = "success") => {
+  snackbarText.value = text;
+  snackbarColor.value = color;
+  snackbar.value = true;
+};
+
+const openCreateDialog = () => {
+  // reset fields
+  activeBlueprintId.value = null;
+  blueprintName.value = "New Blueprint";
+  blueprintDescription.value = "";
+  maxOccupancy.value = 0;
+  floor.value = 1;
+  canvasWidthCells.value = 40;
+  canvasHeightCells.value = 40;
+  walls.value = [];
+  placedComponents.value = [];
+
+  // clearing canvas if showing
+  if (showCanvas.value) {
+    createCanvas();
+  }
+
+  isDetailsDialogVisible.value = true;
+  nextTick(() => {
+    detailsFormRef.value?.resetValidation();
+  });
+};
+
+const openUpdateDialog = () => {
+  isDetailsDialogVisible.value = true;
+  nextTick(() => {
+    detailsFormRef.value?.resetValidation();
+  });
+};
 
 const toggleComponentRotation = () => {
   isPlacingHorizontal.value = !isPlacingHorizontal.value;
@@ -527,12 +590,41 @@ const getComponentDetails = (id) => {
       };
 };
 
+//fetch project
+const fetchProjectDetails = async () => {
+  if (!projectId.value) {
+    projectName.value = "Unknown Project";
+    return;
+  }
+
+  try {
+    const url = `${PROJECTS_API_URL}/${projectId.value}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+
+    const response = await fetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: Status ${response.status}`);
+    }
+    const data = await response.json();
+    projectName.value = data.name; //project name
+  } catch (error) {
+    console.error("Error fetching project details:", error);
+    projectName.value = "Unknown Project";
+  }
+};
+
 // get blueprints
 const fetchBlueprints = async () => {
   isLoadingList.value = true;
   listErrorMessage.value = "";
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(BLUEPRINTS_API_URL)}`;
+    const blueprintApiUrl = `${BLUEPRINTS_API_URL}?projectId=${projectId.value}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(blueprintApiUrl)}`;
+
     const response = await fetch(proxiedUrl, {
       method: "GET",
       headers: {
@@ -549,10 +641,7 @@ const fetchBlueprints = async () => {
     blueprintsList.value = data.entities;
 
     if (data.entities.length === 0) {
-      updateStatus(
-        "No saved blueprints found in the database.",
-        "text-blue-600"
-      );
+      showSnackbar("No saved blueprints found for this project.", "info");
     }
   } catch (error) {
     console.error("Error fetching blueprints:", error);
@@ -561,15 +650,10 @@ const fetchBlueprints = async () => {
     isLoadingList.value = false;
   }
 };
+
 // post/put blueprints
 const saveBlueprintToAPI = async (blueprintData) => {
-  if (!blueprintData.name) {
-    saveMessage.value = "Error: Blueprint Name is required.";
-    return;
-  }
-
   isSaving.value = true;
-  saveMessage.value = "Saving blueprint...";
 
   const isUpdating = !!blueprintData.id;
   const method = isUpdating ? "PUT" : "POST";
@@ -608,9 +692,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
       console.log("API Response: no response");
     }
 
-    saveMessage.value = `Blueprint ${
-      isUpdating ? "updated" : "saved"
-    } successfully!`;
+    showSnackbar(`Blueprint ${isUpdating ? "updated" : "saved"} successfully!`);
 
     if (!isUpdating && data && data.id) {
       activeBlueprintId.value = data.id;
@@ -620,19 +702,14 @@ const saveBlueprintToAPI = async (blueprintData) => {
     fetchBlueprints();
   } catch (error) {
     console.error("Error saving blueprint:", error);
-    saveMessage.value = `Error saving blueprint: ${error.message || "An unknown error occurred"}.`;
+    showSnackbar(
+      `Error saving blueprint: ${error.message || "An unknown error occurred"}.`,
+      "error"
+    );
     throw error;
   } finally {
     isSaving.value = false;
   }
-};
-
-// Utilities
-
-/** Updates the status message displayed below the canvas. */
-const updateStatus = (message, colorClass = "text-gray-600") => {
-  statusMessage.value = message;
-  statusClass.value = colorClass;
 };
 
 // Ensures coordinates snap to the nearest grid intersection.
@@ -830,7 +907,7 @@ const handleMouseDown = (event) => {
     isDrawing.value = true;
   } else if (currentTool.value === "placeComponent") {
     if (!currentComponentId.value) {
-      updateStatus("Please select a component type first.", "text-red-500");
+      showSnackbar("Please select a component type first.", "error");
       return;
     }
     const newComponent = {
@@ -879,7 +956,7 @@ const handleMouseUp = () => {
       walls.value = walls.value.filter(
         (_, index) => index !== wallIndexToErase
       );
-      updateStatus("Wall erased.", "text-yellow-600");
+      showSnackbar("Wall erased.");
     } else {
       const compIndexToErase = placedComponents.value.findIndex((comp) =>
         isPointNearComponent(clickX, clickY, comp)
@@ -889,9 +966,9 @@ const handleMouseUp = () => {
         placedComponents.value = placedComponents.value.filter(
           (_, index) => index !== compIndexToErase
         );
-        updateStatus("Component erased.", "text-yellow-600");
+        showSnackbar("Component erased.");
       } else {
-        updateStatus("No wall or component found to erase.", "text-gray-600");
+        showSnackbar("No wall or component found to erase.", "info");
       }
     }
   }
@@ -1002,7 +1079,7 @@ const handleMouseLeave = () => {
 const clearFloorplan = () => {
   walls.value = [];
   placedComponents.value = [];
-  updateStatus("Floorplan cleared.", "text-gray-600");
+  showSnackbar("Floorplan cleared.", "info");
   draw();
 };
 
@@ -1013,22 +1090,22 @@ const setTool = (tool) => {
   draw();
 
   if (tool === "drawWall") {
-    updateStatus(
+    showSnackbar(
       "Drawing tool selected. Click and drag to create walls.",
-      "text-indigo-600"
+      "info"
     );
   } else if (tool === "eraseWall") {
-    updateStatus(
+    showSnackbar(
       "Eraser tool selected. Click on a wall or component to remove it.",
-      "text-red-500"
+      "info"
     );
   } else if (tool === "placeComponent") {
-    updateStatus(
+    showSnackbar(
       "Place Component tool selected. Click on the grid to place.",
-      "text-cyan-600"
+      "info"
     );
   } else {
-    updateStatus(`Tool ${tool} selected.`, "text-gray-600");
+    showSnackbar(`Tool ${tool} selected.`, "info");
   }
 };
 
@@ -1045,7 +1122,7 @@ const setupCanvasAndListeners = () => {
   draw();
 };
 
-const createCanvas = () => {
+const createCanvas = (closeDialog = false) => {
   const widthCells = Number(canvasWidthCells.value);
   const heightCells = Number(canvasHeightCells.value);
 
@@ -1055,10 +1132,7 @@ const createCanvas = () => {
     widthCells < 10 ||
     heightCells < 10
   ) {
-    updateStatus(
-      "Please enter valid canvas dimensions (min 10x10).",
-      "text-red-500"
-    );
+    showSnackbar("Please enter valid canvas dimensions (min 10x10).", "error");
     return;
   }
 
@@ -1072,6 +1146,11 @@ const createCanvas = () => {
   nextTick(() => {
     setupCanvasAndListeners();
   });
+
+  if (closeDialog) {
+    isDetailsDialogVisible.value = false;
+    showSnackbar("Canvas size applied");
+  }
 };
 
 //converting canvas coordinates to gridcells for saving building strucutres to blueprint
@@ -1164,11 +1243,13 @@ const mapBlueprintComponentsToPlaced = (componentsData) => {
   });
 };
 
-// --- Handle Save ---
-const handleSave = async () => {
-  if (!blueprintName.value) {
-    saveMessage.value = "Error: Blueprint name is required to save.";
-    return;
+const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
+  if (validate) {
+    const { valid } = await detailsFormRef.value.validate();
+    if (!valid) {
+      showSnackbar("Please fill in all required fields.", "error");
+      return;
+    }
   }
 
   const buildingStructures = mapWallsToBlueprintPayload();
@@ -1187,10 +1268,20 @@ const handleSave = async () => {
 
     buildingStructures: buildingStructures,
     components: components,
+    projectId: projectId.value,
   };
   console.log("Saving to api:", JSON.stringify(apiPayload, null, 2));
 
-  await saveBlueprintToAPI(apiPayload);
+  //api call
+  try {
+    await saveBlueprintToAPI(apiPayload);
+
+    if (closeDialog) {
+      isDetailsDialogVisible.value = false;
+    }
+  } catch (error) {
+    console.error("save failed");
+  }
 };
 
 const loadBlueprint = (blueprint) => {
@@ -1210,13 +1301,13 @@ const loadBlueprint = (blueprint) => {
 
   if (blueprint.buildingStructures && blueprint.buildingStructures.length > 0) {
     walls.value = mapBlueprintStructuresToWalls(blueprint.buildingStructures);
-    updateStatus(`Loaded blueprint: ${blueprint.name}`, "text-green-600");
+    showSnackbar(`Loaded blueprint: ${blueprint.name}`);
   } else {
     // no structures then clear walls
     walls.value = [];
-    updateStatus(
+    showSnackbar(
       `Loaded blueprint: ${blueprint.name} (No walls found)`,
-      "text-blue-600"
+      "info"
     );
   }
 
@@ -1248,6 +1339,7 @@ watch(currentComponentId, (newId) => {
 });
 
 onMounted(() => {
+  fetchProjectDetails();
   fetchBlueprints();
   fetchBuildingStructureTypes();
   fetchComponentTypes();
