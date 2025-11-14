@@ -21,7 +21,7 @@ export const routes = [
     path: "/projects",
     name: "Projects",
     component: ProjectView,
-    icon: "mdi-floor-plan",
+    icon: "mdi-lightbulb-on-outline",
     meta: { showToolsDrawer: true },
   },
   {
