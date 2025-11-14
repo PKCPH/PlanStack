@@ -8,6 +8,7 @@ import ComponentsView from "../views/ComponentsView.vue";
 import BuildingStructureView from "../views/BuildingStructureView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import LoginView from "../views/LoginView.vue";
+import ProjectView from "../views/ProjectView.vue";
 
 export const routes = [
   {
@@ -17,7 +18,14 @@ export const routes = [
     icon: "mdi-home",
   },
   {
-    path: "/floorplanner",
+    path: "/projects",
+    name: "Projects",
+    component: ProjectView,
+    icon: "mdi-floor-plan",
+    meta: { showToolsDrawer: true },
+  },
+  {
+    path: "/project/:projectId/floorplans",
     name: "Floorplans",
     component: FloorplannerView,
     icon: "mdi-floor-plan",
@@ -53,7 +61,7 @@ export const routes = [
     component: RegisterView,
     icon: "mdi-account",
   },
-    {
+  {
     path: "/login",
     name: "Login",
     component: LoginView,
