@@ -47,9 +47,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { setToken } from '../components/api/auth.js';
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
-const API_BASE_URL = "http://planstack.dk";
+const API_BASE_URL = "http://planstack.dk/api";
 const REGISTER_API_URL = `${API_BASE_URL}/auth/register`;
 const LOGIN_API_URL = `${API_BASE_URL}/auth/login`;
 
@@ -147,9 +148,9 @@ const login = async (email, password) => {
   };
 
   try {
-    // const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(LOGIN_API_URL)}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(LOGIN_API_URL)}`;
 
-    const response = await fetch(LOGIN_API_URL, {
+    const response = await fetch(proxiedUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -164,7 +165,7 @@ const login = async (email, password) => {
       console.log("Login successful");
 
       // save token
-      localStorage.setItem("token", data.token);
+      setToken(data.token);
 
       // redirect to home 
       router.push("/");
