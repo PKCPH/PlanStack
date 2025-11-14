@@ -10,6 +10,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet
 
         #region Relations
         public int? ComponentId { get; set; }
+        public int? BuildingStructureId { get; set; }
         #endregion
     }
 }

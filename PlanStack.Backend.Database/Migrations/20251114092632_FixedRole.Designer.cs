@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PlanStack.Backend.Database;
 
@@ -11,9 +12,11 @@ using PlanStack.Backend.Database;
 namespace PlanStack.Backend.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251114092632_FixedRole")]
+    partial class FixedRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -476,9 +479,6 @@ namespace PlanStack.Backend.Database.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BuildingStructureId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ComponentId")
                         .HasColumnType("int");
 
@@ -497,19 +497,12 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<float>("Ratio")
                         .HasColumnType("real");
 
-                    b.Property<int>("StandardId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BuildingStructureId");
-
                     b.HasIndex("ComponentId");
-
-                    b.HasIndex("StandardId");
 
                     b.ToTable("RuleSets");
                 });
@@ -548,6 +541,35 @@ namespace PlanStack.Backend.Database.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Standards");
+                });
+
+            modelBuilder.Entity("PlanStack.Backend.Database.DataModels.StandardRuleSet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RuleSetId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StandardId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RuleSetId");
+
+                    b.HasIndex("StandardId");
+
+                    b.ToTable("StandardRuleSets");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.User", b =>
@@ -745,25 +767,11 @@ namespace PlanStack.Backend.Database.Migrations
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.RuleSet", b =>
                 {
-                    b.HasOne("PlanStack.Backend.Database.DataModels.BuildingStructure", "BuildingStructure")
-                        .WithMany()
-                        .HasForeignKey("BuildingStructureId");
-
                     b.HasOne("PlanStack.Backend.Database.DataModels.Component", "Component")
                         .WithMany()
                         .HasForeignKey("ComponentId");
 
-                    b.HasOne("PlanStack.Backend.Database.DataModels.Standard", "Standard")
-                        .WithMany("RuleSets")
-                        .HasForeignKey("StandardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BuildingStructure");
-
                     b.Navigation("Component");
-
-                    b.Navigation("Standard");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Standard", b =>
@@ -773,6 +781,21 @@ namespace PlanStack.Backend.Database.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PlanStack.Backend.Database.DataModels.StandardRuleSet", b =>
+                {
+                    b.HasOne("PlanStack.Backend.Database.DataModels.RuleSet", "RuleSet")
+                        .WithMany("StandardRuleSets")
+                        .HasForeignKey("RuleSetId");
+
+                    b.HasOne("PlanStack.Backend.Database.DataModels.Standard", "Standard")
+                        .WithMany("StandardRuleSets")
+                        .HasForeignKey("StandardId");
+
+                    b.Navigation("RuleSet");
+
+                    b.Navigation("Standard");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Blueprint", b =>
@@ -804,9 +827,14 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Navigation("Blueprints");
                 });
 
+            modelBuilder.Entity("PlanStack.Backend.Database.DataModels.RuleSet", b =>
+                {
+                    b.Navigation("StandardRuleSets");
+                });
+
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Standard", b =>
                 {
-                    b.Navigation("RuleSets");
+                    b.Navigation("StandardRuleSets");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.User", b =>

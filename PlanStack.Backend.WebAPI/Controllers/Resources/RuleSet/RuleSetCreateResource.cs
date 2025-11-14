@@ -9,10 +9,9 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet
         public RuleSetDefinitionEnum Definition { get; set; }
 
         #region Relations
-        // TODO: Skal man altid sætte en StandardId ved oprettelse af en RuleSet?
-        // Eller skal det være valgfrit?
-        public int? StandardId { get; set; }
+        public int StandardId { get; set; }
         public int? ComponentId { get; set; }
+        public int? BuildingStructureId { get; set; }
         #endregion
     }
 }

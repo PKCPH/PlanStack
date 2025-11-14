@@ -305,6 +305,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+// import { apiFetch } from '../components/api/auth.js';
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const API_BASE_URL = "http://planstack.dk";

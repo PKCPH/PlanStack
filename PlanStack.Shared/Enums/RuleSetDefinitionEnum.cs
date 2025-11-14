@@ -4,6 +4,7 @@
     {
         BY_DISTANCE = 0,
         BY_AREA = 1,
+        BY_QUANTITY = 2,
 
         OTHER = 99
     }

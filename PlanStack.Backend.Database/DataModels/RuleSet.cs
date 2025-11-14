@@ -11,7 +11,11 @@ namespace PlanStack.Backend.Database.DataModels
         public virtual Component Component { get; set; }
         public int? ComponentId { get; set; }
 
-        public virtual ICollection<StandardRuleSet> StandardRuleSets { get; set; }
+        public virtual BuildingStructure BuildingStructure { get; set; }
+        public int? BuildingStructureId { get; set; }
+
+        public virtual Standard Standard { get; set; }
+        public int StandardId { get; set; }
         #endregion
     }
 }

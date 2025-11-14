@@ -68,7 +68,6 @@ builder.Services.AddScoped<ComponentRepository>();
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<RuleSetRepository>();
 builder.Services.AddScoped<StandardRepository>();
-builder.Services.AddScoped<StandardRuleSetRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -79,7 +78,7 @@ builder.Services.AddSwaggerGen();
 // TODO: put these values in a configuration file
 builder.Services.AddIdentity<User, IdentityRole>(opt =>
 {
-    opt.Password.RequiredLength = 7;
+    opt.Password.RequiredLength = 6;
     opt.Password.RequireDigit = false;
     opt.Password.RequireUppercase = false;
     opt.Password.RequireNonAlphanumeric = false;

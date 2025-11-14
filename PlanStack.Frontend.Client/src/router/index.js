@@ -6,6 +6,8 @@ import StandardsView from "../views/StandardsView.vue";
 import AccountView from "../views/AccountView.vue";
 import ComponentsView from "../views/ComponentsView.vue";
 import BuildingStructureView from "../views/BuildingStructureView.vue";
+import RegisterView from "../views/RegisterView.vue";
+import LoginView from "../views/LoginView.vue";
 
 export const routes = [
   {
@@ -43,6 +45,18 @@ export const routes = [
     path: "/account",
     name: "Account",
     component: AccountView,
+    icon: "mdi-account",
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: RegisterView,
+    icon: "mdi-account",
+  },
+    {
+    path: "/login",
+    name: "Login",
+    component: LoginView,
     icon: "mdi-account",
   },
 ];
