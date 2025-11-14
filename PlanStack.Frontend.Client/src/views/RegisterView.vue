@@ -1,53 +1,58 @@
 <template>
-<v-form ref="formRef">
-  <v-text-field 
-    v-model="registerForm.userName"
-    label="Username"
-    :rules="registerRules.required"
-    density="compact"
-    class="mb-2"
-  />
+  <v-container class="mt-10" min-width="500">
+    <div class="text-center mb-6">
+      <h1 class="text-h4 font-weight-bold text-grey-darken-3">Register</h1>
+    </div>
+    <v-form ref="formRef">
+      <v-text-field
+        v-model="registerForm.userName"
+        label="Username"
+        :rules="registerRules.required"
+        density="compact"
+        class="mb-2"
+      />
 
-  <v-text-field 
-    v-model="registerForm.email"
-    label="Email"
-    :rules="[...registerRules.required, ...registerRules.email]"
-    density="compact"
-    class="mb-2"
-  />
+      <v-text-field
+        v-model="registerForm.email"
+        label="Email"
+        :rules="[...registerRules.required, ...registerRules.email]"
+        density="compact"
+        class="mb-2"
+      />
 
-  <v-text-field 
-    v-model="registerForm.password"
-    label="Password"
-    type="password"
-    :rules="registerRules.required"
-    density="compact"
-    class="mb-2"
-  />
+      <v-text-field
+        v-model="registerForm.password"
+        label="Password"
+        type="password"
+        :rules="registerRules.required"
+        density="compact"
+        class="mb-2"
+      />
 
-  <v-text-field 
-    v-model="registerForm.confirmPassword"
-    label="Confirm Password"
-    type="password"
-    :rules="registerRules.confirmPassword"
-    density="compact"
-    class="mb-2"
-  />
+      <v-text-field
+        v-model="registerForm.confirmPassword"
+        label="Confirm Password"
+        type="password"
+        :rules="registerRules.confirmPassword"
+        density="compact"
+        class="mb-2"
+      />
 
-  <v-alert v-if="registerError" type="error" class="mb-4">
-    {{ registerError }}
-  </v-alert>
+      <v-alert v-if="registerError" type="error" class="mb-4">
+        {{ registerError }}
+      </v-alert>
 
-  <v-btn color="primary" :loading="isRegistering" @click="register">
-    Register
-  </v-btn>
-</v-form>
+      <v-btn color="primary" :loading="isRegistering" @click="register" block>
+        Register
+      </v-btn>
+    </v-form>
+  </v-container>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { setToken } from '../components/api/auth.js';
+import { setToken } from "../components/api/auth.js";
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const API_BASE_URL = "http://planstack.dk/api";
@@ -167,7 +172,7 @@ const login = async (email, password) => {
       // save token
       setToken(data.token);
 
-      // redirect to home 
+      // redirect to home
       router.push("/");
 
       return true;
@@ -176,12 +181,10 @@ const login = async (email, password) => {
     // handle errors
     loginError.value = data.errorMessage || "Login failed";
     return false;
-
   } catch (error) {
     console.error("Login error:", error);
     loginError.value = error.message;
     return false;
-
   } finally {
     isLoggingIn.value = false;
   }

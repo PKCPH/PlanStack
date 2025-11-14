@@ -1,6 +1,8 @@
 <template>
-  <v-container class="mt-10" max-width="500">
-    <h1 class="text-h4 mb-6">Login</h1>
+  <v-container class="mt-10" min-width="500">
+    <div class="text-center mb-6">
+      <h1 class="text-h4 font-weight-bold text-grey-darken-3">Login</h1>
+    </div>
 
     <v-form ref="formRef">
       <v-text-field
@@ -39,7 +41,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { setToken } from '../components/api/auth.js';
+import { setToken } from "../components/api/auth.js";
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const API_BASE_URL = "http://planstack.dk/api";
@@ -88,7 +90,7 @@ const login = async (email, password) => {
       // save token
       setToken(data.token);
 
-      // redirect to home 
+      // redirect to home
       router.push("/");
 
       return true;
@@ -97,12 +99,10 @@ const login = async (email, password) => {
     // handle errors
     loginError.value = data.errorMessage || "Login failed";
     return false;
-
   } catch (error) {
     console.error("Login error:", error);
     loginError.value = error.message;
     return false;
-
   } finally {
     isLoggingIn.value = false;
   }

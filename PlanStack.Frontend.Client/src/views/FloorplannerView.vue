@@ -1,351 +1,343 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="py-10">
-        <div class="text-center mb-6">
-          <h1 class="text-h4 font-weight-bold text-grey-darken-3">
-            Floorplans
-          </h1>
-        </div>
+  <v-container class="py-10">
+    <div class="text-center mb-6">
+      <h1 class="text-h4 font-weight-bold text-grey-darken-3">Floorplans</h1>
+    </div>
 
-        <div class="d-flex justify-center" v-if="showCanvas">
-          <canvas
-            ref="canvasRef"
-            id="floorplanCanvas"
-            @mousedown="handleMouseDown"
-            @mousemove="handleMouseMove"
-            @mouseup="handleMouseUp"
-            @mouseleave="handleMouseLeave"
-            @touchstart.prevent="handleMouseDown"
-            @touchmove.prevent="handleMouseMove"
-            @touchend="handleMouseUp"
-            style="touch-action: none; cursor: crosshair"
-          />
-        </div>
+    <div class="d-flex justify-center" v-if="showCanvas">
+      <canvas
+        ref="canvasRef"
+        id="floorplanCanvas"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseLeave"
+        @touchstart.prevent="handleMouseDown"
+        @touchmove.prevent="handleMouseMove"
+        @touchend="handleMouseUp"
+        style="touch-action: none; cursor: crosshair"
+      />
+    </div>
 
-        <v-alert
-          v-if="showCanvas"
-          :text="statusMessage"
-          :color="statusColorMap[statusClass]"
-          :icon="statusIconMap[statusClass]"
-          :variant="statusClass === 'text-red-500' ? 'tonal' : 'elevated'"
-          class="mt-4 mx-auto"
-          max-width="800"
-        />
+    <v-alert
+      v-if="showCanvas"
+      :text="statusMessage"
+      :color="statusColorMap[statusClass]"
+      :icon="statusIconMap[statusClass]"
+      :variant="statusClass === 'text-red-500' ? 'tonal' : 'elevated'"
+      class="mt-4 mx-auto"
+      max-width="800"
+    />
 
-        <Teleport to="#right-tools-container">
-          <v-list-subheader>Blueprints</v-list-subheader>
+    <Teleport to="#right-tools-container">
+      <v-list-subheader>Blueprints</v-list-subheader>
 
-          <!-- Error State -->
-          <v-alert
-            v-if="listErrorMessage"
-            type="error"
-            density="compact"
-            class="mb-2"
-          >
-            {{ listErrorMessage }}
-          </v-alert>
+      <!-- Error State -->
+      <v-alert
+        v-if="listErrorMessage"
+        type="error"
+        density="compact"
+        class="mb-2"
+      >
+        {{ listErrorMessage }}
+      </v-alert>
 
-          <!-- Empty State -->
-          <v-list-item
-            v-if="
-              !isLoadingList && blueprintsList.length === 0 && !listErrorMessage
-            "
-          >
-            <v-list-item-title class="text-caption"
-              >No saved blueprints found.</v-list-item-title
-            >
-          </v-list-item>
+      <!-- Empty State -->
+      <v-list-item
+        v-if="
+          !isLoadingList && blueprintsList.length === 0 && !listErrorMessage
+        "
+      >
+        <v-list-item-title class="text-caption"
+          >No saved blueprints found.</v-list-item-title
+        >
+      </v-list-item>
 
-          <!-- Blueprint List -->
-          <v-list
-            v-if="!isLoadingList && blueprintsList.length > 0"
-            density="compact"
-            nav
-            class="mb-2"
-            style="
-              max-height: 250px;
-              overflow-y: auto;
-              border: 1px solid #eee;
-              border-radius: 4px;
-            "
-          >
-            <v-list-item
-              v-for="blueprint in blueprintsList"
-              :key="blueprint.id"
-              @click="loadBlueprint(blueprint)"
-              :active="blueprint.id === activeBlueprintId"
-              color="primary"
-            >
-              <v-list-item-title>{{ blueprint.name }}</v-list-item-title>
-              <v-list-item-subtitle>
-                Floor {{ blueprint.floor }} | {{ blueprint.width }}x{{
-                  blueprint.height
-                }}
-              </v-list-item-subtitle>
-              <template v-slot:append>
-                <v-icon size="small">
-                  {{
-                    blueprint.id === activeBlueprintId
-                      ? "mdi-select-inverse"
-                      : "mdi-select"
-                  }}
-                </v-icon>
-              </template>
-            </v-list-item>
-          </v-list>
+      <!-- Blueprint List -->
+      <v-list
+        v-if="!isLoadingList && blueprintsList.length > 0"
+        density="compact"
+        nav
+        class="mb-2"
+        style="
+          max-height: 250px;
+          overflow-y: auto;
+          border: 1px solid #eee;
+          border-radius: 4px;
+        "
+      >
+        <v-list-item
+          v-for="blueprint in blueprintsList"
+          :key="blueprint.id"
+          @click="loadBlueprint(blueprint)"
+          :active="blueprint.id === activeBlueprintId"
+          color="primary"
+        >
+          <v-list-item-title>{{ blueprint.name }}</v-list-item-title>
+          <v-list-item-subtitle>
+            Floor {{ blueprint.floor }} | {{ blueprint.width }}x{{
+              blueprint.height
+            }}
+          </v-list-item-subtitle>
+          <template v-slot:append>
+            <v-icon size="small">
+              {{
+                blueprint.id === activeBlueprintId
+                  ? "mdi-select-inverse"
+                  : "mdi-select"
+              }}
+            </v-icon>
+          </template>
+        </v-list-item>
+      </v-list>
 
-          <v-btn
-            block
-            color="info"
-            @click="fetchBlueprints"
-            :loading="isLoadingList"
-            size="small"
-            variant="tonal"
-            class="mb-4"
-          >
-            <v-icon start>mdi-refresh</v-icon>
-            Refresh
-          </v-btn>
+      <v-btn
+        block
+        color="info"
+        @click="fetchBlueprints"
+        :loading="isLoadingList"
+        size="small"
+        variant="tonal"
+        class="mb-4"
+      >
+        <v-icon start>mdi-refresh</v-icon>
+        Refresh
+      </v-btn>
 
-          <v-divider class="my-6"></v-divider>
+      <v-divider class="my-6"></v-divider>
 
-          <v-list-subheader>Blueprint Details (Create/Update)</v-list-subheader>
+      <v-list-subheader>Blueprint Details (Create/Update)</v-list-subheader>
 
+      <v-text-field
+        v-model="blueprintName"
+        label="Name"
+        type="text"
+        density="compact"
+        class="mb-2"
+        :rules="[(v) => !!v || 'Name is required']"
+      ></v-text-field>
+      <v-textarea
+        v-model="blueprintDescription"
+        label="Description (Optional)"
+        rows="2"
+        density="compact"
+        class="mb-2"
+      ></v-textarea>
+
+      <v-row>
+        <v-col cols="6">
           <v-text-field
-            v-model="blueprintName"
-            label="Name"
-            type="text"
+            v-model.number="maxOccupancy"
+            label="Max Occupancy"
+            type="number"
+            min="0"
             density="compact"
-            class="mb-2"
-            :rules="[(v) => !!v || 'Name is required']"
           ></v-text-field>
-          <v-textarea
-            v-model="blueprintDescription"
-            label="Description (Optional)"
-            rows="2"
+        </v-col>
+        <v-col cols="6">
+          <v-text-field
+            v-model.number="floor"
+            label="Floor"
+            type="number"
+            min="0"
             density="compact"
-            class="mb-2"
-          ></v-textarea>
+          ></v-text-field>
+        </v-col>
+      </v-row>
 
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="maxOccupancy"
-                label="Max Occupancy"
-                type="number"
-                min="0"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="floor"
-                label="Floor"
-                type="number"
-                min="0"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-          </v-row>
+      <v-btn
+        color="success"
+        block
+        @click="handleSave"
+        :loading="isSaving"
+        :disabled="!blueprintName || isSaving"
+        class="mt-1"
+      >
+        <v-icon start>mdi-content-save</v-icon>
+        Save Blueprint to API
+      </v-btn>
 
-          <v-btn
-            color="success"
-            block
-            @click="handleSave"
-            :loading="isSaving"
-            :disabled="!blueprintName || isSaving"
-            class="mt-1"
-          >
-            <v-icon start>mdi-content-save</v-icon>
-            Save Blueprint to API
-          </v-btn>
+      <v-alert
+        v-if="saveMessage"
+        :type="saveMessage.includes('Error') ? 'error' : 'success'"
+        density="compact"
+        class="mt-3"
+        closable
+      >
+        {{ saveMessage }}
+      </v-alert>
 
-          <v-alert
-            v-if="saveMessage"
-            :type="saveMessage.includes('Error') ? 'error' : 'success'"
+      <v-divider class="my-6"></v-divider>
+
+      <!-- setting up canvas -->
+      <v-list-subheader>Canvas Setup</v-list-subheader>
+      <p class="text-caption mb-4">
+        Set the initial grid dimensions for the canvas.
+      </p>
+
+      <v-row>
+        <v-col cols="6">
+          <v-text-field
+            v-model.number="canvasWidthCells"
+            label="Width (Cells)"
+            type="number"
+            min="10"
+            max="100"
             density="compact"
-            class="mt-3"
-            closable
-          >
-            {{ saveMessage }}
-          </v-alert>
-
-          <v-divider class="my-6"></v-divider>
-
-          <!-- setting up canvas -->
-          <v-list-subheader>Canvas Setup</v-list-subheader>
-          <p class="text-caption mb-4">
-            Set the initial grid dimensions for the canvas.
-          </p>
-
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="canvasWidthCells"
-                label="Width (Cells)"
-                type="number"
-                min="10"
-                max="100"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="canvasHeightCells"
-                label="Height (Cells)"
-                type="number"
-                min="10"
-                max="100"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-
-          <v-btn color="primary" block @click="createCanvas" class="mb-6">
-            Create/Resize Canvas
-          </v-btn>
-
-          <v-divider class="my-6"></v-divider>
-
-          <!-- drawing -->
-
-          <v-divider class="my-6"></v-divider>
-
-          <v-list-subheader>Wall Type</v-list-subheader>
-          <v-autocomplete
-            v-model="currentBuildingStructureId"
-            :items="buildingStructureTypes"
-            item-title="name"
-            item-value="id"
-            label="Search for a wall type"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="6">
+          <v-text-field
+            v-model.number="canvasHeightCells"
+            label="Height (Cells)"
+            type="number"
+            min="10"
+            max="100"
             density="compact"
-            class="mb-4"
-            :loading="isLoadingStructureTypes"
-            :error-messages="structureTypesError"
-            auto-select-first
-          >
-            <!-- colors for walls -->
-            <template v-slot:item="{ props, item }">
-              <v-list-item v-bind="props" :title="item.raw.name">
-                <template v-slot:prepend>
-                  <div
-                    class="mr-3"
-                    :style="{
-                      backgroundColor: item.raw.color,
-                      width: '24px',
-                      height: '4px',
-                      borderRadius: '2px',
-                    }"
-                  ></div>
-                </template>
-              </v-list-item>
+          ></v-text-field>
+        </v-col>
+      </v-row>
+
+      <v-btn color="primary" block @click="createCanvas" class="mb-6">
+        Create/Resize Canvas
+      </v-btn>
+
+      <v-divider class="my-6"></v-divider>
+
+      <!-- drawing -->
+
+      <v-divider class="my-6"></v-divider>
+
+      <v-list-subheader>Wall Type</v-list-subheader>
+      <v-autocomplete
+        v-model="currentBuildingStructureId"
+        :items="buildingStructureTypes"
+        item-title="name"
+        item-value="id"
+        label="Search for a wall type"
+        density="compact"
+        class="mb-4"
+        :loading="isLoadingStructureTypes"
+        :error-messages="structureTypesError"
+        auto-select-first
+      >
+        <!-- colors for walls -->
+        <template v-slot:item="{ props, item }">
+          <v-list-item v-bind="props" :title="item.raw.name">
+            <template v-slot:prepend>
+              <div
+                class="mr-3"
+                :style="{
+                  backgroundColor: item.raw.color,
+                  width: '24px',
+                  height: '4px',
+                  borderRadius: '2px',
+                }"
+              ></div>
             </template>
+          </v-list-item>
+        </template>
 
-            <template v-slot:selection="{ item }">
-              <div class="d-flex align-center">
-                <div
-                  class="mr-2"
-                  :style="{
-                    backgroundColor: item.raw.color,
-                    width: '20px',
-                    height: '4px',
-                    borderRadius: '2px',
-                  }"
-                ></div>
-                <span>{{ item.raw.name }}</span>
-              </div>
-            </template>
-          </v-autocomplete>
-
-          <v-list-subheader>Component Type</v-list-subheader>
-          <v-autocomplete
-            v-model="currentComponentId"
-            :items="componentTypes"
-            item-title="name"
-            item-value="id"
-            label="Search and select component"
-            density="compact"
-            class="mb-4"
-            :loading="isLoadingComponentTypes"
-            :error-messages="componentTypesError"
-            auto-select-first
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item v-bind="props" :title="item.raw.name">
-                <template v-slot:prepend>
-                  <v-avatar
-                    :color="item.raw.color"
-                    size="x-small"
-                    class="mr-2"
-                  ></v-avatar>
-                </template>
-              </v-list-item>
-            </template>
-            <template v-slot:selection="{ item }">
-              <div class="d-flex align-center">
-                <v-avatar
-                  :color="item.raw.color"
-                  size="x-small"
-                  class="mr-2"
-                ></v-avatar>
-                <span>{{ item.raw.name }}</span>
-              </div>
-            </template>
-          </v-autocomplete>
-          <v-list-subheader>Drawing Tools</v-list-subheader>
-          <div class="d-flex align-center flex-wrap ga-3">
-            <v-btn color="pink" @click="clearFloorplan" size="small">
-              <v-icon start icon="mdi-delete"></v-icon> Clear All
-            </v-btn>
-
-            <v-btn
-              :color="
-                currentTool === 'eraseWall' ? 'red-lighten-2' : 'grey-lighten-1'
-              "
-              @click="setTool('eraseWall')"
-              variant="flat"
-              size="small"
-            >
-              <v-icon start icon="mdi-eraser"></v-icon> Erase
-            </v-btn>
-
-            <v-btn
-              :color="currentTool === 'drawWall' ? 'indigo' : 'grey-lighten-1'"
-              @click="setTool('drawWall')"
-              variant="flat"
-              size="small"
-            >
-              <v-icon start icon="mdi-pencil"></v-icon> Draw Wall
-            </v-btn>
-
-            <v-btn
-              :color="
-                currentTool === 'placeComponent' ? 'cyan' : 'grey-lighten-1'
-              "
-              @click="setTool('placeComponent')"
-              variant="flat"
-              size="small"
-            >
-              <v-icon start icon="mdi-plus-box"></v-icon> Place Component
-            </v-btn>
-
-            <v-btn
-              v-if="currentTool === 'placeComponent'"
-              @click="toggleComponentRotation"
-              variant="tonal"
-              color="cyan-darken-2"
-              size="small"
-              title="Toggle rotation"
-            >
-              <v-icon start icon="mdi-rotate-90"></v-icon>
-              {{ isPlacingHorizontal ? "Horizontal" : "Vertical" }}
-            </v-btn>
+        <template v-slot:selection="{ item }">
+          <div class="d-flex align-center">
+            <div
+              class="mr-2"
+              :style="{
+                backgroundColor: item.raw.color,
+                width: '20px',
+                height: '4px',
+                borderRadius: '2px',
+              }"
+            ></div>
+            <span>{{ item.raw.name }}</span>
           </div>
-        </Teleport>
-      </v-container>
-    </v-main>
-  </v-app>
+        </template>
+      </v-autocomplete>
+
+      <v-list-subheader>Component Type</v-list-subheader>
+      <v-autocomplete
+        v-model="currentComponentId"
+        :items="componentTypes"
+        item-title="name"
+        item-value="id"
+        label="Search and select component"
+        density="compact"
+        class="mb-4"
+        :loading="isLoadingComponentTypes"
+        :error-messages="componentTypesError"
+        auto-select-first
+      >
+        <template v-slot:item="{ props, item }">
+          <v-list-item v-bind="props" :title="item.raw.name">
+            <template v-slot:prepend>
+              <v-avatar
+                :color="item.raw.color"
+                size="x-small"
+                class="mr-2"
+              ></v-avatar>
+            </template>
+          </v-list-item>
+        </template>
+        <template v-slot:selection="{ item }">
+          <div class="d-flex align-center">
+            <v-avatar
+              :color="item.raw.color"
+              size="x-small"
+              class="mr-2"
+            ></v-avatar>
+            <span>{{ item.raw.name }}</span>
+          </div>
+        </template>
+      </v-autocomplete>
+      <v-list-subheader>Drawing Tools</v-list-subheader>
+      <div class="d-flex align-center flex-wrap ga-3">
+        <v-btn color="pink" @click="clearFloorplan" size="small">
+          <v-icon start icon="mdi-delete"></v-icon> Clear All
+        </v-btn>
+
+        <v-btn
+          :color="
+            currentTool === 'eraseWall' ? 'red-lighten-2' : 'grey-lighten-1'
+          "
+          @click="setTool('eraseWall')"
+          variant="flat"
+          size="small"
+        >
+          <v-icon start icon="mdi-eraser"></v-icon> Erase
+        </v-btn>
+
+        <v-btn
+          :color="currentTool === 'drawWall' ? 'indigo' : 'grey-lighten-1'"
+          @click="setTool('drawWall')"
+          variant="flat"
+          size="small"
+        >
+          <v-icon start icon="mdi-pencil"></v-icon> Draw Wall
+        </v-btn>
+
+        <v-btn
+          :color="currentTool === 'placeComponent' ? 'cyan' : 'grey-lighten-1'"
+          @click="setTool('placeComponent')"
+          variant="flat"
+          size="small"
+        >
+          <v-icon start icon="mdi-plus-box"></v-icon> Place Component
+        </v-btn>
+
+        <v-btn
+          v-if="currentTool === 'placeComponent'"
+          @click="toggleComponentRotation"
+          variant="tonal"
+          color="cyan-darken-2"
+          size="small"
+          title="Toggle rotation"
+        >
+          <v-icon start icon="mdi-rotate-90"></v-icon>
+          {{ isPlacingHorizontal ? "Horizontal" : "Vertical" }}
+        </v-btn>
+      </div>
+    </Teleport>
+  </v-container>
 </template>
 
 <script setup>
