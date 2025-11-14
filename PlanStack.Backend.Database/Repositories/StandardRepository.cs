@@ -4,7 +4,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class StandardRepository : BaseRepository<Standard, StandardQuery>
+    public class StandardRepository : BaseRepository<Standard, StandardQuery, int>
     {
         public StandardRepository(DatabaseContext context) : base(context)
         {

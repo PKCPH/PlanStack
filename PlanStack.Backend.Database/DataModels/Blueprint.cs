@@ -1,6 +1,6 @@
 ﻿namespace PlanStack.Backend.Database.DataModels
 {
-    public class Blueprint : BaseDataModel
+    public class Blueprint : BaseDataModel<int>
     {
         public int MaxOccupancy { get; set; }
         public int Floor { get; set; }
@@ -9,7 +9,7 @@
 
         #region Relations
         public virtual Project Project { get; set; }
-        public int ProjectId { get; set; }
+        public Guid ProjectId { get; set; }
         public virtual List<BlueprintComponent> Components { get; set; }
         public virtual List<BlueprintBuildingStructure> BuildingStructures { get; set; }
         public virtual List<BlueprintStandard> Standards { get; set; }

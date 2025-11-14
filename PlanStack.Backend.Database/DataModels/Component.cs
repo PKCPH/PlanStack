@@ -2,7 +2,7 @@
 
 namespace PlanStack.Backend.Database.DataModels
 {
-    public class Component : BaseDataModel
+    public class Component : BaseDataModel<int>
     {
         public ComponentCategoryEnum Category { get; set; }
         public string Model { get; set; }

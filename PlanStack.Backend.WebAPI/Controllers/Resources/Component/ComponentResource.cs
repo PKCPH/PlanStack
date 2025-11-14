@@ -3,7 +3,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Component
 {
-    public class ComponentResource : BaseResource
+    public class ComponentResource : BaseResource<int>
     {
         public ComponentCategoryEnum Category { get; set; }
         public int Height { get; set; }

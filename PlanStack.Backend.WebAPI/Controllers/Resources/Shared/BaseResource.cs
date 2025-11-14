@@ -1,8 +1,8 @@
 ﻿namespace PlanStack.Backend.WebAPI.Controllers.Resources.Shared
 {
-    public abstract class BaseResource
+    public abstract class BaseResource<TKey>
     {
-        public int Id { get; set; }
+        public TKey Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }

@@ -3,7 +3,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class BuildingStructureRepository : BaseRepository<BuildingStructure, BuildingStructureQuery>
+    public class BuildingStructureRepository : BaseRepository<BuildingStructure, BuildingStructureQuery, int>
     {
         public BuildingStructureRepository(DatabaseContext context) : base(context)
         {

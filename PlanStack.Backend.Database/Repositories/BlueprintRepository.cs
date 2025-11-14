@@ -4,7 +4,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class BlueprintRepository : BaseRepository<Blueprint, BlueprintQuery>
+    public class BlueprintRepository : BaseRepository<Blueprint, BlueprintQuery, int>
     {
         public BlueprintRepository(DatabaseContext context) : base(context)
         {
@@ -20,6 +20,16 @@ namespace PlanStack.Backend.Database.Repositories
                 .ThenInclude(x => x.Component);
 
             return base.ApplyRelations(query);
+        }
+        #endregion
+
+        #region ApplyFiltering
+        protected override IQueryable<Blueprint> ApplyFiltering(IQueryable<Blueprint> query, BlueprintQuery queryModel)
+        {
+            if (!string.IsNullOrEmpty(queryModel.ProjectId))
+                query = query.Where(b => b.ProjectId == Guid.Parse(queryModel.ProjectId));
+
+            return base.ApplyFiltering(query, queryModel);
         }
         #endregion
     }

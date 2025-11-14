@@ -1,11 +1,9 @@
 ﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure;
-using PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 {
-    public class BlueprintResource : BaseResource
+    public class BlueprintResource : BaseResource<int>
     {
         public int MaxOccupancy { get; set; }
         public int Floor { get; set; }

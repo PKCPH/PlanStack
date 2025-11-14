@@ -83,6 +83,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             {
                 Page = filter.Page,
                 PageSize = filter.PageSize,
+                ProjectId = filter.ProjectId
             };
 
             // Get entities

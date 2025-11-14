@@ -53,10 +53,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
         #region Get
         [HttpGet("{entityId}")]
-        public async Task<ActionResult<ProjectResource>> Get(int entityId)
+        public async Task<ActionResult<ProjectResource>> Get(string entityId)
         {
             // Get entity
-            var entity = await _projectRepository.GetAsync(entityId, true);
+            var entity = await _projectRepository.GetAsync(Guid.Parse(entityId), true);
             if (entity == null)
                 return NotFound();
 
@@ -79,6 +79,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             {
                 Page = filter.Page,
                 PageSize = filter.PageSize,
+                UserId = filter.UserId
             };
 
             // Get entities
@@ -93,9 +94,9 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
         #region Update
         [HttpPut("{entityId}")]
-        public async Task<ActionResult> Update(int entityId, [FromBody] ProjectUpdateResource updateResource)
+        public async Task<ActionResult> Update(string entityId, [FromBody] ProjectUpdateResource updateResource)
         {
-            var entity = await _projectRepository.GetAsync(entityId, true);
+            var entity = await _projectRepository.GetAsync(Guid.Parse(entityId), true);
             if (entity == null)
                 return NotFound();
 
@@ -111,10 +112,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
         #region Delete
         [HttpDelete("{entityId}")]
-        public async Task<ActionResult> Delete(int entityId)
+        public async Task<ActionResult> Delete(string entityId)
         {
             // Get entitty
-            var entity = await _projectRepository.GetAsync(entityId);
+            var entity = await _projectRepository.GetAsync(Guid.Parse(entityId));
             if (entity == null)
                 return NotFound();
 

@@ -5,7 +5,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Standard
 {
-    public class StandardResource : BaseResource
+    public class StandardResource : BaseResource<int>
     {
         public StandardTypeEnum Type { get; set; }
         public bool IsPublic { get; set; }

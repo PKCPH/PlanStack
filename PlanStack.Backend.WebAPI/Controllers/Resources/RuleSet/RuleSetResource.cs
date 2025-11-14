@@ -5,7 +5,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet
 {
-    public class RuleSetResource : BaseResource
+    public class RuleSetResource : BaseResource<int>
     {
         public float Ratio { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }

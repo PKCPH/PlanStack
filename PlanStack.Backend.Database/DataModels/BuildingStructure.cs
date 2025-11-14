@@ -2,7 +2,7 @@
 
 namespace PlanStack.Backend.Database.DataModels
 {
-    public class BuildingStructure : BaseDataModel
+    public class BuildingStructure : BaseDataModel<int>
     {
         public BuildingStructureCategoryEnum Category { get; set; }
         public string Material { get; set; }

@@ -6,8 +6,8 @@ using System.Linq.Expressions;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public abstract class BaseRepository<T, Q>
-           where T : BaseDataModel, new()
+    public abstract class BaseRepository<T, Q, TKey>
+           where T : BaseDataModel<TKey>, new()
            where Q : BaseQueryModel
     {
         protected readonly DatabaseContext context;
@@ -20,7 +20,7 @@ namespace PlanStack.Backend.Database.Repositories
         }
 
         #region GetAsync
-        public virtual async Task<T> GetAsync(int entityId, bool includeRelated = false)
+        public virtual async Task<T> GetAsync(TKey entityId, bool includeRelated = false)
         {
             T result = null;
 
@@ -33,7 +33,7 @@ namespace PlanStack.Backend.Database.Repositories
                 // Relations
                 query = ApplyRelations(query);
 
-                result = await query.SingleOrDefaultAsync(x => x.Id == entityId);
+                result = await query.SingleOrDefaultAsync(x => x.Id.Equals(entityId));
             }
 
             return result;

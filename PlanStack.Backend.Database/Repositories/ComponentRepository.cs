@@ -3,7 +3,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class ComponentRepository : BaseRepository<Component, ComponentQuery>
+    public class ComponentRepository : BaseRepository<Component, ComponentQuery, int>
     {
         public ComponentRepository(DatabaseContext context) : base(context)
         {
@@ -13,7 +13,7 @@ namespace PlanStack.Backend.Database.Repositories
         protected override IQueryable<Component> ApplyFiltering(IQueryable<Component> query, ComponentQuery queryModel)
         {
             if (queryModel.Category != null)
-                query = query.Where(component => component.Category == queryModel.Category);
+                query = query.Where(c => c.Category == queryModel.Category);
 
             return base.ApplyFiltering(query, queryModel);
         }

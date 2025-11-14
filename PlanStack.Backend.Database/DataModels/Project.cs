@@ -2,7 +2,7 @@
 
 namespace PlanStack.Backend.Database.DataModels
 {
-    public class Project : BaseDataModel
+    public class Project : BaseDataModel<Guid>
     {
         public BuildingTypeEnum BuildingType { get; set; }
         public int SquareMeters { get; set; }

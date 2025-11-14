@@ -10,7 +10,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
         public int Width { get; set; }
 
         #region Relations
-        public int ProjectId { get; set; }
+        public string ProjectId { get; set; }
         #endregion
     }
 }

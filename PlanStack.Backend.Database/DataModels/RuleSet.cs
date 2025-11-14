@@ -2,7 +2,7 @@
 
 namespace PlanStack.Backend.Database.DataModels
 {
-    public class RuleSet : BaseDataModel
+    public class RuleSet : BaseDataModel<int>
     {
         public float Ratio { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }

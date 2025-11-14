@@ -2,7 +2,7 @@
 
 namespace PlanStack.Backend.Database.DataModels
 {
-    public class Standard : BaseDataModel
+    public class Standard : BaseDataModel<int>
     {
         public StandardTypeEnum Type { get; set; }
         public bool IsPublic { get; set; }
