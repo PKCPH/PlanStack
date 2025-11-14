@@ -8,5 +8,9 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
         public int Floor { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
+
+        #region Relations
+        public int ProjectId { get; set; }
+        #endregion
     }
 }

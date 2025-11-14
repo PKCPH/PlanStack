@@ -8,7 +8,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Project
     public class ProjectResource : BaseResource
     {
         public BuildingTypeEnum BuildingType { get; set; }
-        public int BuildingSquareMeters { get; set; }
+        public int SquareMeters { get; set; }
 
         #region Relations
         public virtual UserResource User { get; set; }

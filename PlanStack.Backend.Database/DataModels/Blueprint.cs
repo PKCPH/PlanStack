@@ -8,6 +8,8 @@
         public int Width { get; set; }
 
         #region Relations
+        public virtual Project Project { get; set; }
+        public int ProjectId { get; set; }
         public virtual List<BlueprintComponent> Components { get; set; }
         public virtual List<BlueprintBuildingStructure> BuildingStructures { get; set; }
         public virtual List<BlueprintStandard> Standards { get; set; }
