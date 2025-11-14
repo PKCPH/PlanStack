@@ -8,9 +8,5 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Standard
     {
         public StandardTypeEnum Type { get; set; }
         public bool IsPublic { get; set; }
-
-        #region Relations
-        public virtual List<RuleSetUpdateResource> RuleSets { get; set; }
-        #endregion
     }
 }
