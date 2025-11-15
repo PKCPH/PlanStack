@@ -63,6 +63,7 @@ namespace PlanStack.Backend.Database
         public DbSet<Project> Projects { get; set; }
         public DbSet<RuleSet> RuleSets { get; set; }
         public DbSet<Standard> Standards { get; set; }
+        public DbSet<Room> Rooms { get; set; }
         #endregion
     }
 }

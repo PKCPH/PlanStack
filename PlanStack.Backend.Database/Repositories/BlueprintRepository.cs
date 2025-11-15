@@ -14,6 +14,7 @@ namespace PlanStack.Backend.Database.Repositories
         protected override IQueryable<Blueprint> ApplyRelations(IQueryable<Blueprint> query)
         {
             query = query
+                .Include(x => x.Rooms)
                 .Include(x => x.BuildingStructures)
                 .ThenInclude(x => x.BuildingStructure)
                 .Include(x => x.Components)

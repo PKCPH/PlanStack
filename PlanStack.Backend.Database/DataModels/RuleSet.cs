@@ -6,6 +6,7 @@ namespace PlanStack.Backend.Database.DataModels
     {
         public float Ratio { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }
+        public RuleSetComparisonEnum Comparison { get; set; }
 
         #region Relations
         public virtual Component Component { get; set; }

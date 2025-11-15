@@ -4,17 +4,17 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class BlueprintStandardRepository : BaseRelationRepository<BlueprintStandard, BlueprintStandardQuery>
+    public class RoomRepository : BaseRepository<Room, RoomQuery, int>
     {
-        public BlueprintStandardRepository(DatabaseContext context) : base(context)
+        public RoomRepository(DatabaseContext context) : base(context)
         {
         }
 
         #region GetAllByBlueprintIdAsync
-        public async Task<BaseQueryResult<BlueprintStandard>> GetAllByBlueprintIdAsync(int blueprintId)
+        public async Task<BaseQueryResult<Room>> GetAllByBlueprintIdAsync(int blueprintId)
         {
-            var result = new BaseQueryResult<BlueprintStandard>();
-            var query = context.Set<BlueprintStandard>().AsQueryable();
+            var result = new BaseQueryResult<Room>();
+            var query = context.Set<Room>().AsQueryable();
 
             // Filtering
             query = query.Where(x => x.BlueprintId == blueprintId);

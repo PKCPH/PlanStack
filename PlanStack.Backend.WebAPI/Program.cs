@@ -64,11 +64,13 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<BlueprintRepository>();
 builder.Services.AddScoped<BlueprintBuildingStructureRepository>();
 builder.Services.AddScoped<BlueprintComponentRepository>();
+builder.Services.AddScoped<BlueprintStandardRepository>();
 builder.Services.AddScoped<BuildingStructureRepository>();
 builder.Services.AddScoped<ComponentRepository>();
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<RuleSetRepository>();
 builder.Services.AddScoped<StandardRepository>();
+builder.Services.AddScoped<RoomRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -12,12 +12,10 @@
 
         #region Relations
         public virtual Blueprint Blueprint { get; set; }
-        public int? BlueprintId { get; set; }
+        public int BlueprintId { get; set; }
 
         public virtual BuildingStructure BuildingStructure { get; set; }
-        public int? BuildingStructureId { get; set; }
-
-        //public virtual ICollection<BSBlueprintPosition> Positions { get; set; }
+        public int BuildingStructureId { get; set; }
         #endregion
     }
 }

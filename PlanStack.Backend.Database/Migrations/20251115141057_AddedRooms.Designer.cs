@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PlanStack.Backend.Database;
 
@@ -11,9 +12,11 @@ using PlanStack.Backend.Database;
 namespace PlanStack.Backend.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251115141057_AddedRooms")]
+    partial class AddedRooms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -464,9 +467,6 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RoomType")
-                        .HasColumnType("int");
-
                     b.Property<int>("SquareMeters")
                         .HasColumnType("int");
 
@@ -477,7 +477,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BlueprintId");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("Room");
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.RuleSet", b =>
@@ -489,9 +489,6 @@ namespace PlanStack.Backend.Database.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("BuildingStructureId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Comparison")
                         .HasColumnType("int");
 
                     b.Property<int?>("ComponentId")

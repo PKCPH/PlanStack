@@ -156,6 +156,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
                     await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity, saveResource.BuildingStructures);
                 if (saveResource.Components.Count > 0)
                     await _blueprintService.SaveComponentsToBlueprintAsync(entity, saveResource.Components);
+                if (saveResource.Rooms.Count > 0)
+                    await _blueprintService.SaveRoomsToBlueprintAsync(entity, saveResource.Rooms);
+                if (saveResource.Standards.Count > 0)
+                    await _blueprintService.SaveStandardsToBlueprintAsync(entity, saveResource.Standards);
             }
             catch (Exception ex)
             {
