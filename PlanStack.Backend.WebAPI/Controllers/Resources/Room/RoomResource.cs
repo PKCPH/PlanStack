@@ -1,5 +1,4 @@
-﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Room

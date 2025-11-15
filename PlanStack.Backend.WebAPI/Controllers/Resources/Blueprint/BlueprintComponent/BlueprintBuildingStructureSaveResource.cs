@@ -9,6 +9,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuil
         public bool IsHorizontal { get; set; }
 
         #region Relations
+        public int? RoomId { get; set; }
         public int? BlueprintId { get; set; }
         public int? ComponentId { get; set; }
         #endregion
