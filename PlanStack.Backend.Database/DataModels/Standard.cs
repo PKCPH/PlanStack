@@ -11,7 +11,7 @@ namespace PlanStack.Backend.Database.DataModels
         public virtual User User { get; set; }
         public virtual string UserId { get; set; }
 
-        public virtual ICollection<RuleSet> RuleSets { get; set; }
+        public virtual ICollection<StandardRuleSet> RuleSets { get; set; }
         #endregion
     }
 }

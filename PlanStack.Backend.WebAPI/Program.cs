@@ -58,6 +58,7 @@ builder.Services.AddScoped<JwtHandler>();
 // Adding Services
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<BlueprintService>();
+builder.Services.AddScoped<StandardService>();
 
 // Adding Repositories
 builder.Services.AddScoped<UserRepository>();
@@ -70,6 +71,7 @@ builder.Services.AddScoped<ComponentRepository>();
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<RuleSetRepository>();
 builder.Services.AddScoped<StandardRepository>();
+builder.Services.AddScoped<StandardRuleSetRepository>();
 builder.Services.AddScoped<RoomRepository>();
 
 builder.Services.AddControllers();

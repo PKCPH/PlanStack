@@ -140,7 +140,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
         #endregion
 
-        #region Update
+        #region Save
         [HttpPut("save/{entityId}")]
         public async Task<ActionResult> Save(int entityId, [FromBody] BlueprintSaveResource saveResource)
         {

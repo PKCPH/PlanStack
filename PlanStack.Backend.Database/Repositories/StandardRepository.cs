@@ -14,7 +14,8 @@ namespace PlanStack.Backend.Database.Repositories
         protected override IQueryable<Standard> ApplyRelations(IQueryable<Standard> query)
         {
             query = query
-                .Include(x => x.RuleSets);
+                .Include(x => x.RuleSets)
+                .ThenInclude(x => x.RuleSet);
 
             return base.ApplyRelations(query);
         }

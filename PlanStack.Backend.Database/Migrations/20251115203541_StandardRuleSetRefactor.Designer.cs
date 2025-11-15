@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PlanStack.Backend.Database;
 
@@ -11,9 +12,11 @@ using PlanStack.Backend.Database;
 namespace PlanStack.Backend.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251115203541_StandardRuleSetRefactor")]
+    partial class StandardRuleSetRefactor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -568,6 +571,9 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<int?>("DefinitionValue")
                         .HasColumnType("int");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("RuleSetId")
                         .HasColumnType("int");
 
@@ -576,9 +582,6 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("UserDefinedName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

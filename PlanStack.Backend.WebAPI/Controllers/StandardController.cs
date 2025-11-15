@@ -8,6 +8,7 @@ using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Standard;
+using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
@@ -17,16 +18,19 @@ namespace PlanStack.Backend.WebAPI.Controllers
     public class StandardController : ControllerBase
     {
         private readonly StandardRepository _standardRepository;
+        private readonly StandardService _standardService;
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public StandardController(
             StandardRepository standardRepository,
+            StandardService standardService,
             UnitOfWork unitOfWork,
             IMapper mapper
         )
         {
             _standardRepository = standardRepository;
+            _standardService = standardService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -101,6 +105,16 @@ namespace PlanStack.Backend.WebAPI.Controllers
             var entity = await _standardRepository.GetAsync(entityId, true);
             if (entity == null)
                 return NotFound();
+
+            try
+            {
+                if (updateResource.RuleSets.Count > 0)
+                    await _standardService.SaveRuleSetsToStandardAsync(entity.Id, updateResource.RuleSets);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { success = false, message = $"Server Crash: {ex.Message}" });
+            }
 
             entity.UpdatedAt = DateTime.Now;
 
