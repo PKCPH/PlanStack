@@ -11,6 +11,7 @@ import RegisterView from "../views/RegisterView.vue";
 import LoginView from "../views/LoginView.vue";
 import ProjectView from "../views/ProjectView.vue";
 import UnauthorizedView from "../views/UnauthorizedView.vue";
+import RulesetView from "../views/RulesetView.vue";
 
 export const routes = [
   {
@@ -73,7 +74,12 @@ export const routes = [
     path: "/unauthorized",
     name: "Unauthorized",
     component: UnauthorizedView,
-  }
+  },
+  {
+    path: "/standard/:standardId/rulesets",
+    name: "Rulesets",
+    component: RulesetView,
+  },
 ];
 
 const router = createRouter({
@@ -82,7 +88,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const publicPages = ['Login', 'Register', 'Home'];
+  const publicPages = ["Login", "Register", "Home"];
   const authRequired = !publicPages.includes(to.name);
   const user = getCurrentUser();
 
