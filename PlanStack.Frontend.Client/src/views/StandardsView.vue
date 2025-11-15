@@ -72,6 +72,6 @@ const rules = {
 const selectStandard = (standard) => {
   // for routering to ruleset
   console.log("Selected standard:", standard);
-  // router.push(`/standards/${standard.id}`);
+  router.push(`/standard/${standard.id}/rulesets`);
 };
 </script>
