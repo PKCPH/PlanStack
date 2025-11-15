@@ -1,5 +1,5 @@
 <template>
-  <v-container class="mt-10" min-width="500">
+  <v-container class="mt-10" max-width="500">
     <div class="text-center mb-6">
       <h1 class="text-h4 font-weight-bold text-grey-darken-3">Login</h1>
     </div>
