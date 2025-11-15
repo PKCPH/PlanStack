@@ -173,5 +173,28 @@ namespace PlanStack.Backend.WebAPI.Controllers
             return NoContent();
         }
         #endregion
+
+        #region ValidateBlueprint
+        [HttpGet("validate/{entityId}")]
+        public async Task<ActionResult<BlueprintResource>> ValidateBlueprint(int entityId)
+        {
+            // Get entity
+            var entity = await _blueprintRepository.GetAsync(entityId, true);
+            if (entity == null)
+                return NotFound();
+
+            // Validate blueprint - With ValidateService
+            //var validateSuccess = await _blueprintService.ValidateBlueprintAsync(entity);
+
+            //if (validateSuccess == true)
+            //{
+            //    entity.IsValidated = true;
+            //    entity.UpdatedAt = DateTime.Now;
+            //    await _unitOfWork.SaveChangesAsync();
+            //}
+
+            return Ok("");
+        }
+        #endregion
     }
 }

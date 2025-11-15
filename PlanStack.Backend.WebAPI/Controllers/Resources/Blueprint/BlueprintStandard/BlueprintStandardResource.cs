@@ -5,6 +5,5 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintStan
     public class BlueprintStandardResource
     {
         public virtual StandardResource Standard { get; set; }
-        public virtual BlueprintResource Blueprint { get; set; }
     }
 }

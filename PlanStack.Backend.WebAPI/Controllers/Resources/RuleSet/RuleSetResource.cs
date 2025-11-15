@@ -1,18 +1,17 @@
-﻿using PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Component;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet
 {
     public class RuleSetResource : BaseResource<int>
     {
-        public float Ratio { get; set; }
+        public int DefinitionValue { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }
 
-        #region Relations
-        public virtual ComponentResource Component { get; set; }
-        public virtual BuildingStructureResource BuildingStructure { get; set; }
-        #endregion
+        public int ComparisonValue { get; set; }
+        public RuleSetComparisonEnum Comparison { get; set; }
+
+        public RuleSetObjectTypeEnum? ObjectTypeDefinition { get; set; }
+        public RuleSetObjectTypeEnum? ObjectTypeComparison { get; set; }
     }
 }

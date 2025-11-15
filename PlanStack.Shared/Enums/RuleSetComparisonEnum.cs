@@ -4,8 +4,6 @@
     {
         MINIMUM = 0,
         MAXIMUM = 1,
-        EXACT = 2,
-
-        OTHER = 99
+        EXACT = 2
     }
 }

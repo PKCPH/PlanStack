@@ -1,7 +1,7 @@
 ﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintStandard;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Room;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Standard;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 {
@@ -16,7 +16,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
         public virtual ICollection<BlueprintComponentResource> Components { get; set; }
         public virtual ICollection<BlueprintBuildingStructureResource> BuildingStructures { get; set; }
         public virtual ICollection<RoomResource> Rooms { get; set; }
-        public virtual ICollection<StandardResource> Standards { get; set; }
+        public virtual ICollection<BlueprintStandardResource> Standards { get; set; }
         #endregion
 
         #region Helpers

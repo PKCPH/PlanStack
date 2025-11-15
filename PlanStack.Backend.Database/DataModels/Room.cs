@@ -8,6 +8,7 @@ namespace PlanStack.Backend.Database.DataModels
         public RoomTypeEnum RoomType { get; set; }
 
         #region Relations
+        public virtual ICollection<BlueprintComponent> Components { get; set; }
         public virtual Blueprint Blueprint { get; set; }
         public int BlueprintId { get; set; }
         #endregion

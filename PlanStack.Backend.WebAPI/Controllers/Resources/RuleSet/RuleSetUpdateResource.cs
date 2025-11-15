@@ -1,16 +1,14 @@
 ﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
-using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet
 {
     public class RuleSetUpdateResource : BaseUpdateCreateResource
     {
-        public float Ratio { get; set; }
-        public RuleSetDefinitionEnum Definition { get; set; }
+        public int DefinitionValue { get; set; }
+        public int ComparisonValue { get; set; }
 
         #region Relations
-        public int? ComponentId { get; set; }
-        public int? BuildingStructureId { get; set; }
+        public int? StandardId { get; set; }
         #endregion
     }
 }

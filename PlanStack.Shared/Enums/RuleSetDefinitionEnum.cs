@@ -3,8 +3,20 @@
     public enum RuleSetDefinitionEnum : int
     {
         BY_DISTANCE = 0,
-        BY_AREA = 1,
-        BY_QUANTITY = 2,
+
+        BY_BLUEPRINT_AREA_OVER_RATIO = 1,
+        BY_BLUEPRINT_AREA_EXACT_RATIO = 2,
+        BY_BLUEPRINT_AREA_UNDER_RATIO = 3,
+
+        BY_ROOM_AREA_UNDER_RATIO = 4,
+        BY_ROOM_AREA_EXACT_RATIO = 10,
+        BY_ROOM_AREA_OVER_RATIO = 5,
+
+        BY_TOTAL_QUANTITY_UNDER_RATIO = 6,
+        BY_TOTAL_QUANTITY_OVER_RATIO = 7,
+
+        BY_OCCUPANCY_OVER_RATIO = 8,
+        BY_OCCUPANCY_UNDER_RATIO = 9,
 
         OTHER = 99
     }

@@ -4,19 +4,18 @@ namespace PlanStack.Backend.Database.DataModels
 {
     public class RuleSet : BaseDataModel<int>
     {
-        public float Ratio { get; set; }
+        public int DefinitionValue { get; set; }
         public RuleSetDefinitionEnum Definition { get; set; }
+
+        public int ComparisonValue { get; set; }
         public RuleSetComparisonEnum Comparison { get; set; }
 
+        public RuleSetObjectTypeEnum? ObjectTypeDefinition { get; set; }
+        public RuleSetObjectTypeEnum? ObjectTypeComparison { get; set; }
+
         #region Relations
-        public virtual Component Component { get; set; }
-        public int? ComponentId { get; set; }
-
-        public virtual BuildingStructure BuildingStructure { get; set; }
-        public int? BuildingStructureId { get; set; }
-
         public virtual Standard Standard { get; set; }
-        public int StandardId { get; set; }
+        public int? StandardId { get; set; }
         #endregion
     }
 }

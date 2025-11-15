@@ -20,7 +20,8 @@ namespace PlanStack.Backend.Database.Repositories
                 .Include(x => x.Components)
                 .ThenInclude(x => x.Component)
                 .Include(x => x.Standards)
-                .ThenInclude(x => x.Standard);
+                .ThenInclude(x => x.Standard)
+                .ThenInclude(x => x.RuleSets);
 
             return base.ApplyRelations(query);
         }
