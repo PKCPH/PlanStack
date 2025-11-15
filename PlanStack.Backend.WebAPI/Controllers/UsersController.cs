@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.User;
+using PlanStack.Backend.WebAPI.Extensions;
 using PlanStack.Backend.WebAPI.Handlers;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -27,6 +31,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             _userRepository = userRepository;
         }
 
+        //[Authorize(Roles = "Admin")]
         //[HttpGet("{userId}")]
         //public async Task<ActionResult<UserResource>> Get(string userId)
         //{
@@ -41,6 +46,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         //    return Ok(resource);
         //}
 
+        //[Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResource>>> GetAll()
         {
@@ -50,10 +56,12 @@ namespace PlanStack.Backend.WebAPI.Controllers
             return Ok(users);
         }
 
-        [HttpPut("{entityId}")]
-        public async Task<IActionResult> Update(string entityId, [FromBody] UserUpdateRequest request)
+        [HttpPut()]
+        public async Task<IActionResult> Update([FromBody] UserUpdateRequest request)
         {
-            var user = await _userManager.FindByIdAsync(entityId);
+            var entityId = this.User.GetUserId();
+
+            var user = await _userManager.FindByIdAsync(entityId.ToString());
             if (user == null)
                 return NotFound("User was not found");
 
@@ -75,6 +83,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{userId}")]
         public async Task<IActionResult> Delete(string userId)
         {

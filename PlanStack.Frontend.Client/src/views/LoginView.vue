@@ -35,6 +35,11 @@
         {{ loginError }}
       </div>
     </v-form>
+
+    <div class="text-center mt-6">
+      <span>New to PlanStack?</span>
+      <router-link to="/register" class="ml-1">Create an account</router-link>
+    </div>
   </v-container>
 </template>
 

@@ -140,6 +140,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { apiFetch } from "../api/Auth.js"
 
 // modelling props
 const props = defineProps({
@@ -188,25 +189,49 @@ const showSnackbar = (text, color = "success") => {
   snackbar.value = true;
 };
 
+// const fetchItems = async () => {
+//   isLoading.value = true;
+//   error.value = null;
+//   items.value = [];
+
+//   try {
+//     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
+//       props.apiEndpoint
+//     )}`;
+//     const response = await apiFetch(props.apiEndpoint, {
+//       method: "GET",
+//       headers: { Host: "planstack.dk" },
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`API returned error: Status ${response.status}`);
+//     }
+//     const data = await response.json();
+//     items.value = data.entities || [];
+//   } catch (e) {
+//     console.error("Error fetching items:", e);
+//     error.value = `Failed to load data: ${e.message}`;
+//   } finally {
+//     isLoading.value = false;
+//   }
+// };
+
 const fetchItems = async () => {
   isLoading.value = true;
   error.value = null;
   items.value = [];
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
-      props.apiEndpoint
-    )}`;
-    const response = await fetch(proxiedUrl, {
+    const result = await apiFetch(props.apiEndpoint, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
 
-    if (!response.ok) {
-      throw new Error(`API returned error: Status ${response.status}`);
+    if (!result.ok) {
+      throw new Error(`API returned error: Status ${result.status}`);
     }
-    const data = await response.json();
-    items.value = data.entities || [];
+
+    items.value = result.data?.entities || [];
   } catch (e) {
     console.error("Error fetching items:", e);
     error.value = `Failed to load data: ${e.message}`;
@@ -244,12 +269,10 @@ const handleSave = async () => {
     : props.apiEndpoint;
 
   const payload = { ...editingItem.value };
-  // Add auth/user ID if needed
-  // payload.userId = getUserId();
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await fetch(proxiedUrl, {
+      const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+      const response = await apiFetch(proxiedUrl, {
       method: method,
       headers: {
         "Content-Type": "application/json",

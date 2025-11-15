@@ -62,7 +62,7 @@ import { ref, computed } from "vue";
 import { routes } from "./router/index.js";
 import { useRoute } from "vue-router";
 import { useRouter } from "vue-router";
-import { isLoggedIn, setToken } from "./components/api/auth.js";
+import { isLoggedIn, setToken, getCurrentUser } from "./components/api/auth.js";
 
 const drawer = ref(true);
 const userRightDrawerState = ref(true);
@@ -91,11 +91,23 @@ const menuItems = computed(() => {
     "Account",
     "Building Structures",
     "Standards",
+    "Projects",
+  ];
+  const hiddenAlways = ["Unauthorized"]; 
+  const hiddenForUser = [
+    "Components",
+    "Building Structures"
   ];
 
   return routes
     .filter((route) => {
       if (!route.name) return false;
+      if (hiddenAlways.includes(route.name)) return false;
+
+      const user = getCurrentUser();
+      // if (user && user.roles && user.roles.includes('User') && hiddenForUser.includes(route.name)) {
+      //   return false;
+      // }
 
       if (isLoggedIn.value && hiddenForLoggedIn.includes(route.name)) {
         return false;

@@ -8,7 +8,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Project
         public BuildingTypeEnum BuildingType { get; set; }
 
         #region Relations
-        //public string UserId { get; set; }
+        public string UserId { get; set; }
         #endregion
     }
 }

@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Project;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Backend.WebAPI.Extensions;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("projects")]
     [ApiController]
     public class ProjectController : ControllerBase
@@ -32,6 +36,9 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<ProjectResource>> Create([FromBody] ProjectCreateResource createResource)
         {
+            var userId = this.User.GetUserId();
+            createResource.UserId = userId.ToString();
+
             //Map entity
             var entity = _mapper.Map<ProjectCreateResource, Project>(createResource);
 

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { getCurrentUser } from "../components/api/Auth.js";
 
 import HomeView from "../views/HomeView.vue";
 import FloorplannerView from "../views/FloorplannerView.vue";
@@ -9,6 +10,7 @@ import BuildingStructureView from "../views/BuildingStructureView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import LoginView from "../views/LoginView.vue";
 import ProjectView from "../views/ProjectView.vue";
+import UnauthorizedView from "../views/UnauthorizedView.vue";
 
 export const routes = [
   {
@@ -67,11 +69,35 @@ export const routes = [
     component: LoginView,
     icon: "mdi-account",
   },
+  {
+    path: "/unauthorized",
+    name: "Unauthorized",
+    component: UnauthorizedView,
+  }
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const publicPages = ['Login', 'Register', 'Home'];
+  const authRequired = !publicPages.includes(to.name);
+  const user = getCurrentUser();
+
+  // if (to.name === 'Components' && (!user || !user.roles.includes('Admin'))) {
+  //   return next({ name: 'Unauthorized' });
+  // }
+
+  // if (to.name === 'Building Structures' && (!user || !user.roles.includes('Admin'))) {
+  //   return next({ name: 'Unauthorized' });
+  // }
+
+  // if (authRequired && !user) {
+  //   return next({ name: 'Login' });
+  // }
+  next();
 });
 
 export default router;

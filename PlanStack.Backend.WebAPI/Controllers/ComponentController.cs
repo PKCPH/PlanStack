@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
@@ -11,6 +13,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("components")]
     [ApiController]
     public class ComponentController : ControllerBase
@@ -34,6 +37,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
 
         #region Create
+        //[Authorize(Roles = "Admin")]
         [HttpPost()]
         public async Task<ActionResult<ComponentResource>> Create([FromForm] ComponentCreateResource createResource)
         {
@@ -111,6 +115,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         #endregion
 
         #region Update
+        //[Authorize(Roles = "Admin")]
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromForm] ComponentUpdateResource updateResource)
         {
@@ -137,6 +142,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         #endregion
 
         #region Delete
+        //[Authorize(Roles = "Admin")]
         [HttpDelete("{entityId}")]
         public async Task<ActionResult> Delete(int entityId)
         {

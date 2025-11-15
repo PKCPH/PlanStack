@@ -1,15 +1,18 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("blueprints")]
     [ApiController]
     public class BlueprintController : ControllerBase

@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
@@ -9,6 +11,7 @@ using PlanStack.Backend.WebAPI.Controllers.Resources.Standard;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("standards")]
     [ApiController]
     public class StandardController : ControllerBase
