@@ -1,12 +1,16 @@
 <template>
-  <v-container class="py-10" min-width="800">
+  <v-container class="py-10" max-width="800">
     <div class="text-center mb-6">
       <h1 class="text-h4 font-weight-bold text-grey-darken-3">
         Floorplans for {{ projectName }}
       </h1>
     </div>
 
-    <div class="d-flex justify-center" v-if="showCanvas">
+    <div
+      class="d-flex justify-center align-center canvas-viewport"
+      v-if="showCanvas"
+      ref="viewportRef"
+    >
       <canvas
         ref="canvasRef"
         id="floorplanCanvas"
@@ -17,14 +21,13 @@
         @touchstart.prevent="handleMouseDown"
         @touchmove.prevent="handleMouseMove"
         @touchend="handleMouseUp"
-        style="touch-action: none; cursor: crosshair"
+        :style="canvasStyle"
       />
     </div>
 
     <Teleport to="#right-tools-container">
       <div class="d-flex justify-space-between align-center mb-2">
         <v-list-subheader class="pa-0">Blueprints</v-list-subheader>
-
         <v-btn
           color="secondary"
           @click="openCreateDialog"
@@ -262,17 +265,42 @@
         </v-btn>
 
         <v-btn
-          v-if="currentTool === 'placeComponent'"
+          v-if="currentTool === 'placeComponent' && activeBlueprintId"
           @click="toggleComponentRotation"
           variant="tonal"
           color="cyan-darken-2"
           size="small"
-          :disabled="!activeBlueprintId"
           title="Toggle rotation"
         >
           <v-icon start icon="mdi-rotate-90"></v-icon>
           {{ isPlacingHorizontal ? "Horizontal" : "Vertical" }}
         </v-btn>
+      </div>
+
+      <v-divider class="my-6"></v-divider>
+
+      <v-list-subheader>Room Areas</v-list-subheader>
+      <div class="px-4">
+        <v-btn
+          color="teal"
+          block
+          @click="calculateRoomAreas"
+          @mouseover="onFindRoomsHover"
+          @mouseleave="onFindRoomsLeave"
+          :loading="isCalculatingRooms"
+          prepend-icon="mdi-grid"
+          class="mb-2"
+          :disabled="!activeBlueprintId"
+        >
+          Find Rooms
+        </v-btn>
+
+        <v-list v-if="rooms.length > 0" density="compact">
+          <v-list-item v-for="room in rooms" :key="room.id" class="pa-0">
+            <v-list-item-title>Room {{ room.id }}</v-list-item-title>
+            <v-list-item-subtitle> {{ room.area }} m² </v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
       </div>
     </Teleport>
 
@@ -375,9 +403,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, onMounted, watch, nextTick, computed } from "vue";
 import { useTheme } from "vuetify";
 import { useRoute } from "vue-router";
+import { FONT_ROOM } from "@/configuration/drawing.js";
 
 const theme = useTheme();
 const route = useRoute();
@@ -402,6 +431,8 @@ const startPoint = ref({ x: 0, y: 0 });
 const tempEndPoint = ref({ x: 0, y: 0 });
 const currentTool = ref("drawWall");
 const canvasRef = ref(null);
+const viewportRef = ref(null);
+const canvasScale = ref(1);
 const showCanvas = ref(false);
 const canvasWidthCells = ref(40);
 const canvasHeightCells = ref(40);
@@ -448,6 +479,11 @@ const isLoadingComponentTypes = ref(false);
 const componentTypesError = ref(null);
 const currentComponentId = ref(null);
 
+// room calc states
+const rooms = ref([]);
+const isCalculatingRooms = ref(false);
+const showRoomLabels = ref(false);
+
 const COLOR_PALETTE = [
   theme.global.current.value.colors.primary,
   "#FF5733",
@@ -467,6 +503,13 @@ const blueprintsList = ref([]);
 const isLoadingList = ref(false);
 const listErrorMessage = ref("");
 
+const canvasStyle = computed(() => ({
+  transform: `scale(${canvasScale.value})`,
+  transformOrigin: "center center",
+  touchAction: "none",
+  cursor: "crosshair",
+}));
+
 const showSnackbar = (text, color = "success") => {
   snackbarText.value = text;
   snackbarColor.value = color;
@@ -484,6 +527,7 @@ const openCreateDialog = () => {
   canvasHeightCells.value = 40;
   walls.value = [];
   placedComponents.value = [];
+  rooms.value = []; // Clear rooms
 
   // clearing canvas if showing
   if (showCanvas.value) {
@@ -699,7 +743,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
     }
 
     // refresh blueprint list after saving
-    fetchBlueprints();
+    await fetchBlueprints();
   } catch (error) {
     console.error("Error saving blueprint:", error);
     showSnackbar(
@@ -784,6 +828,7 @@ const draw = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid(ctx, canvas);
 
+  // drawing components
   placedComponents.value.forEach((comp) => {
     const isHovered = hoveredComponent.value && comp === hoveredComponent.value;
     const { color, width, height } = getComponentDetails(comp.componentId);
@@ -800,8 +845,8 @@ const draw = () => {
     );
   });
 
+  // draw building strcutures
   walls.value.forEach((wall) => {
-    // highlighting in erase mode
     const isHovered = hoveredWall.value && wall === hoveredWall.value;
     const color = isHovered
       ? ERASE_HIGHLIGHT_COLOR
@@ -809,6 +854,7 @@ const draw = () => {
     drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, color);
   });
 
+  // temp buildingstructre while drawing
   if (isDrawing.value && currentTool.value === "drawWall") {
     const tempColor = getColorForStructureId(currentBuildingStructureId.value);
     drawWall(
@@ -821,6 +867,7 @@ const draw = () => {
     );
   }
 
+  // drawing component preview
   if (
     hoverPoint.value &&
     currentTool.value === "placeComponent" &&
@@ -840,8 +887,18 @@ const draw = () => {
       true //ghosted
     );
   }
-};
 
+  // drawing room names
+  if (showRoomLabels.value) {
+    rooms.value.forEach((room) => {
+      // converting double grid to normal canvas coords
+      const canvasX = ((room.labelX - 1) / 2) * GRID_SIZE + GRID_SIZE / 2;
+      const canvasY = ((room.labelY - 1) / 2) * GRID_SIZE + GRID_SIZE / 2;
+
+      drawRoomLabel(ctx, `Room ${room.id}`, canvasX, canvasY);
+    });
+  }
+};
 const isPointNearWall = (px, py, wall) => {
   const { startX, startY, endX, endY } = wall;
 
@@ -874,7 +931,6 @@ const isPointNearComponent = (px, py, component) => {
 };
 
 // Event Handlers
-
 const getCanvasCoords = (event) => {
   const canvas = canvasRef.value;
   let clientX = event.clientX;
@@ -886,10 +942,10 @@ const getCanvasCoords = (event) => {
   }
 
   const rect = canvas.getBoundingClientRect();
-  return {
-    x: clientX - rect.left,
-    y: clientY - rect.top,
-  };
+
+  const x = (clientX - rect.left) / canvasScale.value;
+  const y = (clientY - rect.top) / canvasScale.value;
+  return { x, y };
 };
 
 const handleMouseDown = (event) => {
@@ -1079,6 +1135,7 @@ const handleMouseLeave = () => {
 const clearFloorplan = () => {
   walls.value = [];
   placedComponents.value = [];
+  rooms.value = [];
   showSnackbar("Floorplan cleared.", "info");
   draw();
 };
@@ -1142,8 +1199,28 @@ const createCanvas = (closeDialog = false) => {
   };
 
   showCanvas.value = true;
+  rooms.value = [];
 
   nextTick(() => {
+    if (!viewportRef.value || !canvasRef.value) {
+      console.error("Canvas or Viewport ref not found!");
+      return;
+    }
+
+    // container and canvas size
+    const viewportWidth = viewportRef.value.clientWidth;
+    const viewportHeight = viewportRef.value.clientHeight;
+
+    const canvasWidth = finalCanvasSize.value.width;
+    const canvasHeight = finalCanvasSize.value.height;
+
+    // calculate scale to fit canvas in viewport
+    const scaleX = viewportWidth / canvasWidth;
+    const scaleY = viewportHeight / canvasHeight;
+
+    const newScale = Math.min(scaleX, scaleY) * 0.95;
+    canvasScale.value = newScale;
+
     setupCanvasAndListeners();
   });
 
@@ -1295,6 +1372,7 @@ const loadBlueprint = (blueprint) => {
   floor.value = blueprint.floor || 1;
   canvasWidthCells.value = blueprint.width || 40;
   canvasHeightCells.value = blueprint.height || 40;
+  rooms.value = [];
 
   //to create or resize canvas
   createCanvas();
@@ -1324,6 +1402,187 @@ const loadBlueprint = (blueprint) => {
   });
 };
 
+const onFindRoomsHover = () => {
+  if (rooms.value.length > 0) {
+    showRoomLabels.value = true;
+    draw();
+  }
+};
+
+const onFindRoomsLeave = () => {
+  if (showRoomLabels.value) {
+    showRoomLabels.value = false;
+    draw();
+  }
+};
+
+const drawRoomLabel = (ctx, text, x, y) => {
+  ctx.fillStyle = theme.global.current.value.colors.primary;
+  ctx.font = FONT_ROOM;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+};
+
+const calculateRoomAreas = () => {
+  if (walls.value.length === 0) {
+    showSnackbar("There are no walls drawn.", "info");
+    return;
+  }
+
+  isCalculatingRooms.value = true;
+  rooms.value = [];
+
+  const width = canvasWidthCells.value;
+  const height = canvasHeightCells.value;
+
+  // creating double grid
+  const gridWidth = width * 2 + 1;
+  const gridHeight = height * 2 + 1;
+  const grid = Array(gridHeight)
+    .fill(null)
+    .map(() => Array(gridWidth).fill(0)); // 0 = empty
+
+  // marking walls double grid
+  walls.value.forEach((wall) => {
+    const x1 = Math.round(wall.startX / GRID_SIZE) * 2;
+    const y1 = Math.round(wall.startY / GRID_SIZE) * 2;
+    const x2 = Math.round(wall.endX / GRID_SIZE) * 2;
+    const y2 = Math.round(wall.endY / GRID_SIZE) * 2;
+
+    // line on grid
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        if (y >= 0 && y < gridHeight && x >= 0 && x < gridWidth) {
+          grid[y][x] = 1; // 1 is wall
+        }
+      }
+    }
+  });
+
+  floodFill(grid, 0, 0, -1, 0, gridWidth, gridHeight);
+
+  let currentRoomId = 2;
+  const foundRooms = [];
+
+  // Iterate over cells
+  for (let y = 1; y < gridHeight; y += 2) {
+    for (let x = 1; x < gridWidth; x += 2) {
+      if (grid[y][x] === 0) {
+        const roomData = floodFill(
+          grid,
+          x,
+          y,
+          currentRoomId,
+          0,
+          gridWidth,
+          gridHeight
+        );
+
+        if (roomData.area > 0) {
+          // finding center cell for showing room name
+          const centerX = (roomData.minX + roomData.maxX) / 2;
+          const centerY = (roomData.minY + roomData.maxY) / 2;
+
+          let bestCell = [0, 0];
+          let minDistance = Infinity;
+
+          for (const cell of roomData.allCells) {
+            const distance = Math.hypot(cell[0] - centerX, cell[1] - centerY);
+            if (distance < minDistance) {
+              minDistance = distance;
+              bestCell = cell;
+            }
+          }
+
+          foundRooms.push({
+            id: currentRoomId - 1,
+            area: roomData.area,
+            labelX: bestCell[0],
+            labelY: bestCell[1],
+          });
+          currentRoomId++;
+        }
+      }
+    }
+  }
+
+  rooms.value = foundRooms;
+  isCalculatingRooms.value = false;
+
+  if (foundRooms.length > 0) {
+    showSnackbar(`Found ${foundRooms.length} room(s)!`);
+  } else {
+    showSnackbar("Could not find any fully enclosed rooms.", "error");
+  }
+};
+
+const floodFill = (
+  grid,
+  startX,
+  startY,
+  newValue,
+  targetValue,
+  width,
+  height
+) => {
+  if (grid[startY][startX] !== targetValue) {
+    return { area: 0 };
+  }
+
+  let area = 0;
+  let minX = Infinity,
+    maxX = -Infinity,
+    minY = Infinity,
+    maxY = -Infinity;
+  const allCells = [];
+  const queue = [[startX, startY]];
+  grid[startY][startX] = newValue;
+
+  while (queue.length > 0) {
+    const [x, y] = queue.shift();
+
+    // checking if its a cell center
+    if (x % 2 === 1 && y % 2 === 1) {
+      area++;
+      allCells.push([x, y]);
+
+      // Update bounding box
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+
+    // checking neighbors
+    const neighbors = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1],
+      [x + 1, y + 1],
+      [x - 1, y - 1],
+      [x + 1, y - 1],
+      [x - 1, y + 1],
+    ];
+
+    for (const [nx, ny] of neighbors) {
+      // checking bounds and target value
+      if (
+        nx >= 0 &&
+        nx < width &&
+        ny >= 0 &&
+        ny < height &&
+        grid[ny][nx] === targetValue
+      ) {
+        grid[ny][nx] = newValue;
+        queue.push([nx, ny]);
+      }
+    }
+  }
+  return { area, minX, maxX, minY, maxY, allCells };
+};
+
 watch(walls, draw, { deep: true });
 watch(placedComponents, draw, { deep: true });
 watch(buildingStructureTypes, draw, { deep: true });
@@ -1347,10 +1606,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Scoped styles for non-Vuetify element */
+/* testing viewport for canvas */
+.canvas-viewport {
+  width: 100%;
+  max-width: 900px;
+  height: 600px;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+}
+
 #floorplanCanvas {
   border: 2px solid #cbd5e1;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
+  transform-origin: center center;
 }
 </style>

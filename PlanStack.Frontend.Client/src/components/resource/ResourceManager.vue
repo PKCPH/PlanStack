@@ -4,7 +4,7 @@
       <h1 class="text-h4 font-weight-bold text-grey-darken-3">{{ title }}</h1>
     </div>
 
-    <v-sheet min-width="600" class="mx-auto">
+    <v-sheet max-width="600" class="mx-auto">
       <div class="d-flex justify-space-between align-center mb-2 pa-4">
         <v-list-subheader class="pa-0">Select a {{ title }}</v-list-subheader>
         <v-btn
