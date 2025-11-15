@@ -1,6 +1,4 @@
-﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
-
-namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure
+﻿namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure
 {
     public class BlueprintComponentSaveResource
     {
@@ -9,7 +7,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuil
         public bool IsHorizontal { get; set; }
 
         #region Relations
-        public int? RoomId { get; set; }
+        public string RoomId { get; set; }
         public int? BlueprintId { get; set; }
         public int? ComponentId { get; set; }
         #endregion

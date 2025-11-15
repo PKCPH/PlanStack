@@ -15,6 +15,13 @@ namespace PlanStack.Backend.Database.Migrations
                 name: "FK_BlueprintStandards_Standards_StandardId",
                 table: "BlueprintStandards");
 
+            migrationBuilder.AddColumn<int>(
+                name: "Comparison",
+                table: "RuleSets",
+                type: "int",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.AlterColumn<int>(
                 name: "StandardId",
                 table: "BlueprintStandards",
@@ -62,10 +69,10 @@ namespace PlanStack.Backend.Database.Migrations
                 oldType: "int",
                 oldNullable: true);
 
-            migrationBuilder.AddColumn<int>(
+            migrationBuilder.AddColumn<Guid>(
                 name: "RoomId",
                 table: "BlueprintComponents",
-                type: "int",
+                type: "uniqueidentifier",
                 nullable: true);
 
             migrationBuilder.AlterColumn<int>(
@@ -89,12 +96,12 @@ namespace PlanStack.Backend.Database.Migrations
                 oldNullable: true);
 
             migrationBuilder.CreateTable(
-                name: "Room",
+                name: "Rooms",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SquareMeters = table.Column<int>(type: "int", nullable: false),
+                    RoomType = table.Column<int>(type: "int", nullable: false),
                     BlueprintId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -103,9 +110,9 @@ namespace PlanStack.Backend.Database.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Room", x => x.Id);
+                    table.PrimaryKey("PK_Rooms", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Room_Blueprints_BlueprintId",
+                        name: "FK_Rooms_Blueprints_BlueprintId",
                         column: x => x.BlueprintId,
                         principalTable: "Blueprints",
                         principalColumn: "Id",
@@ -118,15 +125,15 @@ namespace PlanStack.Backend.Database.Migrations
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Room_BlueprintId",
-                table: "Room",
+                name: "IX_Rooms_BlueprintId",
+                table: "Rooms",
                 column: "BlueprintId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_BlueprintComponents_Room_RoomId",
+                name: "FK_BlueprintComponents_Rooms_RoomId",
                 table: "BlueprintComponents",
                 column: "RoomId",
-                principalTable: "Room",
+                principalTable: "Rooms",
                 principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
@@ -142,7 +149,7 @@ namespace PlanStack.Backend.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_BlueprintComponents_Room_RoomId",
+                name: "FK_BlueprintComponents_Rooms_RoomId",
                 table: "BlueprintComponents");
 
             migrationBuilder.DropForeignKey(
@@ -150,11 +157,15 @@ namespace PlanStack.Backend.Database.Migrations
                 table: "BlueprintStandards");
 
             migrationBuilder.DropTable(
-                name: "Room");
+                name: "Rooms");
 
             migrationBuilder.DropIndex(
                 name: "IX_BlueprintComponents_RoomId",
                 table: "BlueprintComponents");
+
+            migrationBuilder.DropColumn(
+                name: "Comparison",
+                table: "RuleSets");
 
             migrationBuilder.DropColumn(
                 name: "IsValidated",

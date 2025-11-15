@@ -4,7 +4,7 @@ using PlanStack.Backend.Database.QueryModels;
 
 namespace PlanStack.Backend.Database.Repositories
 {
-    public class RoomRepository : BaseRepository<Room, RoomQuery, int>
+    public class RoomRepository : BaseRepository<Room, RoomQuery, Guid>
     {
         public RoomRepository(DatabaseContext context) : base(context)
         {

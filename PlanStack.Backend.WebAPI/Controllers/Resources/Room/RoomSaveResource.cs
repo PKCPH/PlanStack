@@ -5,6 +5,7 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Room
 {
     public class RoomSaveResource : BaseUpdateCreateResource
     {
+        public string Id { get; set; }
         public int SquareMeters { get; set; }
         public RoomTypeEnum RoomType { get; set; }
 

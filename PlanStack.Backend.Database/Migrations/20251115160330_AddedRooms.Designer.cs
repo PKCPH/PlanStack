@@ -12,8 +12,8 @@ using PlanStack.Backend.Database;
 namespace PlanStack.Backend.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20251115142904_test")]
-    partial class test
+    [Migration("20251115160330_AddedRooms")]
+    partial class AddedRooms
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -281,8 +281,8 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<bool>("IsHorizontal")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("RoomId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("RoomId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("StartingPositionX")
                         .HasColumnType("int");
@@ -449,11 +449,9 @@ namespace PlanStack.Backend.Database.Migrations
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Room", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("BlueprintId")
                         .HasColumnType("int");
@@ -492,6 +490,9 @@ namespace PlanStack.Backend.Database.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("BuildingStructureId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Comparison")
                         .HasColumnType("int");
 
                     b.Property<int?>("ComponentId")

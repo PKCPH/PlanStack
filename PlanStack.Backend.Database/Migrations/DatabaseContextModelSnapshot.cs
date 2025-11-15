@@ -278,8 +278,8 @@ namespace PlanStack.Backend.Database.Migrations
                     b.Property<bool>("IsHorizontal")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("RoomId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("RoomId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("StartingPositionX")
                         .HasColumnType("int");
@@ -446,11 +446,9 @@ namespace PlanStack.Backend.Database.Migrations
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Room", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("BlueprintId")
                         .HasColumnType("int");

@@ -12,7 +12,8 @@ namespace PlanStack.Backend.WebAPI.Mappings
             CreateMap<BlueprintCreateResource, Blueprint>();
             CreateMap<BlueprintUpdateResource, Blueprint>();
             CreateMap<BlueprintResource, Blueprint>();
-            CreateMap<BlueprintSaveResource, Blueprint>();
+            CreateMap<BlueprintSaveResource, Blueprint>()
+                .ForMember(dest => dest.Rooms, opt => opt.Ignore());
 
             // Mapping DataModel to Resource
             CreateMap<Blueprint, BlueprintResource>();

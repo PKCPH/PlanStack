@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
@@ -153,13 +151,13 @@ namespace PlanStack.Backend.WebAPI.Controllers
             try
             {
                 if (saveResource.Rooms.Count > 0)
-                    await _blueprintService.SaveRoomsToBlueprintAsync(entity, saveResource.Rooms);
+                    await _blueprintService.SaveRoomsToBlueprintAsync(entity.Id, saveResource.Rooms);
                 if (saveResource.BuildingStructures.Count > 0)
-                    await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity, saveResource.BuildingStructures);
+                    await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity.Id, saveResource.BuildingStructures);
                 if (saveResource.Components.Count > 0)
-                    await _blueprintService.SaveComponentsToBlueprintAsync(entity, saveResource.Components);
+                    await _blueprintService.SaveComponentsToBlueprintAsync(entity.Id, saveResource.Components);
                 if (saveResource.Standards.Count > 0)
-                    await _blueprintService.SaveStandardsToBlueprintAsync(entity, saveResource.Standards);
+                    await _blueprintService.SaveStandardsToBlueprintAsync(entity.Id, saveResource.Standards);
             }
             catch (Exception ex)
             {

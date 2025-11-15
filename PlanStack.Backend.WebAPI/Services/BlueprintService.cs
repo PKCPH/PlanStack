@@ -41,12 +41,12 @@ namespace PlanStack.Backend.WebAPI.Services
         }
 
         #region SaveBuildingStructuresToBlueprintAsync
-        public async Task SaveBuildingStructuresToBlueprintAsync(Blueprint entity, List<BlueprintBuildingStructureSaveResource> saveResources)
+        public async Task SaveBuildingStructuresToBlueprintAsync(int blueprintId, List<BlueprintBuildingStructureSaveResource> saveResources)
         {
             try
             {
                 // Remove existing relations
-                var existingRelations = await _blueprintBuildingStructureRepository.GetAllByBlueprintIdAsync(entity.Id);
+                var existingRelations = await _blueprintBuildingStructureRepository.GetAllByBlueprintIdAsync(blueprintId);
                 foreach (var relation in existingRelations.Entities)
                 {
                     _blueprintBuildingStructureRepository.Remove(relation);
@@ -60,7 +60,7 @@ namespace PlanStack.Backend.WebAPI.Services
                     {
                         var newRelation = new BlueprintBuildingStructure
                         {
-                            BlueprintId = entity.Id,
+                            BlueprintId = blueprintId,
                             BuildingStructureId = buildingStructure.Id,
                             Height = saveResource.Height,
                             Width = saveResource.Width,
@@ -75,18 +75,18 @@ namespace PlanStack.Backend.WebAPI.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error saving blueprint components for blueprint '{entity.Id}'.", ex);
+                throw new InvalidOperationException($"Error saving blueprint components for blueprint '{blueprintId}'.", ex);
             }
         }
         #endregion
 
         #region SaveComponentsToBlueprintAsync
-        public async Task SaveComponentsToBlueprintAsync(Blueprint entity, List<BlueprintComponentSaveResource> saveResources)
+        public async Task SaveComponentsToBlueprintAsync(int blueprintId, List<BlueprintComponentSaveResource> saveResources)
         {
             try
             {
                 // Remove existing relations
-                var existingRelations = await _blueprintComponentRepository.GetAllByBlueprintIdAsync(entity.Id);
+                var existingRelations = await _blueprintComponentRepository.GetAllByBlueprintIdAsync(blueprintId);
                 foreach (var relation in existingRelations.Entities)
                 {
                     _blueprintComponentRepository.Remove(relation);
@@ -100,7 +100,7 @@ namespace PlanStack.Backend.WebAPI.Services
                     {
                         var newRelation = new BlueprintComponent
                         {
-                            BlueprintId = entity.Id,
+                            BlueprintId = blueprintId,
                             ComponentId = component.Id,
 
                             CreatedAt = DateTime.Now,
@@ -112,18 +112,18 @@ namespace PlanStack.Backend.WebAPI.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error saving blueprint components for blueprint '{entity.Id}'.", ex);
+                throw new InvalidOperationException($"Error saving blueprint components for blueprint '{blueprintId}'.", ex);
             }
         }
         #endregion
 
         #region SaveRoomsToBlueprintAsync
-        public async Task SaveRoomsToBlueprintAsync(Blueprint entity, List<RoomSaveResource> saveResources)
+        public async Task SaveRoomsToBlueprintAsync(int blueprintId, List<RoomSaveResource> saveResources)
         {
             try
             {
                 // Remove existing rooms
-                var existingRoom = await _roomRepository.GetAllByBlueprintIdAsync(entity.Id);
+                var existingRoom = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId);
                 foreach (var room in existingRoom.Entities)
                 {
                     _roomRepository.Remove(room);
@@ -134,7 +134,8 @@ namespace PlanStack.Backend.WebAPI.Services
                 {
                     var newRoom = new Room
                     {
-                        BlueprintId = entity.Id,
+                        Id = Guid.Parse(saveResource.Id),
+                        BlueprintId = blueprintId,
                         RoomType = saveResource.RoomType,
                         CreatedAt = DateTime.Now,
                         UpdatedAt = DateTime.Now
@@ -144,18 +145,18 @@ namespace PlanStack.Backend.WebAPI.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error saving rooms for blueprint '{entity.Id}'.", ex);
+                throw new InvalidOperationException($"Error saving rooms for blueprint '{blueprintId}'.", ex);
             }
         }
         #endregion
 
         #region SaveStandardsToBlueprintAsync
-        public async Task SaveStandardsToBlueprintAsync(Blueprint entity, List<BlueprintStandardSaveResource> saveResources)
+        public async Task SaveStandardsToBlueprintAsync(int blueprintId, List<BlueprintStandardSaveResource> saveResources)
         {
             try
             {
                 // Remove existing relations
-                var existingRelations = await _blueprintStandardRepository.GetAllByBlueprintIdAsync(entity.Id);
+                var existingRelations = await _blueprintStandardRepository.GetAllByBlueprintIdAsync(blueprintId);
                 foreach (var relation in existingRelations.Entities)
                 {
                     _blueprintStandardRepository.Remove(relation);
@@ -169,7 +170,7 @@ namespace PlanStack.Backend.WebAPI.Services
                     {
                         var newRelation = new BlueprintStandard
                         {
-                            BlueprintId = entity.Id,
+                            BlueprintId = blueprintId,
                             StandardId = standard.Id,
 
                             CreatedAt = DateTime.Now,
@@ -181,7 +182,7 @@ namespace PlanStack.Backend.WebAPI.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error saving blueprint standards for blueprint '{entity.Id}'.", ex);
+                throw new InvalidOperationException($"Error saving blueprint standards for blueprint '{blueprintId}'.", ex);
             }
         }
         #endregion
