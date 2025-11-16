@@ -22,8 +22,16 @@ builder.Services.AddCors(options =>
 });
 
 //Adding Connection
-builder.Services.AddDbContext<DatabaseContext>(
-       o => o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<DatabaseContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DevLocalConnection")));
+}
+else if (builder.Environment.IsProduction())
+{
+    builder.Services.AddDbContext<DatabaseContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 //Adding JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
