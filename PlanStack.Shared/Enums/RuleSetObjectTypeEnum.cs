@@ -13,7 +13,7 @@
         DOOR = 22,
 
         TOILET = 41,
-        FIRE_EXTINGUISHER = 42,
+        FIRE_SAFETY_EQUIPMENT = 42,
         FRIDGE = 43,
         STOVE = 44,
         SINK = 45,
@@ -23,7 +23,6 @@
         CHAIR = 49,
         BED = 50,
         CLOSET = 51,
-        FIRE_ALARM = 52,
 
         ROOM = 71,
         BLUEPRINT = 72,
