@@ -243,11 +243,9 @@ namespace PlanStack.Backend.WebAPI.Services
 
                 foreach (var standardRuleSet in standardRuleSets.Entities)
                 {
-                    Console.Write(standardRuleSet.RuleSet.Definition);
-
-                    if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_OVER_RATIO && standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.MINIMUM)
+                    if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_OVER_RATIO && standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.MINIMUM)
                     {
-                        var isValid = await ValidateMinimumComponentQuantityPerRoomOverAreaAsync(blueprintId, standardRuleSet);
+                        var isValid = await ValidateMinimumFireSafetyEquipmentPerRoomOverAreaAsync(blueprintId, standardRuleSet);
                         if (!isValid)
                             return false;
                     }
@@ -259,25 +257,28 @@ namespace PlanStack.Backend.WebAPI.Services
         }
         #endregion
 
-        #region ValidateMinimumComponentQuantityPerRoomOverAreaAsync
-        public async Task<bool> ValidateMinimumComponentQuantityPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet)
+        #region ValidateMinimumFireSafetyEquipmentPerRoomOverAreaAsync
+        public async Task<bool> ValidateMinimumFireSafetyEquipmentPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet)
         {
-            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId);
+            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId, true);
 
-            foreach (var room in rooms.Entities)
+            if (rooms == null)
+                return false;
+
+            var roomsOverDefinitionValue = rooms.Entities
+                .Where(x => x.SquareMeters > standardRuleSet.DefinitionValue)
+                .ToList();
+
+            if (roomsOverDefinitionValue.Count == 0)
+                return false;
+
+            foreach (var room in roomsOverDefinitionValue)
             {
-                // For simplicity, assume each room has an area of 100 square units
-                var roomArea = standardRuleSet.DefinitionValue;
+                var hasFireSafetyEquipment = room.Components
+                    .Any(c => c.Component != null && c.Component.Category == ComponentCategoryEnum.FIRE_SAFETY_EQUIPMENT);
 
-                // Get all components in the room
-                var blueprintComponents = await _blueprintComponentRepository.GetAllByBlueprintIdAsync(blueprintId);
-                var componentsInRoom = blueprintComponents.Entities.Where(bc => bc.RoomId == room.Id).ToList();
-
-                var requiredMinimumQuantity = standardRuleSet.ComparisonValue;
-                if (componentsInRoom.Count < requiredMinimumQuantity)
-                {
-                    return false; 
-                }
+                if (!hasFireSafetyEquipment)
+                    return false;
             }
 
             return true;

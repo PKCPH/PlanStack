@@ -174,20 +174,25 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpGet("validate/{entityId}")]
         public async Task<ActionResult<BlueprintResource>> ValidateBlueprint(int entityId)
         {
-            // Get entity
-            //var entity = await _blueprintRepository.GetAsync(entityId, true);
-            //if (entity == null)
-            //    return NotFound();
+            //Get entity
+            var entity = await _blueprintRepository.GetAsync(entityId);
+            if (entity == null)
+                return NotFound();
 
             // Validate blueprint - With ValidateService
             var validateSuccess = await _blueprintService.ValidateBlueprintWithStandardsAsync(entityId);
 
-            //if (validateSuccess == true)
-            //{
-            //    entity.IsValidated = true;
-            //    entity.UpdatedAt = DateTime.Now;
-            //    await _unitOfWork.SaveChangesAsync();
-            //}
+            if (validateSuccess == true)
+            {
+                entity.IsValidated = true;
+                entity.UpdatedAt = DateTime.Now;
+            }
+            else
+            {
+                entity.IsValidated = false;
+            }
+            
+            await _unitOfWork.SaveChangesAsync();
 
             return Ok("");
         }

@@ -81,8 +81,8 @@ namespace PlanStack.Backend.WebAPI.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpDelete("{userEmail}")]
+        //[Authorize(Roles = "Admin")]
+        [HttpDelete()]
         public async Task<IActionResult> Delete(string userEmail)
         {
             var userToDelete = await _userRepository.GetUserByEmail(userEmail);
