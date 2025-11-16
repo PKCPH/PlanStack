@@ -211,7 +211,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Blueprints");
+                    b.ToTable("Blueprints", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintBuildingStructure", b =>
@@ -255,7 +255,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BuildingStructureId");
 
-                    b.ToTable("BlueprintBuildingStructures");
+                    b.ToTable("BlueprintBuildingStructures", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintComponent", b =>
@@ -298,7 +298,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("BlueprintComponents");
+                    b.ToTable("BlueprintComponents", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BlueprintStandard", b =>
@@ -327,7 +327,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("StandardId");
 
-                    b.ToTable("BlueprintStandards");
+                    b.ToTable("BlueprintStandards", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.BuildingStructure", b =>
@@ -361,7 +361,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BuildingStructures");
+                    b.ToTable("BuildingStructures", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Component", b =>
@@ -407,7 +407,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Components");
+                    b.ToTable("Components", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Project", b =>
@@ -441,7 +441,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Room", b =>
@@ -475,7 +475,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("BlueprintId");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("Rooms", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.RuleSet", b =>
@@ -512,7 +512,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RuleSets");
+                    b.ToTable("RuleSets", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.Standard", b =>
@@ -548,7 +548,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Standards");
+                    b.ToTable("Standards", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.StandardRuleSet", b =>
@@ -586,7 +586,7 @@ namespace PlanStack.Backend.Database.Migrations
 
                     b.HasIndex("StandardId");
 
-                    b.ToTable("StandardRuleSet");
+                    b.ToTable("StandardRuleSet", (string)null);
                 });
 
             modelBuilder.Entity("PlanStack.Backend.Database.DataModels.User", b =>

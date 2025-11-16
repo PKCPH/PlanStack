@@ -30,19 +30,19 @@ namespace PlanStack.Backend.Database
 
             modelBuilder.Entity<BlueprintBuildingStructure>()
                 .HasOne(bbs => bbs.BuildingStructure)
-                .WithMany(c => c.BlueprintBuildingStructures)
+                .WithMany(bs => bs.BlueprintBuildingStructures)
                 .HasForeignKey(bbs => bbs.BuildingStructureId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BlueprintStandard>()
                 .HasOne(bs => bs.Blueprint)
-                .WithMany(c => c.Standards)
+                .WithMany(b => b.Standards)
                 .HasForeignKey(bs => bs.BlueprintId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BlueprintStandard>()
                 .HasOne(bs => bs.Standard)
-                .WithMany(c => c.BlueprintStandards)
+                .WithMany(s => s.BlueprintStandards)
                 .HasForeignKey(bs => bs.StandardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -62,13 +62,13 @@ namespace PlanStack.Backend.Database
             #region Standard Relations
             modelBuilder.Entity<StandardRuleSet>()
                 .HasOne(sr => sr.Standard)
-                .WithMany(b => b.RuleSets)
+                .WithMany(r => r.RuleSets)
                 .HasForeignKey(sr => sr.StandardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StandardRuleSet>()
                 .HasOne(sr => sr.RuleSet)
-                .WithMany(c => c.Standards)
+                .WithMany(r => r.Standards)
                 .HasForeignKey(sr => sr.RuleSetId)
                 .OnDelete(DeleteBehavior.Cascade);
             #endregion

@@ -15,12 +15,24 @@ namespace PlanStack.Backend.Database.Repositories
             _userManager = userManager;
         }
 
+        public async Task DeleteUserProjectsAndStandardsAsync(string userId)
+        {
+            var projects = await _context.Projects
+                .Where(p => p.UserId == userId)
+                .ToListAsync();
+            
+            var standards = await _context.Standards
+                .Where(s => s.UserId == userId)
+                .ToListAsync();
+
+            _context.Projects.RemoveRange(projects);
+            _context.Standards.RemoveRange(standards);
+        }
+
         public async Task<User> GetUserByEmail(string email)
         {
             return await _context.Users
                 .Where(u => u.Email == email)
-                .Include(x => x.Projects)
-                .Include(x => x.Standards)
                 .FirstOrDefaultAsync();
         }
 

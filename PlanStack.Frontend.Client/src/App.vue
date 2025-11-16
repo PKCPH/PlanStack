@@ -86,13 +86,11 @@ const showRightDrawer = computed({
 const menuItems = computed(() => {
   const hiddenForLoggedIn = ["Register", "Login"];
   const hiddenForLoggedOut = [
-    "Floorplans",
     "Components",
     "Account",
     "Building Structures",
     "Standards",
     "Projects",
-    "Rulesets",
     "UserAdmin",
   ];
   const hiddenAlways = ["Unauthorized"]; 

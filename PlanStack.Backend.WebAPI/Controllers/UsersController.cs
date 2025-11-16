@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.User;
@@ -18,15 +19,18 @@ namespace PlanStack.Backend.WebAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
         private readonly UserRepository _userRepository;
+        private readonly UnitOfWork _unitOfWork;
 
         public UsersController(
             UserManager<User> userManager,
             IMapper mapper,
-            UserRepository userRepository)
+            UserRepository userRepository,
+            UnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _mapper = mapper;
             _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
         [Authorize(Roles = "Admin")]
@@ -83,7 +87,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpDelete()]
+        [HttpDelete]
         public async Task<IActionResult> Delete(string userEmail)
         {
             var userToDelete = await _userRepository.GetUserByEmail(userEmail);
@@ -91,6 +95,13 @@ namespace PlanStack.Backend.WebAPI.Controllers
             if (userToDelete == null)
                 return NotFound("User not found.");
 
+            // Remove related entities
+            await _userRepository.DeleteUserProjectsAndStandardsAsync(userToDelete.Id);
+
+            // Save changes
+            await _unitOfWork.SaveChangesAsync();
+
+            // Delete the user
             var result = await _userManager.DeleteAsync(userToDelete);
 
             if (result.Succeeded)
