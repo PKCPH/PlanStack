@@ -12,6 +12,7 @@ import LoginView from "../views/LoginView.vue";
 import ProjectView from "../views/ProjectView.vue";
 import UnauthorizedView from "../views/UnauthorizedView.vue";
 import RulesetView from "../views/RulesetView.vue";
+import UserAdminView from "../views/UserAdminView.vue";
 
 export const routes = [
   {
@@ -79,6 +80,11 @@ export const routes = [
     path: "/standard/:standardId/rulesets",
     name: "Rulesets",
     component: RulesetView,
+  },
+  {
+    path: "/useradmin",
+    name: "UserAdmin",
+    component: UserAdminView,
   },
 ];
 
