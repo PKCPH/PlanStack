@@ -56,10 +56,10 @@ namespace PlanStack.Backend.WebAPI.Services
                 {
                     if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_OVER_RATIO && standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM)
                     {
-                        validationResource = await ValidateFireSafetyEquipmentPerRoomOverAreaAsync(blueprintId, standardRuleSet, validationResource);
+                        validationResource = await ValidateComponentPerRoomOverAreaAsync(blueprintId, standardRuleSet, validationResource);
                         if (validationResource.IsValid == false)
                         {
-                            validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room over {standardRuleSet.DefinitionValue} sqm must have at least one fire safety equipment.");
+                            validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room over {standardRuleSet.DefinitionValue} sqm must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
                         }
                     }
                 }
@@ -70,8 +70,8 @@ namespace PlanStack.Backend.WebAPI.Services
         }
         #endregion
 
-        #region ValidateFireSafetyEquipmentPerRoomOverAreaAsync
-        public async Task<ValidationResource> ValidateFireSafetyEquipmentPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
+        #region ValidateComponentPerRoomOverAreaAsync
+        public async Task<ValidationResource> ValidateComponentPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
         {
             var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId, true);
 
@@ -105,7 +105,7 @@ namespace PlanStack.Backend.WebAPI.Services
                         if (fireSafetyEquipment.Count < standardRuleSet.ComparisonValue)
                         {
                             validationResource.IsValid = false;
-                            validationResource.Errors.Add($"Room '{room.Name}' does not meet the minimum required {standardRuleSet.RuleSet.ObjectTypeComparison} equipment of {standardRuleSet.ComparisonValue}.");
+                            validationResource.Errors.Add($"Room '{room.Name}' does not meet the minimum required {standardRuleSet.RuleSet.ObjectTypeComparison} of {standardRuleSet.ComparisonValue}.");
                             return validationResource;
                         }
                         break;
@@ -114,7 +114,7 @@ namespace PlanStack.Backend.WebAPI.Services
                         if (fireSafetyEquipment.Count > standardRuleSet.ComparisonValue)
                         {
                             validationResource.IsValid = false;
-                            validationResource.Errors.Add($"Room '{room.Name}' exceeds the maximum allowed fire safety equipment of {standardRuleSet.ComparisonValue}.");
+                            validationResource.Errors.Add($"Room '{room.Name}' exceeds the maximum allowed {standardRuleSet.RuleSet.ObjectTypeComparison} of {standardRuleSet.ComparisonValue}.");
                             return validationResource;
                         }
                         break;
@@ -123,7 +123,7 @@ namespace PlanStack.Backend.WebAPI.Services
                         if (fireSafetyEquipment.Count != standardRuleSet.ComparisonValue)
                         {
                             validationResource.IsValid = false;
-                            validationResource.Errors.Add($"Room '{room.Name}' does not meet the exact required fire safety equipment of {standardRuleSet.ComparisonValue}.");
+                            validationResource.Errors.Add($"Room '{room.Name}' does not meet the exact required {standardRuleSet.RuleSet.ObjectTypeComparison} of {standardRuleSet.ComparisonValue}.");
                             return validationResource;
                         }
                         break;
