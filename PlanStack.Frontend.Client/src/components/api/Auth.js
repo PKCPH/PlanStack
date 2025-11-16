@@ -63,9 +63,12 @@ export async function apiFetch(url, options = {}) {
   try {
     const response = await fetch(url, options);
 
-    // optionally handle 401 globally
     if (response.status === 401) {
       console.warn("Unauthorized");
+      setToken(null); 
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
 
     // parse JSON if applicable
@@ -75,7 +78,7 @@ export async function apiFetch(url, options = {}) {
     if (contentType && contentType.includes("application/json")) {
       isJson = true;
       try {
-        data = await response.json();
+        data = await response.json();     
       } catch {}
     }
 
