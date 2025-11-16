@@ -297,10 +297,24 @@
 
         <v-list v-if="rooms.length > 0" density="compact">
           <v-list-item v-for="room in rooms" :key="room.id" class="pa-0">
-            <v-list-item-title>Room {{ room.id }}</v-list-item-title>
-            <v-list-item-subtitle> {{ room.area }} m² </v-list-item-subtitle>
+            <v-list-item-title
+              >{{ room.name }} ({{
+                getRoomTypeName(room.roomType)
+              }})</v-list-item-title
+            >
+            <v-list-item-subtitle>
+              {{ room.squareMeters }} m²
+            </v-list-item-subtitle>
           </v-list-item>
         </v-list>
+        <v-list-item
+          v-if="rooms.length === 0 && activeBlueprintId"
+          class="pa-0"
+        >
+          <v-list-item-title class="text-caption text-grey"
+            >No rooms found</v-list-item-title
+          >
+        </v-list-item>
       </div>
     </Teleport>
 
@@ -479,10 +493,21 @@ const isLoadingComponentTypes = ref(false);
 const componentTypesError = ref(null);
 const currentComponentId = ref(null);
 
+// room enums
+const roomTypeItems = ref([
+  { title: "Bathroom", value: 0 },
+  { title: "Bedroom", value: 1 },
+  { title: "Living Room", value: 2 },
+  { title: "Kitchen", value: 3 },
+  { title: "Dining Room", value: 4 },
+  { title: "Office", value: 5 },
+]);
+
 // room calc states
 const rooms = ref([]);
 const isCalculatingRooms = ref(false);
 const showRoomLabels = ref(false);
+const roomGrid = ref(null);
 
 const COLOR_PALETTE = [
   theme.global.current.value.colors.primary,
@@ -527,7 +552,8 @@ const openCreateDialog = () => {
   canvasHeightCells.value = 40;
   walls.value = [];
   placedComponents.value = [];
-  rooms.value = []; // Clear rooms
+  rooms.value = [];
+  roomGrid.value = null;
 
   // clearing canvas if showing
   if (showCanvas.value) {
@@ -730,16 +756,24 @@ const saveBlueprintToAPI = async (blueprintData) => {
 
     let data = null;
     if (response.status !== 204) {
-      data = await response.json();
-      console.log("API Response:", data);
+      // 204 No Content is valid for PUT/POST
+      try {
+        data = await response.json();
+        console.log("API Response:", data);
+      } catch (e) {
+        console.log("API Response: No JSON body returned.");
+      }
     } else {
-      console.log("API Response: no response");
+      console.log("API Response: 204 No Content");
     }
 
     showSnackbar(`Blueprint ${isUpdating ? "updated" : "saved"} successfully!`);
 
+    // If creating, response data might contain the new ID
     if (!isUpdating && data && data.id) {
       activeBlueprintId.value = data.id;
+      // Manually update the name if it's a new blueprint
+      if (data.name) blueprintName.value = data.name;
     }
 
     // refresh blueprint list after saving
@@ -828,14 +862,15 @@ const draw = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid(ctx, canvas);
 
-  // drawing components
+  // 1. Draw Components
   placedComponents.value.forEach((comp) => {
+    // ... (component drawing logic)
     const isHovered = hoveredComponent.value && comp === hoveredComponent.value;
     const { color, width, height } = getComponentDetails(comp.componentId);
     drawComponent(
       ctx,
       comp.x,
-      comp.y,
+      comp.y, // <-- FIX: Was comp.V
       width,
       height,
       color,
@@ -845,8 +880,9 @@ const draw = () => {
     );
   });
 
-  // draw building strcutures
+  // 2. Draw Walls
   walls.value.forEach((wall) => {
+    // ... (wall drawing logic)
     const isHovered = hoveredWall.value && wall === hoveredWall.value;
     const color = isHovered
       ? ERASE_HIGHLIGHT_COLOR
@@ -854,8 +890,9 @@ const draw = () => {
     drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, color);
   });
 
-  // temp buildingstructre while drawing
+  // 3. Draw temporary wall (if drawing)
   if (isDrawing.value && currentTool.value === "drawWall") {
+    // ... (temp wall drawing logic)
     const tempColor = getColorForStructureId(currentBuildingStructureId.value);
     drawWall(
       ctx,
@@ -867,12 +904,13 @@ const draw = () => {
     );
   }
 
-  // drawing component preview
+  // 4. Draw component placement preview (if placing)
   if (
     hoverPoint.value &&
     currentTool.value === "placeComponent" &&
     currentComponentId.value
   ) {
+    // ... (ghost component drawing logic)
     const { color, width, height } = getComponentDetails(
       currentComponentId.value
     );
@@ -888,14 +926,13 @@ const draw = () => {
     );
   }
 
-  // drawing room names
+  // 5. Draw Room Labels (if toggled)
   if (showRoomLabels.value) {
     rooms.value.forEach((room) => {
-      // converting double grid to normal canvas coords
       const canvasX = ((room.labelX - 1) / 2) * GRID_SIZE + GRID_SIZE / 2;
       const canvasY = ((room.labelY - 1) / 2) * GRID_SIZE + GRID_SIZE / 2;
 
-      drawRoomLabel(ctx, `Room ${room.id}`, canvasX, canvasY);
+      drawRoomLabel(ctx, room.name, canvasX, canvasY);
     });
   }
 };
@@ -933,6 +970,8 @@ const isPointNearComponent = (px, py, component) => {
 // Event Handlers
 const getCanvasCoords = (event) => {
   const canvas = canvasRef.value;
+  if (!canvas) return { x: 0, y: 0 }; // Safety check
+
   let clientX = event.clientX;
   let clientY = event.clientY;
 
@@ -943,8 +982,10 @@ const getCanvasCoords = (event) => {
 
   const rect = canvas.getBoundingClientRect();
 
+  // Un-scale the coordinates by dividing by the scale factor
   const x = (clientX - rect.left) / canvasScale.value;
   const y = (clientY - rect.top) / canvasScale.value;
+
   return { x, y };
 };
 
@@ -1028,6 +1069,8 @@ const handleMouseUp = () => {
       }
     }
   }
+  // We trigger the room calculation *after* a wall/component is changed
+  calculateRoomAreas();
   draw();
 };
 
@@ -1136,6 +1179,7 @@ const clearFloorplan = () => {
   walls.value = [];
   placedComponents.value = [];
   rooms.value = [];
+  roomGrid.value = null;
   showSnackbar("Floorplan cleared.", "info");
   draw();
 };
@@ -1200,6 +1244,7 @@ const createCanvas = (closeDialog = false) => {
 
   showCanvas.value = true;
   rooms.value = [];
+  roomGrid.value = null;
 
   nextTick(() => {
     if (!viewportRef.value || !canvasRef.value) {
@@ -1243,6 +1288,9 @@ const mapWallsToBlueprintPayload = () => {
 
     const startingPositionX = Math.min(startCellX, endCellX);
     const startingPositionY = Math.min(startCellY, endCellY);
+    const buildingStructure = buildingStructureTypes.value.find(
+      (b) => b.id === wall.buildingStructureId
+    );
 
     return {
       height: height,
@@ -1251,24 +1299,54 @@ const mapWallsToBlueprintPayload = () => {
       startingPositionY: startingPositionY,
       totalPrice: 0,
       blueprintId: activeBlueprintId.value || 0,
+      buildingStructure: buildingStructure || null,
       buildingStructureId: wall.buildingStructureId || 1,
     };
   });
 };
 
-const mapComponentsToBlueprintPayload = () => {
-  return placedComponents.value.map((comp) => {
-    const startCellX = comp.x / GRID_SIZE;
-    const startCellY = comp.y / GRID_SIZE;
+// rooms and components payload
+const mapRoomsAndComponentsToPayload = () => {
+  const componentsPayload = [];
+  const roomsPayload = rooms.value.map((r) => ({
+    id: r.id,
+    name: r.name || "",
+    description: "",
+    squareMeters: r.squareMeters,
+    roomType: r.roomType,
+    blueprintId: activeBlueprintId.value || 0,
+  }));
 
-    return {
-      startingPositionX: startCellX,
-      startingPositionY: startCellY,
+  const grid = roomGrid.value;
+
+  for (const comp of placedComponents.value) {
+    // comp payload
+    const componentApiData = {
+      startingPositionX: comp.x / GRID_SIZE,
+      startingPositionY: comp.y / GRID_SIZE,
       isHorizontal: comp.isHorizontal,
       blueprintId: activeBlueprintId.value || 0,
       componentId: comp.componentId,
+      roomId: null, // null is not in room
     };
-  });
+
+    // find room id comp is in
+    const cellX = Math.floor(comp.x / GRID_SIZE);
+    const cellY = Math.floor(comp.y / GRID_SIZE);
+    const gridX = cellX * 2 + 1;
+    const gridY = cellY * 2 + 1;
+
+    if (grid[gridY] && grid[gridY][gridX] !== undefined) {
+      const roomId = grid[gridY][gridX];
+
+      if (typeof roomId === "string") {
+        componentApiData.roomId = roomId;
+      }
+    }
+    componentsPayload.push(componentApiData);
+  }
+
+  return { components: componentsPayload, rooms: roomsPayload };
 };
 
 const mapBlueprintStructuresToWalls = (structures) => {
@@ -1329,8 +1407,25 @@ const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
     }
   }
 
+  // if it can save
+  if (!validate && !activeBlueprintId.value) {
+    showSnackbar("Cannot quick save. Please load a blueprint first.", "error");
+    return;
+  }
+  if (!showCanvas.value) {
+    if (validate) {
+      createCanvas();
+    } else {
+      showSnackbar("Canvas is not active. Load a blueprint first.", "error");
+      return;
+    }
+  }
+  calculateRoomAreas();
+  await nextTick();
+
   const buildingStructures = mapWallsToBlueprintPayload();
-  const components = mapComponentsToBlueprintPayload();
+
+  const { components, rooms } = mapRoomsAndComponentsToPayload();
 
   const apiPayload = {
     ...(activeBlueprintId.value && { id: activeBlueprintId.value }),
@@ -1345,7 +1440,9 @@ const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
 
     buildingStructures: buildingStructures,
     components: components,
+    rooms: rooms,
     projectId: projectId.value,
+    standards: [],
   };
   console.log("Saving to api:", JSON.stringify(apiPayload, null, 2));
 
@@ -1373,6 +1470,7 @@ const loadBlueprint = (blueprint) => {
   canvasWidthCells.value = blueprint.width || 40;
   canvasHeightCells.value = blueprint.height || 40;
   rooms.value = [];
+  roomGrid.value = null;
 
   //to create or resize canvas
   createCanvas();
@@ -1397,8 +1495,20 @@ const loadBlueprint = (blueprint) => {
     placedComponents.value = [];
   }
 
+  if (blueprint.rooms && blueprint.rooms.length > 0) {
+    rooms.value = blueprint.rooms.map((r, index) => ({
+      id: r.id || crypto.randomUUID(),
+      name: r.name || `Room ${index + 1}`,
+      squareMeters: r.squareMeters,
+      roomType: r.roomType ?? 0,
+      labelX: 0,
+      labelY: 0,
+    }));
+  }
+
   nextTick(() => {
     draw();
+    calculateRoomAreas();
   });
 };
 
@@ -1424,14 +1534,21 @@ const drawRoomLabel = (ctx, text, x, y) => {
   ctx.fillText(text, x, y);
 };
 
+// roomtypes
+const getRoomTypeName = (value) => {
+  const item = roomTypeItems.value.find((item) => item.value === value);
+  return item ? item.title : "N/A";
+};
+
 const calculateRoomAreas = () => {
   if (walls.value.length === 0) {
-    showSnackbar("There are no walls drawn.", "info");
+    rooms.value = [];
+    roomGrid.value = null;
+    draw();
     return;
   }
 
   isCalculatingRooms.value = true;
-  rooms.value = [];
 
   const width = canvasWidthCells.value;
   const height = canvasHeightCells.value;
@@ -1462,24 +1579,33 @@ const calculateRoomAreas = () => {
 
   floodFill(grid, 0, 0, -1, 0, gridWidth, gridHeight);
 
-  let currentRoomId = 2;
   const foundRooms = [];
+  const oldRooms = [...rooms.value];
+  rooms.value = [];
 
   // Iterate over cells
   for (let y = 1; y < gridHeight; y += 2) {
     for (let x = 1; x < gridWidth; x += 2) {
       if (grid[y][x] === 0) {
+        const oldRoom = oldRooms.find((r) => r.labelX === x && r.labelY === y);
+
+        const newRoomId = oldRoom ? oldRoom.id : crypto.randomUUID();
+        const roomName = oldRoom
+          ? oldRoom.name
+          : `Room ${foundRooms.length + 1}`;
+        const roomType = oldRoom ? oldRoom.roomType : 0;
+
         const roomData = floodFill(
           grid,
           x,
           y,
-          currentRoomId,
+          newRoomId, // <-- Use GUID
           0,
           gridWidth,
           gridHeight
         );
 
-        if (roomData.area > 0) {
+        if (roomData.squareMeters > 0) {
           // finding center cell for showing room name
           const centerX = (roomData.minX + roomData.maxX) / 2;
           const centerY = (roomData.minY + roomData.maxY) / 2;
@@ -1496,25 +1622,29 @@ const calculateRoomAreas = () => {
           }
 
           foundRooms.push({
-            id: currentRoomId - 1,
-            area: roomData.area,
+            id: newRoomId,
+            name: roomName,
+            roomType: roomType,
+            squareMeters: roomData.squareMeters,
             labelX: bestCell[0],
             labelY: bestCell[1],
           });
-          currentRoomId++;
         }
       }
     }
   }
 
   rooms.value = foundRooms;
+  roomGrid.value = grid;
   isCalculatingRooms.value = false;
 
-  if (foundRooms.length > 0) {
+  if (foundRooms.length > 0 && !oldRooms.length) {
     showSnackbar(`Found ${foundRooms.length} room(s)!`);
-  } else {
+  } else if (walls.value.length > 0 && foundRooms.length === 0) {
     showSnackbar("Could not find any fully enclosed rooms.", "error");
   }
+
+  draw();
 };
 
 const floodFill = (
@@ -1527,10 +1657,10 @@ const floodFill = (
   height
 ) => {
   if (grid[startY][startX] !== targetValue) {
-    return { area: 0 };
+    return { squareMeters: 0 };
   }
 
-  let area = 0;
+  let squareMeters = 0;
   let minX = Infinity,
     maxX = -Infinity,
     minY = Infinity,
@@ -1544,7 +1674,7 @@ const floodFill = (
 
     // checking if its a cell center
     if (x % 2 === 1 && y % 2 === 1) {
-      area++;
+      squareMeters++;
       allCells.push([x, y]);
 
       // Update bounding box
@@ -1580,10 +1710,17 @@ const floodFill = (
       }
     }
   }
-  return { area, minX, maxX, minY, maxY, allCells };
+  return { squareMeters, minX, maxX, minY, maxY, allCells };
 };
 
-watch(walls, draw, { deep: true });
+// recalculate rooms when walls change
+watch(
+  walls,
+  () => {
+    calculateRoomAreas();
+  },
+  { deep: true }
+);
 watch(placedComponents, draw, { deep: true });
 watch(buildingStructureTypes, draw, { deep: true });
 watch(componentTypes, draw, { deep: true });
