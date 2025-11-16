@@ -6,6 +6,7 @@ using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuilding
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintStandard;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Room;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Validation;
 using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Services
@@ -171,6 +172,7 @@ namespace PlanStack.Backend.WebAPI.Services
                         BlueprintId = blueprintId,
                         RoomType = saveResource.RoomType,
                         Name = saveResource.Name,
+                        SquareMeters = saveResource.SquareMeters,
 
                         CreatedAt = DateTime.Now,
                         UpdatedAt = DateTime.Now
@@ -226,62 +228,6 @@ namespace PlanStack.Backend.WebAPI.Services
             {
                 throw new InvalidOperationException($"Error saving blueprint standards for blueprint '{blueprintId}'.", ex);
             }
-        }
-        #endregion
-
-        #region ValidateBlueprintWithStandardsAsync
-        public async Task<bool> ValidateBlueprintWithStandardsAsync(int blueprintId)
-        {
-            // Validate each rule set against the standard
-            var blueprintStandards = await _blueprintStandardRepository.GetAllByBlueprintIdAsync(blueprintId);
-
-            foreach (var blueprintStandard in blueprintStandards.Entities)
-            {
-                var standard = await _standardRepository.GetAsync(blueprintStandard.StandardId);
-
-                var standardRuleSets = await _standardRuleSetRepository.GetAllByStandardIdAsync(standard.Id);
-
-                foreach (var standardRuleSet in standardRuleSets.Entities)
-                {
-                    if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_OVER_RATIO && standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.MINIMUM)
-                    {
-                        var isValid = await ValidateMinimumFireSafetyEquipmentPerRoomOverAreaAsync(blueprintId, standardRuleSet);
-                        if (!isValid)
-                            return false;
-                    }
-                }
-
-            }
-
-            return true;
-        }
-        #endregion
-
-        #region ValidateMinimumFireSafetyEquipmentPerRoomOverAreaAsync
-        public async Task<bool> ValidateMinimumFireSafetyEquipmentPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet)
-        {
-            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId, true);
-
-            if (rooms == null)
-                return false;
-
-            var roomsOverDefinitionValue = rooms.Entities
-                .Where(x => x.SquareMeters > standardRuleSet.DefinitionValue)
-                .ToList();
-
-            if (roomsOverDefinitionValue.Count == 0)
-                return false;
-
-            foreach (var room in roomsOverDefinitionValue)
-            {
-                var hasFireSafetyEquipment = room.Components
-                    .Any(c => c.Component != null && c.Component.Category == ComponentCategoryEnum.FIRE_SAFETY_EQUIPMENT);
-
-                if (!hasFireSafetyEquipment)
-                    return false;
-            }
-
-            return true;
         }
         #endregion
     }

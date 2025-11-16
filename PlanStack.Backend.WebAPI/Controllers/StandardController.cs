@@ -8,6 +8,7 @@ using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Standard;
+using PlanStack.Backend.WebAPI.Extensions;
 using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
@@ -39,6 +40,9 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<StandardResource>> Create([FromBody] StandardCreateResource createResource)
         {
+            //var userId = this.User.GetUserId();
+            //createResource.UserId = userId.ToString();
+
             //Map entity
             var entity = _mapper.Map<StandardCreateResource, Standard>(createResource);
 

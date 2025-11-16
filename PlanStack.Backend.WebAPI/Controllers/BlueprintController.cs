@@ -6,6 +6,7 @@ using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Validation;
 using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
@@ -17,18 +18,21 @@ namespace PlanStack.Backend.WebAPI.Controllers
     {
         private readonly BlueprintRepository _blueprintRepository;
         private readonly BlueprintService _blueprintService;
+        private readonly ValidationService _validationService;
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public BlueprintController(
             BlueprintRepository blueprintRepository,
             BlueprintService blueprintService,
+            ValidationService validationService,
             UnitOfWork unitOfWork,
             IMapper mapper
         )
         {
             _blueprintRepository = blueprintRepository;
             _blueprintService = blueprintService;
+            _validationService = validationService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -172,17 +176,23 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
         #region ValidateBlueprint
         [HttpGet("validate/{entityId}")]
-        public async Task<ActionResult<BlueprintResource>> ValidateBlueprint(int entityId)
+        public async Task<ActionResult<ValidationResource>> ValidateBlueprint(int entityId)
         {
+            var validationResource = new ValidationResource();
+
             //Get entity
             var entity = await _blueprintRepository.GetAsync(entityId);
             if (entity == null)
-                return NotFound();
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add("Blueprint not found.");
+                return NotFound(validationResource);
+            }
 
-            // Validate blueprint - With ValidateService
-            var validateSuccess = await _blueprintService.ValidateBlueprintWithStandardsAsync(entityId);
+            // Validate blueprint
+            validationResource = await _validationService.ValidateBlueprintWithStandardsAsync(entityId);
 
-            if (validateSuccess == true)
+            if (validationResource.IsValid == true)
             {
                 entity.IsValidated = true;
                 entity.UpdatedAt = DateTime.Now;
@@ -190,11 +200,12 @@ namespace PlanStack.Backend.WebAPI.Controllers
             else
             {
                 entity.IsValidated = false;
+                entity.UpdatedAt = DateTime.Now;
             }
-            
+
             await _unitOfWork.SaveChangesAsync();
 
-            return Ok("");
+            return Ok(validationResource);
         }
         #endregion
     }

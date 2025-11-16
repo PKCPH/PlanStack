@@ -59,6 +59,7 @@ builder.Services.AddScoped<JwtHandler>();
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<BlueprintService>();
 builder.Services.AddScoped<StandardService>();
+builder.Services.AddScoped<ValidationService>();
 
 // Adding Repositories
 builder.Services.AddScoped<UserRepository>();
