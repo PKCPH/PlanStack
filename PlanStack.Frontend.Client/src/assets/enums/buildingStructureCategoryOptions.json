@@ -1,0 +1,10 @@
+[
+  { "title": "All", "value": null, "color": "grey-lighten-2" },
+  { "title": "Wall", "value": 0, "color": "blue-lighten-1" },
+  { "title": "Roof", "value": 1, "color": "red-lighten-1" },
+  { "title": "Door", "value": 2, "color": "orange-lighten-1" },
+  { "title": "Window", "value": 3, "color": "teal-lighten-1" },
+  { "title": "Floor", "value": 4, "color": "brown-lighten-1" },
+  { "title": "Ceiling", "value": 5, "color": "purple-lighten-1" },
+  { "title": "Other", "value": 99, "color": "grey-lighten-1" }
+]

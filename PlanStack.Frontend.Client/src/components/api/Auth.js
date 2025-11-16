@@ -70,11 +70,23 @@ export async function apiFetch(url, options = {}) {
 
     // parse JSON if applicable
     let data = null;
-    try {
-      data = await response.json();
-    } catch {}
+    let isJson = false;
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      isJson = true;
+      try {
+        data = await response.json();
+      } catch {}
+    }
 
-    return { ok: response.ok, status: response.status, data };
+    // Return a response object compatible with fetchStructures
+    return {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      data,
+      json: isJson ? async () => data : async () => { throw new Error("Response is not JSON"); }
+    };
   } catch (error) {
     console.error("API fetch error:", error);
     return { ok: false, status: 0, data: null, error };

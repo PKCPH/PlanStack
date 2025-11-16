@@ -196,6 +196,30 @@
         </v-btn-group>
       </div>
 
+      <v-list-subheader v-if="currentTool === 'placeComponent'">Component Type</v-list-subheader>
+      <v-select
+        v-if="currentTool === 'placeComponent'"
+        v-model="selectedComponentCategory"
+        :items="componentCategoryOptions"
+        item-title="title"
+        item-value="value"
+        label="Filter by category"
+        density="compact"
+        clearable
+        class="mb-4"
+      />
+
+      <v-select
+        v-if="currentTool === 'drawWall'"
+        v-model="selectedBuildingStructureCategory"
+        :items="buildingStructureCategoryOptions"
+        item-title="title"
+        item-value="value"
+        label="Filter by structure category"
+        density="compact"
+        clearable
+        class="mb-4"
+      />
       <v-autocomplete
         v-show="currentTool === 'drawWall'"
         v-model="currentBuildingStructureId"
@@ -434,7 +458,9 @@ import { ref, onMounted, watch, nextTick, computed } from "vue";
 import { useTheme } from "vuetify";
 import { useRoute } from "vue-router";
 import { FONT_ROOM } from "@/configuration/drawing.js";
+import { apiFetch } from '../components/api/auth.js';
 import componentCategoryOptions from '../assets/enums/componentCategoryOptions.json';
+import buildingStructureCategoryOptions from '../assets/enums/buildingStructureCategoryOptions.json';
 
 const theme = useTheme();
 const route = useRoute();
@@ -592,13 +618,23 @@ const toggleComponentRotation = () => {
   draw();
 };
 
+const selectedBuildingStructureCategory = ref(null);
+watch(selectedBuildingStructureCategory, (newCategory) => {
+  fetchBuildingStructureTypes(newCategory);
+});
+
 // get building structures
-const fetchBuildingStructureTypes = async () => {
+const fetchBuildingStructureTypes = async (category = null) => {
+
   isLoadingStructureTypes.value = true;
   structureTypesError.value = null;
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(BUILDING_STRUCTURES_API_URL)}`;
-    const response = await fetch(proxiedUrl, {
+    let url = BUILDING_STRUCTURES_API_URL;
+    if (category !== null) {
+      url += `?Category=${category}`;
+    }
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -641,7 +677,7 @@ const fetchComponentTypes = async (category = null) => {
       url += `?Category=${category}`;
     }
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -694,7 +730,7 @@ const fetchProjectDetails = async () => {
     const url = `${PROJECTS_API_URL}/${projectId.value}`;
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -718,7 +754,7 @@ const fetchBlueprints = async () => {
     const blueprintApiUrl = `${BLUEPRINTS_API_URL}?projectId=${projectId.value}`;
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(blueprintApiUrl)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: {
         Host: "planstack.dk",
@@ -757,7 +793,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: method,
       headers: {
         "Content-Type": "application/json",

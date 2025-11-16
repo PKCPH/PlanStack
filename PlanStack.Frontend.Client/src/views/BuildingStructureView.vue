@@ -231,6 +231,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { apiFetch } from '../components/api/auth.js';
+import categoryOptions from '../assets/enums/buildingStructureCategoryOptions.json';
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const API_BASE_URL = "http://planstack.dk";
@@ -274,16 +276,6 @@ const tableHeaders = ref([
   { title: "Actions", key: "actions", sortable: false, align: "end" },
 ]);
 
-const categoryOptions = [
-  { title: "Wall", value: 0, color: "blue-lighten-1" },
-  { title: "Roof", value: 1, color: "red-lighten-1" },
-  { title: "Door", value: 2, color: "orange-lighten-1" },
-  { title: "Window", value: 3, color: "teal-lighten-1" },
-  { title: "Floor", value: 4, color: "brown-lighten-1" },
-  { title: "Ceiling", value: 5, color: "purple-lighten-1" },
-  { title: "Other", value: 99, color: "grey-lighten-1" },
-];
-
 // validation
 const rules = {
   required: [(v) => !!v || "This field is required"],
@@ -316,7 +308,7 @@ const fetchStructures = async () => {
 
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(STRUCTURES_API_URL)}`;
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -391,7 +383,7 @@ const confirmDelete = async () => {
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
@@ -447,7 +439,7 @@ const handleSave = async () => {
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: method,
       headers: {
         Host: "planstack.dk",

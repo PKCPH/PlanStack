@@ -189,49 +189,25 @@ const showSnackbar = (text, color = "success") => {
   snackbar.value = true;
 };
 
-// const = async () => {
-//   isLoading.value = true;
-//   error.value = null;
-//   items.value = [];
-
-//   try {
-//     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
-//       props.apiEndpoint
-//     )}`;
-//     const response = await apiFetch(props.apiEndpoint, {
-//       method: "GET",
-//       headers: { Host: "planstack.dk" },
-//     });
-
-//     if (!response.ok) {
-//       throw new Error(`API returned error: Status ${response.status}`);
-//     }
-//     const data = await response.json();
-//     items.value = data.entities || [];
-//   } catch (e) {
-//     console.error("Error fetching items:", e);
-//     error.value = `Failed to load data: ${e.message}`;
-//   } finally {
-//     isLoading.value = false;
-//   }
-// };
-
 const fetchItems = async () => {
   isLoading.value = true;
   error.value = null;
   items.value = [];
 
   try {
-    const result = await apiFetch(props.apiEndpoint, {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
+      props.apiEndpoint
+    )}`;
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
 
-    if (!result.ok) {
-      throw new Error(`API returned error: Status ${result.status}`);
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
     }
-
-    items.value = result.data?.entities || [];
+    const data = await response.json();
+    items.value = data.entities || [];
   } catch (e) {
     console.error("Error fetching items:", e);
     error.value = `Failed to load data: ${e.message}`;

@@ -306,7 +306,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import categoryOptions from '../assets/enums/componentCategoryOptions.json';
-// import { apiFetch } from '../components/api/auth.js';
+import { apiFetch } from '../components/api/auth.js';
 
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 const API_BASE_URL = "http://planstack.dk";
@@ -396,7 +396,7 @@ const fetchComponents = async () => {
 
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -484,7 +484,7 @@ const confirmDelete = async () => {
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
@@ -541,7 +541,7 @@ const handleSave = async () => {
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: method,
       headers: { Host: "planstack.dk" },
       body: payload,
