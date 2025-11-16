@@ -369,6 +369,12 @@ const categoryOptions = [
   { title: "Sofa", value: 3, color: "red-lighten-1" },
   { title: "Cabinet", value: 4, color: "purple-lighten-1" },
   { title: "Wardrobe", value: 5, color: "brown-lighten-1" },
+  { title: "Fire Safety Equipment", value: 6, color: "pink-lighten-1" },
+  { title: "Fridge", value: 7, color: "cyan-lighten-1" },
+  { title: "Stove", value: 8, color: "lime-lighten-1" },
+  { title: "Sink", value: 9, color: "amber-lighten-1" },
+  { title: "Kitchen Counter", value: 10, color: "indigo-lighten-1" },
+  { title: "Bed", value: 11, color: "green-lighten-1" },
   { title: "Other", value: 99, color: "grey-lighten-1" },
 ];
 
