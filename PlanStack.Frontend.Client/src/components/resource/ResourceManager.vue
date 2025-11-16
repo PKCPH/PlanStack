@@ -140,7 +140,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { apiFetch } from "../api/Auth.js"
+import { apiFetch } from "../api/Auth.js";
 
 // modelling props
 const props = defineProps({
@@ -189,7 +189,7 @@ const showSnackbar = (text, color = "success") => {
   snackbar.value = true;
 };
 
-// const fetchItems = async () => {
+// const = async () => {
 //   isLoading.value = true;
 //   error.value = null;
 //   items.value = [];
@@ -271,8 +271,8 @@ const handleSave = async () => {
   const payload = { ...editingItem.value };
 
   try {
-      const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-      const response = await apiFetch(proxiedUrl, {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+    const response = await apiFetch(proxiedUrl, {
       method: method,
       headers: {
         "Content-Type": "application/json",
@@ -308,7 +308,7 @@ const handleDelete = async () => {
     const url = `${props.apiEndpoint}/${deletingItem.value.id}`;
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await apiFetch(proxiedUrl, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
