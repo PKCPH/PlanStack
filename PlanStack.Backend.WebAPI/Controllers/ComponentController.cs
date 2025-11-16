@@ -13,7 +13,7 @@ using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("components")]
     [ApiController]
     public class ComponentController : ControllerBase

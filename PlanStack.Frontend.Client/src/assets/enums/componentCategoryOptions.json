@@ -11,6 +11,5 @@
   { "title": "Stove", "value": 8, "color": "lime-lighten-1" },
   { "title": "Sink", "value": 9, "color": "amber-lighten-1" },
   { "title": "Kitchen Counter", "value": 10, "color": "indigo-lighten-1" },
-  { "title": "Bed", "value": 11, "color": "green-lighten-1" },
-  { "title": "Other", "value": 99, "color": "grey-lighten-1" }
+  { "title": "Bed", "value": 11, "color": "green-lighten-1" }
 ]

@@ -133,9 +133,9 @@
                 <v-col cols="12" md="6">
                   <v-select
                     v-model="formData.category"
-                    :items="categoryOptions"
+                    :items="categoryOptions.filter((c, i) => i !== 0)"
                     label="Category"
-                    :rules="rules.required"
+                    :rules="[v => v !== null && v !== undefined ? true : 'This field is required']"
                     density="compact"
                   ></v-select>
                 </v-col>
@@ -335,12 +335,16 @@ const fetchStructures = async () => {
 };
 
 const getCategoryName = (value) => {
-  const category = categoryOptions.find((c) => c.value === value);
+  const category = categoryOptions.find(
+    (c, i) => i !== 0 && c.value === value
+  );
   return category ? category.title : "Unknown";
 };
 
 const getCategoryColor = (value) => {
-  const category = categoryOptions.find((c) => c.value === value);
+  const category = categoryOptions.find(
+    (c, i) => i !== 0 && c.value === value
+  );
   return category ? category.color : "grey";
 };
 
