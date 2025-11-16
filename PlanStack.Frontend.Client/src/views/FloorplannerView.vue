@@ -37,6 +37,28 @@
         >
           New
         </v-btn>
+        <v-btn
+          color="primary"
+          @click="openUpdateDialog"
+          :disabled="!activeBlueprintId"
+          variant="tonal"
+          size="small"
+          prepend-icon="mdi-pencil"
+        >
+          Edit
+        </v-btn>
+
+        <v-btn
+          color="success"
+          @click="handleSave"
+          :disabled="!activeBlueprintId"
+          :loading="isSaving"
+          variant="flat"
+          size="small"
+          prepend-icon="mdi-content-save"
+        >
+          Save
+        </v-btn>
       </div>
 
       <v-alert
@@ -95,52 +117,87 @@
         </v-list-item>
       </v-list>
 
-      <v-list-subheader>Info</v-list-subheader>
-
-      <div v-if="activeBlueprintId" class="px-4 mb-4">
-        <div class="font-weight-bold">{{ blueprintName }}</div>
-        <div class="text-caption text-grey-darken-1">
-          {{ blueprintDescription || "No description." }}
-        </div>
-        <v-row dense class="mt-2 text-caption">
-          <v-col cols="6"><strong>Floor:</strong> {{ floor }}</v-col>
-          <v-col cols="6"><strong>Occupancy:</strong> {{ maxOccupancy }}</v-col>
-          <v-col cols="12"
-            ><strong>Size:</strong> {{ canvasWidthCells }} x
-            {{ canvasHeightCells }} cells</v-col
-          >
-        </v-row>
-      </div>
-      <div v-else class="px-4 mb-4 text-caption text-grey-darken-1">
+      <!-- <div v-else class="px-4 mb-4 text-caption text-grey-darken-1">
         Select a blueprint to see details, or create a new one.
+      </div> -->
+
+      <!-- <v-row class="mb-4" dense>
+        <v-col>
+          <v-btn
+            color="primary"
+            block
+            @click="openUpdateDialog"
+            :disabled="!activeBlueprintId"
+            variant="tonal"
+            prepend-icon="mdi-pencil"
+          >
+            Edit Details
+          </v-btn>
+        </v-col>
+        <v-col>
+          <v-btn
+            color="success"
+            block
+            @click="handleSave"
+            :disabled="!activeBlueprintId"
+            :loading="isSaving"
+            variant="flat"
+            prepend-icon="mdi-content-save"
+          >
+            Save
+          </v-btn>
+        </v-col>
+      </v-row> -->
+
+      <div class="d-flex justify-space-between align-center mb-2">
+        <v-list-subheader class="pa-0">
+          {{
+            currentTool === "placeComponent"
+              ? "Select Item"
+              : "Select Wall Type"
+          }}
+        </v-list-subheader>
+
+        <v-btn-group
+          density="compact"
+          variant="tonal"
+          :disabled="!activeBlueprintId"
+        >
+          <v-btn
+            v-if="currentTool === 'placeComponent' && activeBlueprintId"
+            @click="toggleComponentRotation"
+            variant="tonal"
+            color="cyan-darken-2"
+            size="small"
+            title="Toggle rotation"
+          >
+            <v-icon>{{
+              isPlacingHorizontal ? "mdi-arrow-up-down" : "mdi-arrow-left-right"
+            }}</v-icon>
+          </v-btn>
+          <v-btn
+            @click="setTool('drawWall')"
+            :color="currentTool === 'drawWall' ? 'indigo' : 'grey-lighten-1'"
+            size="small"
+            title="Draw Wall"
+          >
+            <v-icon icon="mdi-pencil"></v-icon>
+          </v-btn>
+          <v-btn
+            @click="setTool('placeComponent')"
+            :color="
+              currentTool === 'placeComponent' ? 'cyan' : 'grey-lighten-1'
+            "
+            size="small"
+            title="Place Item"
+          >
+            <v-icon icon="mdi-plus-box"></v-icon>
+          </v-btn>
+        </v-btn-group>
       </div>
 
-      <v-btn
-        color="primary"
-        block
-        @click="openUpdateDialog"
-        :disabled="!activeBlueprintId"
-        variant="tonal"
-        class="mb-2"
-        prepend-icon="mdi-pencil"
-      >
-        Edit Details
-      </v-btn>
-
-      <v-btn
-        color="success"
-        block
-        @click="handleSave"
-        :disabled="!activeBlueprintId"
-        :loading="isSaving"
-        variant="flat"
-        class="mb-4"
-        prepend-icon="mdi-content-save"
-      >
-        Save
-      </v-btn>
-      <v-list-subheader>Wall Type</v-list-subheader>
       <v-autocomplete
+        v-show="currentTool === 'drawWall'"
         v-model="currentBuildingStructureId"
         :items="buildingStructureTypes"
         item-title="name"
@@ -152,7 +209,6 @@
         :error-messages="structureTypesError"
         auto-select-first
       >
-        <!-- colors for walls -->
         <template v-slot:item="{ props, item }">
           <v-list-item v-bind="props" :title="item.raw.name">
             <template v-slot:prepend>
@@ -185,8 +241,8 @@
         </template>
       </v-autocomplete>
 
-      <v-list-subheader>Component Type</v-list-subheader>
       <v-autocomplete
+        v-show="currentTool === 'placeComponent'"
         v-model="currentComponentId"
         :items="componentTypes"
         item-title="name"
@@ -220,9 +276,7 @@
           </div>
         </template>
       </v-autocomplete>
-
-      <v-list-subheader>Drawing Tools</v-list-subheader>
-      <div class="d-flex align-center flex-wrap ga-3">
+      <div class="d-flex justify-space-between align-center mb-4">
         <v-btn
           color="pink"
           @click="clearFloorplan"
@@ -236,65 +290,24 @@
           :color="
             currentTool === 'eraseWall' ? 'red-lighten-2' : 'grey-lighten-1'
           "
-          @click="setTool('eraseWall')"
+          @click="
+            setTool(currentTool === 'eraseWall' ? 'drawWall' : 'eraseWall')
+          "
           variant="flat"
           size="small"
           :disabled="!activeBlueprintId"
         >
-          <v-icon start icon="mdi-eraser"></v-icon> Erase
-        </v-btn>
+          <v-icon
+            start
+            :icon="currentTool === 'eraseWall' ? 'mdi-pencil' : 'mdi-eraser'"
+          ></v-icon>
 
-        <v-btn
-          :color="currentTool === 'drawWall' ? 'indigo' : 'grey-lighten-1'"
-          @click="setTool('drawWall')"
-          variant="flat"
-          size="small"
-          :disabled="!activeBlueprintId"
-        >
-          <v-icon start icon="mdi-pencil"></v-icon> Draw Wall
-        </v-btn>
-
-        <v-btn
-          :color="currentTool === 'placeComponent' ? 'cyan' : 'grey-lighten-1'"
-          @click="setTool('placeComponent')"
-          variant="flat"
-          size="small"
-          :disabled="!activeBlueprintId"
-        >
-          <v-icon start icon="mdi-plus-box"></v-icon> Place Component
-        </v-btn>
-
-        <v-btn
-          v-if="currentTool === 'placeComponent' && activeBlueprintId"
-          @click="toggleComponentRotation"
-          variant="tonal"
-          color="cyan-darken-2"
-          size="small"
-          title="Toggle rotation"
-        >
-          <v-icon start icon="mdi-rotate-90"></v-icon>
-          {{ isPlacingHorizontal ? "Horizontal" : "Vertical" }}
+          {{ currentTool === "eraseWall" ? "Stop Erase" : "Erase" }}
         </v-btn>
       </div>
 
-      <v-divider class="my-6"></v-divider>
-
       <v-list-subheader>Room Areas</v-list-subheader>
       <div class="px-4">
-        <v-btn
-          color="teal"
-          block
-          @click="calculateRoomAreas"
-          @mouseover="onFindRoomsHover"
-          @mouseleave="onFindRoomsLeave"
-          :loading="isCalculatingRooms"
-          prepend-icon="mdi-grid"
-          class="mb-2"
-          :disabled="!activeBlueprintId"
-        >
-          Find Rooms
-        </v-btn>
-
         <v-list v-if="rooms.length > 0" density="compact">
           <v-list-item v-for="room in rooms" :key="room.id" class="pa-0">
             <v-list-item-title
@@ -506,7 +519,7 @@ const roomTypeItems = ref([
 // room calc states
 const rooms = ref([]);
 const isCalculatingRooms = ref(false);
-const showRoomLabels = ref(false);
+const showRoomLabels = ref(true);
 const roomGrid = ref(null);
 
 const COLOR_PALETTE = [
