@@ -19,6 +19,9 @@ namespace PlanStack.Backend.Database.Repositories
             // Filtering
             query = query.Where(x => x.StandardId == standardId);
 
+            // Including Relations
+            query = query.Include(x => x.RuleSet);
+
             // Querying
             var entities = await query.ToListAsync();
 

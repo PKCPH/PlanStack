@@ -9,5 +9,9 @@ namespace PlanStack.Backend.Database.DataModels
 
         public RuleSetObjectTypeEnum? ObjectTypeDefinition { get; set; }
         public RuleSetObjectTypeEnum? ObjectTypeComparison { get; set; }
+
+        #region Relations
+        public virtual ICollection<StandardRuleSet> Standards { get; set; }
+        #endregion
     }
 }

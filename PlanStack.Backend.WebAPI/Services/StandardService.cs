@@ -39,6 +39,9 @@ namespace PlanStack.Backend.WebAPI.Services
                         var newRelation = new StandardRuleSet
                         {
                             UserDefinedName = saveResource.UserDefinedName,
+                            DefinitionValue = saveResource.DefinitionValue,
+                            ComparisonValue = saveResource.ComparisonValue,
+
                             StandardId = standardId,
                             RuleSetId = ruleSet.Id,
 

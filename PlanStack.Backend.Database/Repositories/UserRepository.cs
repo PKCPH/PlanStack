@@ -15,6 +15,24 @@ namespace PlanStack.Backend.Database.Repositories
             _userManager = userManager;
         }
 
+        public async Task<User> GetUserByEmail(string email)
+        {
+            return await _context.Users
+                .Where(u => u.Email == email)
+                .Include(x => x.Projects)
+                .Include(x => x.Standards)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<User> GetUser(string userId)
+        {
+            return await _context.Users
+                .Where(u => u.Id == userId)
+                .Include(x => x.Projects)
+                .Include(x => x.Standards)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName)
         {
             var roleId = _context.Roles.Where(x => x.Name == roleName).FirstOrDefault().Id;
@@ -22,7 +40,8 @@ namespace PlanStack.Backend.Database.Repositories
             return await _context.Users
                 .Where(u => _context.UserRoles
                     .Any(ur => ur.UserId == u.Id && ur.RoleId == roleId))
-                //.Include(x => x.Stats)
+                .Include(x => x.Projects)
+                .Include(x => x.Standards)
                 .ToListAsync();
         }
     }

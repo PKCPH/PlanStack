@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.User;
 using PlanStack.Backend.WebAPI.Extensions;
-using PlanStack.Backend.WebAPI.Handlers;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -32,28 +29,29 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
 
         //[Authorize(Roles = "Admin")]
-        //[HttpGet("{userId}")]
-        //public async Task<ActionResult<UserResource>> Get(string userId)
-        //{
-        //    var user = await _userRepository.GetUserWithStats(userId);
-        //    if (user == null)
-        //        return NotFound("User was not found");
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<UserResource>> Get(string userId)
+        {
+            var user = await _userRepository.GetUser(userId);
+            if (user == null)
+                return NotFound(new { Errors = "User was not found." });
 
-        //    var resource = _mapper.Map<UserResource>(user);
+            var resource = _mapper.Map<UserResource>(user);
 
-        //    resource.Stats = resource.Stats.OrderByDescending(s => s.Version).ToList();
-
-        //    return Ok(resource);
-        //}
+            return Ok(resource);
+        }
 
         //[Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResource>>> GetAll()
         {
-            var users = await _userManager.Users
-                .ToListAsync();
+            var users = await _userRepository.GetUsersByRoleAsync("User");
+            if (users == null || !users.Any())
+                return NotFound(new { Errors = "No users were found." });
 
-            return Ok(users);
+            var resources = _mapper.Map<IEnumerable<UserResource>>(users);
+
+            return Ok(resources);
         }
 
         [HttpPut()]
@@ -84,10 +82,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> Delete(string userId)
+        [HttpDelete("{userEmail}")]
+        public async Task<IActionResult> Delete(string userEmail)
         {
-            var userToDelete = await _userManager.FindByIdAsync(userId);
+            var userToDelete = await _userRepository.GetUserByEmail(userEmail);
 
             if (userToDelete == null)
                 return NotFound("User not found.");

@@ -6,6 +6,7 @@ using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuilding
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintStandard;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Room;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Services
 {
@@ -19,6 +20,7 @@ namespace PlanStack.Backend.WebAPI.Services
         private readonly ComponentRepository _componentRepository;
         private readonly RoomRepository _roomRepository;
         private readonly StandardRepository _standardRepository;
+        private readonly StandardRuleSetRepository _standardRuleSetRepository;
 
         public BlueprintService(
             BlueprintBuildingStructureRepository blueprintBuildingStructureRepository,
@@ -28,7 +30,8 @@ namespace PlanStack.Backend.WebAPI.Services
             BlueprintRepository blueprintRepository,
             ComponentRepository componentRepository,
             RoomRepository roomRepository,
-            StandardRepository standardRepository
+            StandardRepository standardRepository,
+            StandardRuleSetRepository standardRuleSetRepository
         )
         {
             _blueprintBuildingStructureRepository = blueprintBuildingStructureRepository;
@@ -39,6 +42,7 @@ namespace PlanStack.Backend.WebAPI.Services
             _componentRepository = componentRepository;
             _roomRepository = roomRepository;
             _standardRepository = standardRepository;
+            _standardRuleSetRepository = standardRuleSetRepository;
         }
 
         #region SaveBuildingStructuresToBlueprintAsync
@@ -222,6 +226,61 @@ namespace PlanStack.Backend.WebAPI.Services
             {
                 throw new InvalidOperationException($"Error saving blueprint standards for blueprint '{blueprintId}'.", ex);
             }
+        }
+        #endregion
+
+        #region ValidateBlueprintWithStandardsAsync
+        public async Task<bool> ValidateBlueprintWithStandardsAsync(int blueprintId)
+        {
+            // Validate each rule set against the standard
+            var blueprintStandards = await _blueprintStandardRepository.GetAllByBlueprintIdAsync(blueprintId);
+
+            foreach (var blueprintStandard in blueprintStandards.Entities)
+            {
+                var standard = await _standardRepository.GetAsync(blueprintStandard.StandardId);
+
+                var standardRuleSets = await _standardRuleSetRepository.GetAllByStandardIdAsync(standard.Id);
+
+                foreach (var standardRuleSet in standardRuleSets.Entities)
+                {
+                    Console.Write(standardRuleSet.RuleSet.Definition);
+
+                    if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_OVER_RATIO && standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.MINIMUM)
+                    {
+                        var isValid = await ValidateMinimumComponentQuantityPerRoomOverAreaAsync(blueprintId, standardRuleSet);
+                        if (!isValid)
+                            return false;
+                    }
+                }
+
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region ValidateMinimumComponentQuantityPerRoomOverAreaAsync
+        public async Task<bool> ValidateMinimumComponentQuantityPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet)
+        {
+            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId);
+
+            foreach (var room in rooms.Entities)
+            {
+                // For simplicity, assume each room has an area of 100 square units
+                var roomArea = standardRuleSet.DefinitionValue;
+
+                // Get all components in the room
+                var blueprintComponents = await _blueprintComponentRepository.GetAllByBlueprintIdAsync(blueprintId);
+                var componentsInRoom = blueprintComponents.Entities.Where(bc => bc.RoomId == room.Id).ToList();
+
+                var requiredMinimumQuantity = standardRuleSet.ComparisonValue;
+                if (componentsInRoom.Count < requiredMinimumQuantity)
+                {
+                    return false; 
+                }
+            }
+
+            return true;
         }
         #endregion
     }

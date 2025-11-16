@@ -10,6 +10,7 @@
         public int RuleSetId { get; set; }
         public virtual RuleSet RuleSet { get; set; }
         public int StandardId { get; set; }
+        public virtual Standard Standard { get; set; }
         #endregion
     }
 }

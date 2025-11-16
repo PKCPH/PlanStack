@@ -21,6 +21,7 @@ namespace PlanStack.Backend.Database
             base.OnModelCreating(modelBuilder);
 
             // Setup Cascade Deletions
+            #region Blueprint Relations
             modelBuilder.Entity<BlueprintBuildingStructure>()
                 .HasOne(bbs => bbs.Blueprint)
                 .WithMany(b => b.BuildingStructures)
@@ -28,9 +29,21 @@ namespace PlanStack.Backend.Database
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BlueprintBuildingStructure>()
-                .HasOne(bc => bc.BuildingStructure)
+                .HasOne(bbs => bbs.BuildingStructure)
                 .WithMany(c => c.BlueprintBuildingStructures)
-                .HasForeignKey(bc => bc.BuildingStructureId)
+                .HasForeignKey(bbs => bbs.BuildingStructureId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlueprintStandard>()
+                .HasOne(bs => bs.Blueprint)
+                .WithMany(c => c.Standards)
+                .HasForeignKey(bs => bs.BlueprintId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlueprintStandard>()
+                .HasOne(bs => bs.Standard)
+                .WithMany(c => c.BlueprintStandards)
+                .HasForeignKey(bs => bs.StandardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BlueprintComponent>()
@@ -44,12 +57,21 @@ namespace PlanStack.Backend.Database
                 .WithMany(c => c.BlueprintComponents)
                 .HasForeignKey(bc => bc.ComponentId)
                 .OnDelete(DeleteBehavior.Cascade);
+            #endregion
 
-            modelBuilder.Entity<BlueprintStandard>()
-                .HasOne(bs => bs.Blueprint)
-                .WithMany(b => b.Standards)
-                .HasForeignKey(bs => bs.BlueprintId)
+            #region Standard Relations
+            modelBuilder.Entity<StandardRuleSet>()
+                .HasOne(sr => sr.Standard)
+                .WithMany(b => b.RuleSets)
+                .HasForeignKey(sr => sr.StandardId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StandardRuleSet>()
+                .HasOne(sr => sr.RuleSet)
+                .WithMany(c => c.Standards)
+                .HasForeignKey(sr => sr.RuleSetId)
+                .OnDelete(DeleteBehavior.Cascade);
+            #endregion
         }
 
         #region DbSets

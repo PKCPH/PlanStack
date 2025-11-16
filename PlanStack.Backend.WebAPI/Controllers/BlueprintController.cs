@@ -175,12 +175,12 @@ namespace PlanStack.Backend.WebAPI.Controllers
         public async Task<ActionResult<BlueprintResource>> ValidateBlueprint(int entityId)
         {
             // Get entity
-            var entity = await _blueprintRepository.GetAsync(entityId, true);
-            if (entity == null)
-                return NotFound();
+            //var entity = await _blueprintRepository.GetAsync(entityId, true);
+            //if (entity == null)
+            //    return NotFound();
 
             // Validate blueprint - With ValidateService
-            //var validateSuccess = await _blueprintService.ValidateBlueprintAsync(entity);
+            var validateSuccess = await _blueprintService.ValidateBlueprintWithStandardsAsync(entityId);
 
             //if (validateSuccess == true)
             //{
