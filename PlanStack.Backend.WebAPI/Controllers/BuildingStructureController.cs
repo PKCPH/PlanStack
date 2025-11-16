@@ -8,6 +8,7 @@ using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.BuildingStructure;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+using PlanStack.Shared.Enums;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
@@ -83,6 +84,9 @@ namespace PlanStack.Backend.WebAPI.Controllers
             {
                 Page = filter.Page,
                 PageSize = filter.PageSize,
+                Category = filter.Category.HasValue
+                           ? (BuildingStructureCategoryEnum)filter.Category.Value
+                           : null
             };
 
             // Get entities

@@ -8,5 +8,15 @@ namespace PlanStack.Backend.Database.Repositories
         public BuildingStructureRepository(DatabaseContext context) : base(context)
         {
         }
+
+        #region ApplyFiltering
+        protected override IQueryable<BuildingStructure> ApplyFiltering(IQueryable<BuildingStructure> query, BuildingStructureQuery queryModel)
+        {
+            if (queryModel.Category != null)
+                query = query.Where(c => c.Category == queryModel.Category);
+
+            return base.ApplyFiltering(query, queryModel);
+        }
+        #endregion
     }
 }
