@@ -186,40 +186,51 @@
       </v-autocomplete>
 
       <v-list-subheader>Component Type</v-list-subheader>
-      <v-autocomplete
-        v-model="currentComponentId"
-        :items="componentTypes"
-        item-title="name"
-        item-value="id"
-        label="Search and select component"
-        density="compact"
-        class="mb-4"
-        :loading="isLoadingComponentTypes"
-        :error-messages="componentTypesError"
-        auto-select-first
-      >
-        <template v-slot:item="{ props, item }">
-          <v-list-item v-bind="props" :title="item.raw.name">
-            <template v-slot:prepend>
-              <v-avatar
-                :color="item.raw.color"
-                size="x-small"
-                class="mr-2"
-              ></v-avatar>
-            </template>
-          </v-list-item>
-        </template>
-        <template v-slot:selection="{ item }">
-          <div class="d-flex align-center">
-            <v-avatar
-              :color="item.raw.color"
-              size="x-small"
-              class="mr-2"
-            ></v-avatar>
-            <span>{{ item.raw.name }}</span>
-          </div>
-        </template>
-      </v-autocomplete>
+<v-select
+  v-model="selectedComponentCategory"
+  :items="componentCategoryOptions"
+  item-title="title"
+  item-value="value"
+  label="Filter by category"
+  density="compact"
+  class="mb-4"
+/>
+
+<v-list-subheader>Component</v-list-subheader>
+<v-autocomplete
+  v-model="currentComponentId"
+  :items="componentTypes"
+  item-title="name"
+  item-value="id"
+  label="Search and select component"
+  density="compact"
+  class="mb-4"
+  :loading="isLoadingComponentTypes"
+  :error-messages="componentTypesError"
+  auto-select-first
+>
+  <template v-slot:item="{ props, item }">
+    <v-list-item v-bind="props" :title="item.raw.name">
+      <template v-slot:prepend>
+        <v-avatar
+          :color="item.raw.color"
+          size="x-small"
+          class="mr-2"
+        ></v-avatar>
+      </template>
+    </v-list-item>
+  </template>
+  <template v-slot:selection="{ item }">
+    <div class="d-flex align-center">
+      <v-avatar
+        :color="item.raw.color"
+        size="x-small"
+        class="mr-2"
+      ></v-avatar>
+      <span>{{ item.raw.name }}</span>
+    </div>
+  </template>
+</v-autocomplete>
 
       <v-list-subheader>Drawing Tools</v-list-subheader>
       <div class="d-flex align-center flex-wrap ga-3">
@@ -421,6 +432,7 @@ import { ref, onMounted, watch, nextTick, computed } from "vue";
 import { useTheme } from "vuetify";
 import { useRoute } from "vue-router";
 import { FONT_ROOM } from "@/configuration/drawing.js";
+import componentCategoryOptions from '../assets/enums/componentCategoryOptions.json';
 
 const theme = useTheme();
 const route = useRoute();
@@ -612,12 +624,21 @@ const fetchBuildingStructureTypes = async () => {
   }
 };
 
+const selectedComponentCategory = ref(null);
+watch(selectedComponentCategory, (newCategory) => {
+  fetchComponentTypes(newCategory);
+});
+
 // get components
-const fetchComponentTypes = async () => {
+const fetchComponentTypes = async (category = null) => {
   isLoadingComponentTypes.value = true;
   componentTypesError.value = null;
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;
+    let url = COMPONENTS_API_URL;
+    if (category !== null) {
+      url += `?Category=${category}`;
+    }
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
     const response = await fetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },

@@ -4,6 +4,5 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Standard
 {
     public class StandardQueryResource : BaseQueryResource
     {
-
     }
 }

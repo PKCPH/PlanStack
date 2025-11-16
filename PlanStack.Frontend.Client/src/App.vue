@@ -92,11 +92,14 @@ const menuItems = computed(() => {
     "Building Structures",
     "Standards",
     "Projects",
+    "Rulesets",
+    "UserAdmin",
   ];
   const hiddenAlways = ["Unauthorized"]; 
   const hiddenForUser = [
     "Components",
-    "Building Structures"
+    "Building Structures",
+    "UserAdmin",
   ];
 
   return routes
@@ -105,9 +108,9 @@ const menuItems = computed(() => {
       if (hiddenAlways.includes(route.name)) return false;
 
       const user = getCurrentUser();
-      // if (user && user.roles && user.roles.includes('User') && hiddenForUser.includes(route.name)) {
-      //   return false;
-      // }
+      if (user && user.roles && user.roles.includes('User') && hiddenForUser.includes(route.name)) {
+        return false;
+      }
 
       if (isLoggedIn.value && hiddenForLoggedIn.includes(route.name)) {
         return false;

@@ -20,5 +20,15 @@ namespace PlanStack.Backend.Database.Repositories
             return base.ApplyRelations(query);
         }
         #endregion
+
+        #region ApplyFiltering
+        protected override IQueryable<Standard> ApplyFiltering(IQueryable<Standard> query, StandardQuery queryModel)
+        {
+            if (!string.IsNullOrEmpty(queryModel.UserId))
+                query = query.Where(p => p.UserId == queryModel.UserId || p.IsPublic);
+
+            return base.ApplyFiltering(query, queryModel);
+        }
+        #endregion
     }
 }

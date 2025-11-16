@@ -98,17 +98,21 @@ router.beforeEach((to, from, next) => {
   const authRequired = !publicPages.includes(to.name);
   const user = getCurrentUser();
 
-  // if (to.name === 'Components' && (!user || !user.roles.includes('Admin'))) {
-  //   return next({ name: 'Unauthorized' });
-  // }
+  if (to.name === 'Components' && (!user || !user.roles.includes('Admin'))) {
+    return next({ name: 'Unauthorized' });
+  }
 
-  // if (to.name === 'Building Structures' && (!user || !user.roles.includes('Admin'))) {
-  //   return next({ name: 'Unauthorized' });
-  // }
+  if (to.name === 'Building Structures' && (!user || !user.roles.includes('Admin'))) {
+    return next({ name: 'Unauthorized' });
+  }
 
-  // if (authRequired && !user) {
-  //   return next({ name: 'Login' });
-  // }
+    if (to.name === 'UserAdmin' && (!user || !user.roles.includes('Admin'))) {
+    return next({ name: 'Unauthorized' });
+  }
+
+  if (authRequired && !user) {
+    return next({ name: 'Login' });
+  }
   next();
 });
 

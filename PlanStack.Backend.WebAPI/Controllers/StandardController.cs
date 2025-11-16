@@ -13,7 +13,7 @@ using PlanStack.Backend.WebAPI.Services;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("standards")]
     [ApiController]
     public class StandardController : ControllerBase
@@ -40,8 +40,8 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<StandardResource>> Create([FromBody] StandardCreateResource createResource)
         {
-            //var userId = this.User.GetUserId();
-            //createResource.UserId = userId.ToString();
+            var userId = this.User.GetUserId();
+            createResource.UserId = userId.ToString();
 
             //Map entity
             var entity = _mapper.Map<StandardCreateResource, Standard>(createResource);
@@ -85,11 +85,15 @@ namespace PlanStack.Backend.WebAPI.Controllers
             if (filter.PageSize == 0)
                 filter.PageSize = -1;
 
+            var userId = this.User.GetUserId();
+
             // Create query
             var query = new StandardQuery()
             {
                 Page = filter.Page,
                 PageSize = filter.PageSize,
+                UserId = userId.ToString(),
+                IsPublic = true
             };
 
             // Get entities

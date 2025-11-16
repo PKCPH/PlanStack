@@ -38,8 +38,6 @@ export function getCurrentUser() {
   const payload = parseJwt(token.value);
   if (!payload) return null;
 
-  console.log(payload);
-
   return {
     userId: payload.sub,             
     username: payload.unique_name,   

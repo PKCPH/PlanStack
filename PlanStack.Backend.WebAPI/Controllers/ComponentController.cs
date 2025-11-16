@@ -37,7 +37,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
 
         #region Create
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost()]
         public async Task<ActionResult<ComponentResource>> Create([FromForm] ComponentCreateResource createResource)
         {
@@ -65,7 +65,6 @@ namespace PlanStack.Backend.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                // [THE FIX] Return 200 OK, but with a success=false flag and the error message
                 return Ok(new { success = false, message = $"Server Crash: {ex.Message}" });
             }
         }
@@ -115,7 +114,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         #endregion
 
         #region Update
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromForm] ComponentUpdateResource updateResource)
         {
@@ -142,7 +141,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         #endregion
 
         #region Delete
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{entityId}")]
         public async Task<ActionResult> Delete(int entityId)
         {

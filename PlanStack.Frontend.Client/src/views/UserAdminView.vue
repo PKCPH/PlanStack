@@ -12,20 +12,14 @@
         loading-text="Loading users..."
         class="elevation-0"
       >
-        <!-- roles -->
-        <template v-slot:item.roles="{ item }">
-          <div v-if="item.roles && item.roles.length">
-            <v-chip
-              v-for="role in item.roles"
-              :key="role"
-              color="primary"
-              size="small"
-              class="mr-1"
-            >
-              {{ role }}
-            </v-chip>
-          </div>
-          <span v-else class="text-grey text-caption">No roles</span>
+        <!-- standards count -->
+        <template v-slot:item.standards="{ item }">
+          <span>{{ Array.isArray(item.standards) ? item.standards.length : 0 }}</span>
+        </template>
+
+        <!-- projects count -->
+        <template v-slot:item.projects="{ item }">
+          <span>{{ Array.isArray(item.projects) ? item.projects.length : 0 }}</span>
         </template>
 
         <!-- actions -->
@@ -105,7 +99,8 @@ const error = ref(null);
 const headers = ref([
   { title: "Email", key: "email" },
   { title: "User Name", key: "userName" },
-  { title: "Roles", key: "roles" },
+  { title: "Standards", key: "standards" },
+  { title: "Projects", key: "projects" },
   { title: "Actions", key: "actions", sortable: false, align: "end" },
 ]);
 
@@ -143,6 +138,7 @@ const fetchUsers = async () => {
     }
 
     users.value = result.data || [];
+    console.log("Fetched users:", users.value);
   } catch (e) {
     console.error("Error fetching users:", e);
     error.value = `Failed to load users: ${e.message}`;

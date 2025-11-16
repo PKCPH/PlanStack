@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanStack.Backend.Database;
 using PlanStack.Backend.Database.DataModels;
 using PlanStack.Backend.Database.QueryModels;
 using PlanStack.Backend.Database.Repositories;
-using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 using PlanStack.Backend.WebAPI.Controllers.Resources.RuleSet;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("rulesets")]
     [ApiController]
     public class RuleSetController : ControllerBase
@@ -29,6 +32,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         }
 
         #region Create
+        [Authorize(Roles = "Admin")]
         [HttpPost()]
         public async Task<ActionResult<RuleSetResource>> Create([FromBody] RuleSetCreateResource createResource)
         {
@@ -92,6 +96,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         #endregion
 
         #region Update
+        [Authorize(Roles = "Admin")]
         [HttpPut("{entityId}")]
         public async Task<ActionResult> Update(int entityId, [FromBody] RuleSetUpdateResource updateResource)
         {
@@ -110,6 +115,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
         #endregion
 
         #region Delete
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{entityId}")]
         public async Task<ActionResult> Delete(int entityId)
         {

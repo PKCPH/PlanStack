@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ using PlanStack.Backend.WebAPI.Extensions;
 
 namespace PlanStack.Backend.WebAPI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -28,7 +29,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             _userRepository = userRepository;
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{userId}")]
         public async Task<ActionResult<UserResource>> Get(string userId)
         {
@@ -41,7 +42,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             return Ok(resource);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResource>>> GetAll()
         {
@@ -81,7 +82,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
             return Ok(result);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete()]
         public async Task<IActionResult> Delete(string userEmail)
         {

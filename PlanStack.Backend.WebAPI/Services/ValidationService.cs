@@ -54,6 +54,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
                 foreach (var standardRuleSet in standardRuleSets.Entities)
                 {
+                    // TODO - Eventually switch case between all rule set definitions
                     if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_OVER_RATIO && standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM)
                     {
                         validationResource = await ValidateComponentPerRoomOverAreaAsync(blueprintId, standardRuleSet, validationResource);
@@ -95,14 +96,14 @@ namespace PlanStack.Backend.WebAPI.Services
 
             foreach (var room in roomsOverDefinitionValue)
             {
-                var fireSafetyEquipment = room.Components
+                var componentToValidate = room.Components
                     .Where(c => c.Component != null && c.Component.Category.ToString() == standardRuleSet.RuleSet.ObjectTypeComparison.ToString())
                     .ToList();
 
                 switch (standardRuleSet.RuleSet.Comparison)
                 {
                     case RuleSetComparisonEnum.MINIMUM:
-                        if (fireSafetyEquipment.Count < standardRuleSet.ComparisonValue)
+                        if (componentToValidate.Count < standardRuleSet.ComparisonValue)
                         {
                             validationResource.IsValid = false;
                             validationResource.Errors.Add($"Room '{room.Name}' does not meet the minimum required {standardRuleSet.RuleSet.ObjectTypeComparison} of {standardRuleSet.ComparisonValue}.");
@@ -111,7 +112,7 @@ namespace PlanStack.Backend.WebAPI.Services
                         break;
 
                     case RuleSetComparisonEnum.MAXIMUM:
-                        if (fireSafetyEquipment.Count > standardRuleSet.ComparisonValue)
+                        if (componentToValidate.Count > standardRuleSet.ComparisonValue)
                         {
                             validationResource.IsValid = false;
                             validationResource.Errors.Add($"Room '{room.Name}' exceeds the maximum allowed {standardRuleSet.RuleSet.ObjectTypeComparison} of {standardRuleSet.ComparisonValue}.");
@@ -120,7 +121,7 @@ namespace PlanStack.Backend.WebAPI.Services
                         break;
 
                     case RuleSetComparisonEnum.EXACT:
-                        if (fireSafetyEquipment.Count != standardRuleSet.ComparisonValue)
+                        if (componentToValidate.Count != standardRuleSet.ComparisonValue)
                         {
                             validationResource.IsValid = false;
                             validationResource.Errors.Add($"Room '{room.Name}' does not meet the exact required {standardRuleSet.RuleSet.ObjectTypeComparison} of {standardRuleSet.ComparisonValue}.");

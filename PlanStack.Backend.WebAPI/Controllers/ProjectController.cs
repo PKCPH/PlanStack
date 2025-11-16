@@ -81,12 +81,14 @@ namespace PlanStack.Backend.WebAPI.Controllers
             if (filter.PageSize == 0)
                 filter.PageSize = -1;
 
+            var userId = this.User.GetUserId();
+
             // Create query
             var query = new ProjectQuery()
             {
                 Page = filter.Page,
                 PageSize = filter.PageSize,
-                UserId = filter.UserId
+                UserId = userId.ToString()
             };
 
             // Get entities
