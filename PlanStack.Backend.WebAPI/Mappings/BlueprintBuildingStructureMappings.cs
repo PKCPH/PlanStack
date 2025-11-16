@@ -9,7 +9,10 @@ namespace PlanStack.Backend.WebAPI.Mappings
         public BlueprintBuildingStructureMappings()
         {
             // Mapping Resource to DataModel
-            CreateMap<BlueprintBuildingStructureSaveResource, BlueprintBuildingStructure>();
+            CreateMap<BlueprintBuildingStructureSaveResource, BlueprintBuildingStructure>()
+            .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+            .ForMember(d => d.UpdatedAt, opt => opt.Ignore());
+
             CreateMap<BlueprintBuildingStructureResource, BlueprintBuildingStructure>();
 
             // Mapping DataModel to Resource

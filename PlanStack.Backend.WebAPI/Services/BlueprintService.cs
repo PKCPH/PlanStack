@@ -5,6 +5,7 @@ using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintBuildingStructure;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintStandard;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Room;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
 namespace PlanStack.Backend.WebAPI.Services
 {
@@ -52,6 +53,13 @@ namespace PlanStack.Backend.WebAPI.Services
                     _blueprintBuildingStructureRepository.Remove(relation);
                 }
 
+                // Null check
+                if (saveResources == null)
+                    return;
+
+                if (saveResources.Count == 0)
+                    return;
+
                 // Add new relations
                 foreach (var saveResource in saveResources)
                 {
@@ -64,6 +72,8 @@ namespace PlanStack.Backend.WebAPI.Services
                             BuildingStructureId = buildingStructure.Id,
                             Height = saveResource.Height,
                             Width = saveResource.Width,
+                            StartingPositionX = saveResource.StartingPositionX,
+                            StartingPositionY = saveResource.StartingPositionY,
 
                             TotalPrice = 0,
                             CreatedAt = DateTime.Now,
@@ -92,6 +102,13 @@ namespace PlanStack.Backend.WebAPI.Services
                     _blueprintComponentRepository.Remove(relation);
                 }
 
+                // Null check
+                if (saveResources == null)
+                    return;
+
+                if (saveResources.Count == 0)
+                    return;
+
                 // Add new relations
                 foreach (var saveResource in saveResources)
                 {
@@ -102,6 +119,11 @@ namespace PlanStack.Backend.WebAPI.Services
                         {
                             BlueprintId = blueprintId,
                             ComponentId = component.Id,
+
+                            IsHorizontal = saveResource.IsHorizontal,
+                            StartingPositionX = saveResource.StartingPositionX,
+                            StartingPositionY = saveResource.StartingPositionY,
+                            RoomId = Guid.TryParse(saveResource?.RoomId, out var guid) ? guid : null,
 
                             CreatedAt = DateTime.Now,
                             UpdatedAt = DateTime.Now
@@ -129,6 +151,13 @@ namespace PlanStack.Backend.WebAPI.Services
                     _roomRepository.Remove(room);
                 }
 
+                // Null check
+                if (saveResources == null)
+                    return;
+
+                if (saveResources.Count == 0)
+                    return;
+
                 // Add new relations
                 foreach (var saveResource in saveResources)
                 {
@@ -137,6 +166,8 @@ namespace PlanStack.Backend.WebAPI.Services
                         Id = Guid.Parse(saveResource.Id),
                         BlueprintId = blueprintId,
                         RoomType = saveResource.RoomType,
+                        Name = saveResource.Name,
+
                         CreatedAt = DateTime.Now,
                         UpdatedAt = DateTime.Now
                     };
@@ -161,6 +192,13 @@ namespace PlanStack.Backend.WebAPI.Services
                 {
                     _blueprintStandardRepository.Remove(relation);
                 }
+
+                // Null check
+                if (saveResources == null)
+                    return;
+
+                if (saveResources.Count == 0)
+                    return;
 
                 // Add new relations
                 foreach (var saveResource in saveResources)

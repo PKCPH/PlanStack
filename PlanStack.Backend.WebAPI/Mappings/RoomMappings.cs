@@ -9,7 +9,9 @@ namespace PlanStack.Backend.WebAPI.Mappings
         public RoomMappings()
         {
             // Mapping Resource to DataModel
-            CreateMap<RoomSaveResource, Room>();
+            CreateMap<RoomSaveResource, Room>()
+            .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+            .ForMember(d => d.UpdatedAt, opt => opt.Ignore());
             CreateMap<RoomResource, Room>();
 
             // Mapping DataModel to Resource
