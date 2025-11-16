@@ -93,7 +93,7 @@ const menuItems = computed(() => {
     "Projects",
     "UserAdmin",
   ];
-  const hiddenAlways = ["Unauthorized"]; 
+  const hiddenAlways = ["Unauthorized", "Floorplans", "Rulesets"]; 
   const hiddenForUser = [
     "Components",
     "Building Structures",
