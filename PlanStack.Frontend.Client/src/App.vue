@@ -6,31 +6,29 @@
 
         <v-toolbar-title>Planstack</v-toolbar-title>
 
-
-          <!-- Auth actions: Logout (if logged in), Register/Login (if not logged in) -->
-          <v-list-item
-            v-if="isLoggedIn"
-            prepend-icon="mdi-logout"
-            title="Logout"
-            @click="logout"
-          ></v-list-item>
-          <v-list-item
-            v-else
-            prepend-icon="mdi-login"
-            title="Login"
-            :to="'/login'"
-            router
-            exact
-          ></v-list-item>
-          <v-list-item
-            v-if="!isLoggedIn"
-            prepend-icon="mdi-account-plus"
-            title="Register"
-            :to="'/register'"
-            router
-            exact
-          ></v-list-item>
-
+        <!-- Auth actions: Logout (if logged in), Register/Login (if not logged in) -->
+        <v-list-item
+          v-if="isLoggedIn"
+          prepend-icon="mdi-logout"
+          title="Logout"
+          @click="logout"
+        ></v-list-item>
+        <v-list-item
+          v-else
+          prepend-icon="mdi-login"
+          title="Login"
+          :to="'/login'"
+          router
+          exact
+        ></v-list-item>
+        <v-list-item
+          v-if="!isLoggedIn"
+          prepend-icon="mdi-account-plus"
+          title="Register"
+          :to="'/register'"
+          router
+          exact
+        ></v-list-item>
 
         <v-app-bar-nav-icon
           v-if="isToolsDrawerAvailable"
@@ -70,7 +68,6 @@
               exact
             ></v-list-item>
           </template>
-
         </v-list>
       </v-navigation-drawer>
 
@@ -129,18 +126,19 @@ const hiddenForLoggedOut = [
 ];
 
 const hiddenAlways = [
-  "Unauthorized", 
-  "Floorplans", 
-  "Rulesets", 
-  "Register", 
-  "Login", 
-  "SessionTimeout"
+  "Unauthorized",
+  "Floorplans",
+  "Rulesets",
+  "Register",
+  "Login",
+  "SessionTimeout",
 ];
 
 const hiddenForUser = [
   "Components",
   "Building Structures",
   "UserAdmin",
+  "AdminRuleSet",
 ];
 
 const menuItems = computed(() => {
@@ -151,7 +149,8 @@ const menuItems = computed(() => {
       if (!route.name) return false;
       if (hiddenAlways.includes(route.name)) return false;
       if (hiddenForUser.includes(route.name)) return false;
-      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name)) return false;
+      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name))
+        return false;
       return true;
     })
     .map((route) => ({
@@ -163,14 +162,15 @@ const menuItems = computed(() => {
 
 const adminPanelItems = computed(() => {
   const user = getCurrentUser();
-  if (!user || !user.roles || !user.roles.includes('Admin')) return [];
+  if (!user || !user.roles || !user.roles.includes("Admin")) return [];
   // Only show hiddenForUser routes for admin
   return routes
     .filter((route) => {
       if (!route.name) return false;
       if (!hiddenForUser.includes(route.name)) return false;
       if (hiddenAlways.includes(route.name)) return false;
-      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name)) return false;
+      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name))
+        return false;
       return true;
     })
     .map((route) => ({
