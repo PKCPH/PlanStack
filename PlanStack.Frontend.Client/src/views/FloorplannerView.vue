@@ -43,8 +43,8 @@
     </div>
 
     <Teleport to="#right-tools-container">
+      <v-list-subheader class="pa-0">Blueprints</v-list-subheader>
       <div class="d-flex justify-space-between align-center mb-2">
-        <v-list-subheader class="pa-0">Blueprints</v-list-subheader>
         <v-btn
           color="secondary"
           @click="openCreateDialog"
@@ -75,6 +75,18 @@
           prepend-icon="mdi-content-save"
         >
           Save
+        </v-btn>
+
+        <!-- delete -->
+        <v-btn
+          color="error"
+          @click="openDeleteDialog"
+          :disabled="!activeBlueprintId"
+          :loading="isDeleting"
+          variant="tonal"
+          size="small"
+          prepend-icon="mdi-delete"
+        >
         </v-btn>
       </div>
 
@@ -296,7 +308,7 @@
 
         <v-btn
           :color="
-            currentTool === 'eraseWall' ? 'red-lighten-2' : 'grey-lighten-1'
+            currentTool === 'eraseWall' ? 'red-lighten-3' : 'red-lighten-1'
           "
           @click="
             setTool(currentTool === 'eraseWall' ? 'drawWall' : 'eraseWall')
@@ -464,6 +476,35 @@
       </v-card>
     </v-dialog>
 
+    <!-- delete dialog-->
+    <v-dialog v-model="isDeleteDialogVisible" max-width="500" persistent>
+      <v-card>
+        <v-card-title class="text-h5">Delete Blueprint?</v-card-title>
+        <v-card-text>
+          Are you sure you want to delete
+          <strong>{{ blueprintName }}</strong
+          >?
+          <br />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey-darken-1"
+            variant="text"
+            @click="isDeleteDialogVisible = false"
+            >Cancel</v-btn
+          >
+          <v-btn
+            color="red-darken-1"
+            variant="flat"
+            :loading="isDeleting"
+            @click="handleDeleteBlueprint"
+            >Delete</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000">
       {{ snackbarText }}
     </v-snackbar>
@@ -526,6 +567,7 @@ const selectedStandards = ref([]);
 // dialog and form states
 const isDetailsDialogVisible = ref(false);
 const detailsFormRef = ref(null);
+const isDeleteDialogVisible = ref(false);
 
 // snackbar states
 const snackbar = ref(false);
@@ -589,6 +631,7 @@ const COLOR_PALETTE = [
 //saving states
 const isSaving = ref(false);
 const isValidating = ref(false);
+const isDeleting = ref(false);
 
 // loading states
 const blueprintsList = ref([]);
@@ -652,6 +695,10 @@ const openUpdateDialog = () => {
   nextTick(() => {
     detailsFormRef.value?.resetValidation();
   });
+};
+
+const openDeleteDialog = () => {
+  isDeleteDialogVisible.value = true;
 };
 
 const toggleComponentRotation = () => {
@@ -910,6 +957,38 @@ const saveBlueprintToAPI = async (blueprintData) => {
     throw error;
   } finally {
     isSaving.value = false;
+  }
+};
+// delete blueprint
+const handleDeleteBlueprint = async () => {
+  if (!activeBlueprintId.value) {
+    showSnackbar("No blueprint selected to delete.", "error");
+    return;
+  }
+
+  isDeleting.value = true;
+  try {
+    const url = `${BLUEPRINTS_API_URL}/${activeBlueprintId.value}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+
+    const response = await apiFetch(proxiedUrl, {
+      method: "DELETE",
+      headers: { Host: "planstack.dk" },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) throw new Error("Blueprint not found.");
+      throw new Error(`API error: Status ${response.status}`);
+    }
+
+    showSnackbar("Blueprint deleted successfully.", "success");
+    isDeleteDialogVisible.value = false;
+    await fetchBlueprints();
+  } catch (error) {
+    console.error("Error deleting blueprint:", error);
+    showSnackbar(`Delete failed: ${error.message}`, "error");
+  } finally {
+    isDeleting.value = false;
   }
 };
 
