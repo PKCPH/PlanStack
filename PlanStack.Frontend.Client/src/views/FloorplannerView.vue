@@ -339,31 +339,28 @@
             v-for="room in rooms"
             :key="room.id"
             class="mb-2 border-sm rounded-lg"
+            density="compact"
           >
-            <v-list-item-title class="font-weight-medium">
-              {{ room.name }}
-              <span class="font-weight-regular text-grey-darken-1 ml-2">
-                ({{ room.squareMeters }} m²)
-              </span>
-            </v-list-item-title>
-
-            <template v-slot:append>
-              <v-select
-                v-model="room.roomType"
-                :items="roomTypeItems"
-                item-title="title"
-                item-value="value"
-                density="compact"
-                hide-details
-                variant="plain"
-                class="mb-3"
-                style="max-width: 35px"
-                @update:modelValue="renumberAllRooms"
-                @click.stop
-              >
-                <template v-slot:selection="{ item }"></template>
-              </v-select>
-            </template>
+            <v-select
+              v-model="room.roomType"
+              :items="roomTypeItems"
+              item-title="title"
+              item-value="value"
+              density="compact"
+              hide-details
+              variant="plain"
+              class="w-100"
+              @update:modelValue="renumberAllRooms"
+            >
+              <template v-slot:selection="{ item }">
+                <v-list-item-title class="font-weight-medium ma-2">
+                  {{ room.name }}
+                  <span class="font-weight-regular text-grey-darken-1 ml-2">
+                    ({{ room.squareMeters }} m²)
+                  </span>
+                </v-list-item-title>
+              </template>
+            </v-select>
           </v-list-item>
         </v-list>
         <v-list-item
