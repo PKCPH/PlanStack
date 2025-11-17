@@ -32,9 +32,9 @@
 import { ref, onMounted, nextTick } from 'vue';
 
 const videoFiles = [
-  '/src/assets/videos/planstackvid1.mp4',
-  '/src/assets/videos/planstackvid2.mp4',
-  '/src/assets/videos/planstackvid3.mp4',
+  '/videos/planstackvid1.mp4',
+  '/videos/planstackvid2.mp4',
+  '/videos/planstackvid3.mp4',
 ];
 
 const videoA = ref(null);
