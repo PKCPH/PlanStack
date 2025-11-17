@@ -463,6 +463,7 @@ import { FONT_ROOM } from "@/configuration/drawing.js";
 import { apiFetch } from "../components/api/auth.js";
 import componentCategoryOptions from "../assets/enums/componentCategoryOptions.json";
 import buildingStructureCategoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
+import { generateUUID } from "@/components/floorplanner/UuidGenerator.js";
 
 const theme = useTheme();
 const route = useRoute();
