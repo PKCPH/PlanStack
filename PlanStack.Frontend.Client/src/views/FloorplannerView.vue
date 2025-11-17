@@ -196,7 +196,9 @@
         </v-btn-group>
       </div>
 
-      <v-list-subheader v-if="currentTool === 'placeComponent'">Component Type</v-list-subheader>
+      <v-list-subheader v-if="currentTool === 'placeComponent'"
+        >Component Type</v-list-subheader
+      >
       <v-select
         v-if="currentTool === 'placeComponent'"
         v-model="selectedComponentCategory"
@@ -458,9 +460,9 @@ import { ref, onMounted, watch, nextTick, computed } from "vue";
 import { useTheme } from "vuetify";
 import { useRoute } from "vue-router";
 import { FONT_ROOM } from "@/configuration/drawing.js";
-import { apiFetch } from '../components/api/auth.js';
-import componentCategoryOptions from '../assets/enums/componentCategoryOptions.json';
-import buildingStructureCategoryOptions from '../assets/enums/buildingStructureCategoryOptions.json';
+import { apiFetch } from "../components/api/auth.js";
+import componentCategoryOptions from "../assets/enums/componentCategoryOptions.json";
+import buildingStructureCategoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 
 const theme = useTheme();
 const route = useRoute();
@@ -625,7 +627,6 @@ watch(selectedBuildingStructureCategory, (newCategory) => {
 
 // get building structures
 const fetchBuildingStructureTypes = async (category = null) => {
-
   isLoadingStructureTypes.value = true;
   structureTypesError.value = null;
   try {
@@ -646,7 +647,6 @@ const fetchBuildingStructureTypes = async (category = null) => {
     // assign colors to each
     buildingStructureTypes.value = data.entities.map((type, index) => ({
       ...type,
-      // colors
       color: type.color || COLOR_PALETTE[index % COLOR_PALETTE.length],
     }));
 
@@ -828,10 +828,10 @@ const saveBlueprintToAPI = async (blueprintData) => {
 
     showSnackbar(`Blueprint ${isUpdating ? "updated" : "saved"} successfully!`);
 
-    // If creating, response data might contain the new ID
+    // If creating, response data might have new ID
     if (!isUpdating && data && data.id) {
       activeBlueprintId.value = data.id;
-      // Manually update the name if it's a new blueprint
+      // update name if returned
       if (data.name) blueprintName.value = data.name;
     }
 
@@ -849,7 +849,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
   }
 };
 
-// Ensures coordinates snap to the nearest grid intersection.
+// snap coordinates to grid
 const snapToGrid = (coord) => Math.round(coord / GRID_SIZE) * GRID_SIZE;
 
 // Drawing Helpers
@@ -921,15 +921,14 @@ const draw = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid(ctx, canvas);
 
-  // 1. Draw Components
+  // draw components
   placedComponents.value.forEach((comp) => {
-    // ... (component drawing logic)
     const isHovered = hoveredComponent.value && comp === hoveredComponent.value;
     const { color, width, height } = getComponentDetails(comp.componentId);
     drawComponent(
       ctx,
       comp.x,
-      comp.y, // <-- FIX: Was comp.V
+      comp.y,
       width,
       height,
       color,
@@ -939,9 +938,8 @@ const draw = () => {
     );
   });
 
-  // 2. Draw Walls
+  // draw walls
   walls.value.forEach((wall) => {
-    // ... (wall drawing logic)
     const isHovered = hoveredWall.value && wall === hoveredWall.value;
     const color = isHovered
       ? ERASE_HIGHLIGHT_COLOR
@@ -949,9 +947,8 @@ const draw = () => {
     drawWall(ctx, wall.startX, wall.startY, wall.endX, wall.endY, color);
   });
 
-  // 3. Draw temporary wall (if drawing)
+  // draw temp wall (if drawing)
   if (isDrawing.value && currentTool.value === "drawWall") {
-    // ... (temp wall drawing logic)
     const tempColor = getColorForStructureId(currentBuildingStructureId.value);
     drawWall(
       ctx,
@@ -963,13 +960,12 @@ const draw = () => {
     );
   }
 
-  // 4. Draw component placement preview (if placing)
+  // draw comp preview
   if (
     hoverPoint.value &&
     currentTool.value === "placeComponent" &&
     currentComponentId.value
   ) {
-    // ... (ghost component drawing logic)
     const { color, width, height } = getComponentDetails(
       currentComponentId.value
     );
@@ -985,7 +981,7 @@ const draw = () => {
     );
   }
 
-  // 5. Draw Room Labels (if toggled)
+  // draw room labels
   if (showRoomLabels.value) {
     rooms.value.forEach((room) => {
       const canvasX = ((room.labelX - 1) / 2) * GRID_SIZE + GRID_SIZE / 2;
@@ -1026,10 +1022,10 @@ const isPointNearComponent = (px, py, component) => {
   return px >= x1 && px <= x2 && py >= y1 && py <= y2;
 };
 
-// Event Handlers
+// event handlers
 const getCanvasCoords = (event) => {
   const canvas = canvasRef.value;
-  if (!canvas) return { x: 0, y: 0 }; // Safety check
+  if (!canvas) return { x: 0, y: 0 };
 
   let clientX = event.clientX;
   let clientY = event.clientY;
@@ -1041,7 +1037,6 @@ const getCanvasCoords = (event) => {
 
   const rect = canvas.getBoundingClientRect();
 
-  // Un-scale the coordinates by dividing by the scale factor
   const x = (clientX - rect.left) / canvasScale.value;
   const y = (clientY - rect.top) / canvasScale.value;
 
@@ -1058,7 +1053,6 @@ const handleMouseDown = (event) => {
     tempEndPoint.value = snappedPoint;
     draw();
   } else if (currentTool.value === "eraseWall") {
-    // Use non-snapped coords for accurate erase hit test
     startPoint.value = { x, y };
     isDrawing.value = true;
   } else if (currentTool.value === "placeComponent") {
@@ -1099,7 +1093,7 @@ const handleMouseUp = () => {
       walls.value = updatedWalls;
     }
   } else if (currentTool.value === "eraseWall") {
-    // Erase logic: check if the click point is near any wall or component
+    // erase logic - check if the cursor is near any wall or component
     const clickX = startPoint.value.x;
     const clickY = startPoint.value.y;
 
@@ -1117,7 +1111,7 @@ const handleMouseUp = () => {
       const compIndexToErase = placedComponents.value.findIndex((comp) =>
         isPointNearComponent(clickX, clickY, comp)
       );
-
+      // remove component if it is not a wall
       if (compIndexToErase !== -1) {
         placedComponents.value = placedComponents.value.filter(
           (_, index) => index !== compIndexToErase
@@ -1128,7 +1122,7 @@ const handleMouseUp = () => {
       }
     }
   }
-  // We trigger the room calculation *after* a wall/component is changed
+  // room calc after any change
   calculateRoomAreas();
   draw();
 };
@@ -1139,7 +1133,7 @@ const handleMouseMove = (event) => {
 
   if (!isDrawing.value) {
     let needsRedraw = false;
-    // Handle hover highlighting in erase mode when not drawing
+    // hover highlight for erase
     if (currentTool.value === "eraseWall") {
       const wallUnderCursor = walls.value.find((wall) =>
         isPointNearWall(x, y, wall)
@@ -1150,9 +1144,9 @@ const handleMouseMove = (event) => {
 
       let hWall = null;
       let hComp = null;
-
+      // prioritise walls
       if (wallUnderCursor) {
-        hWall = wallUnderCursor; // prioritise walls
+        hWall = wallUnderCursor;
       } else if (compUnderCursor) {
         hComp = compUnderCursor;
       }
@@ -1176,7 +1170,7 @@ const handleMouseMove = (event) => {
       }
     } else {
       if (hoverPoint.value !== null) {
-        hoverPoint.value = null; // null preview if no placecomponent mode
+        hoverPoint.value = null;
         needsRedraw = true;
       }
     }
@@ -1196,7 +1190,7 @@ const handleMouseMove = (event) => {
     const tolerance = GRID_SIZE / 2;
     let newTempEndPoint;
 
-    // Constrain to orthogonal drawing
+    // constrain to 90 degrees angles
     if (dx > dy && dx > tolerance) {
       newTempEndPoint = { x: snappedX, y: startPoint.value.y };
     } else if (dy > dx && dy > tolerance) {
@@ -1386,7 +1380,7 @@ const mapRoomsAndComponentsToPayload = () => {
       isHorizontal: comp.isHorizontal,
       blueprintId: activeBlueprintId.value || 0,
       componentId: comp.componentId,
-      roomId: null, // null is not in room
+      roomId: null,
     };
 
     // find room id comp is in
@@ -1556,7 +1550,7 @@ const loadBlueprint = (blueprint) => {
 
   if (blueprint.rooms && blueprint.rooms.length > 0) {
     rooms.value = blueprint.rooms.map((r, index) => ({
-      id: r.id || crypto.randomUUID(),
+      id: r.id || generateUUID(),
       name: r.name || `Room ${index + 1}`,
       squareMeters: r.squareMeters,
       roomType: r.roomType ?? 0,
@@ -1617,7 +1611,7 @@ const calculateRoomAreas = () => {
   const gridHeight = height * 2 + 1;
   const grid = Array(gridHeight)
     .fill(null)
-    .map(() => Array(gridWidth).fill(0)); // 0 = empty
+    .map(() => Array(gridWidth).fill(0));
 
   // marking walls double grid
   walls.value.forEach((wall) => {
@@ -1648,7 +1642,7 @@ const calculateRoomAreas = () => {
       if (grid[y][x] === 0) {
         const oldRoom = oldRooms.find((r) => r.labelX === x && r.labelY === y);
 
-        const newRoomId = oldRoom ? oldRoom.id : crypto.randomUUID();
+        const newRoomId = oldRoom ? oldRoom.id : generateUUID();
         const roomName = oldRoom
           ? oldRoom.name
           : `Room ${foundRooms.length + 1}`;
@@ -1658,7 +1652,7 @@ const calculateRoomAreas = () => {
           grid,
           x,
           y,
-          newRoomId, // <-- Use GUID
+          newRoomId,
           0,
           gridWidth,
           gridHeight
