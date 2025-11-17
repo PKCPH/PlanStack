@@ -338,15 +338,14 @@
           <v-list-item
             v-for="room in rooms"
             :key="room.id"
-            class="mb-2"
-            style="border: 1px solid #eee; border-radius: 4px"
+            class="mb-2 border-sm rounded-lg"
           >
-            <v-list-item-title class="font-weight-medium">{{
-              room.name
-            }}</v-list-item-title>
-            <v-list-item-subtitle>
-              {{ room.squareMeters }} m²
-            </v-list-item-subtitle>
+            <v-list-item-title class="font-weight-medium">
+              {{ room.name }}
+              <span class="font-weight-regular text-grey-darken-1 ml-2">
+                ({{ room.squareMeters }} m²)
+              </span>
+            </v-list-item-title>
 
             <template v-slot:append>
               <v-select
@@ -356,13 +355,14 @@
                 item-value="value"
                 density="compact"
                 hide-details
-                hide-selected
-                variant="outlined"
-                class="ml-2"
-                style="max-width: 150px"
+                variant="plain"
+                class="mb-3"
+                style="max-width: 35px"
                 @update:modelValue="renumberAllRooms"
                 @click.stop
-              ></v-select>
+              >
+                <template v-slot:selection="{ item }"></template>
+              </v-select>
             </template>
           </v-list-item>
         </v-list>
