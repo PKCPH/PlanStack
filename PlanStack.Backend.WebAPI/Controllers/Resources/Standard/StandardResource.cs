@@ -11,7 +11,6 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Standard
         public bool IsPublic { get; set; }
 
         #region Relations
-        public virtual UserResource User { get; set; }
         public virtual List<StandardRuleSetResource> RuleSets { get; set; }
         #endregion
     }

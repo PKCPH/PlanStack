@@ -125,7 +125,8 @@ const hiddenForLoggedOut = [
   "Building Structures",
   "Standards",
   "Projects",
-  "UserAdmin",
+  "User Overview",
+  "RuleSet Overview",
 ];
 
 const hiddenAlways = [
@@ -140,7 +141,8 @@ const hiddenAlways = [
 const hiddenForUser = [
   "Components",
   "Building Structures",
-  "UserAdmin",
+  "User Overview",
+  "RuleSet Overview",
 ];
 
 const menuItems = computed(() => {
