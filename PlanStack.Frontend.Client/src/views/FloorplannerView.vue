@@ -9,6 +9,17 @@
         class="text-subtitle-1 text-grey-darken-1 mt-2"
       >
         Standards: {{ selectedStandardNames.join(", ") }}
+        <v-btn
+          color="info"
+          @click="validateBlueprint"
+          :disabled="!activeBlueprintId || isValidating"
+          :loading="isValidating"
+          variant="tonal"
+          size="small"
+          prepend-icon="mdi-check-decagram"
+        >
+          Validate
+        </v-btn>
       </div>
     </div>
 
@@ -529,6 +540,7 @@ const BUILDING_STRUCTURES_API_URL =
 const COMPONENTS_API_URL = "http://planstack.dk/api/components";
 const PROJECTS_API_URL = "http://planstack.dk/api/projects";
 const STANDARDS_API_URL = "http://planstack.dk/api/standards";
+const VALIDATE_API_URL = "http://planstack.dk/api/blueprints/validate";
 
 //building structure states
 const buildingStructureTypes = ref([]);
@@ -576,6 +588,7 @@ const COLOR_PALETTE = [
 
 //saving states
 const isSaving = ref(false);
+const isValidating = ref(false);
 
 // loading states
 const blueprintsList = ref([]);
@@ -1924,6 +1937,43 @@ const updateRoomGridAndLabels = () => {
 
   renumberAllRooms();
   draw();
+};
+
+const validateBlueprint = async () => {
+  isValidating.value = true;
+  try {
+    const url = `${VALIDATE_API_URL}/${activeBlueprintId.value}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+
+    const response = await apiFetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.isValid) {
+      showSnackbar("Blueprint is valid!", "success");
+    } else {
+      const errorMsg =
+        data.errors.length > 0
+          ? data.errors.join(", ")
+          : "No specific errors from validation.";
+      showSnackbar(`Blueprint is invalid: ${errorMsg}`, "error");
+    }
+  } catch (error) {
+    console.error("Error validating blueprint:", error);
+    showSnackbar(
+      `Validation failed: ${error.message || "An unknown error occurred"}.`,
+      "error"
+    );
+  } finally {
+    isValidating.value = false;
+  }
 };
 
 const floodFill = (
