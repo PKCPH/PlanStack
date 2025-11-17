@@ -335,15 +335,35 @@
       <v-list-subheader>Room Areas</v-list-subheader>
       <div class="px-4">
         <v-list v-if="rooms.length > 0" density="compact">
-          <v-list-item v-for="room in rooms" :key="room.id" class="pa-0">
-            <v-list-item-title
-              >{{ room.name }} ({{
-                getRoomTypeName(room.roomType)
-              }})</v-list-item-title
-            >
+          <v-list-item
+            v-for="room in rooms"
+            :key="room.id"
+            class="mb-2"
+            style="border: 1px solid #eee; border-radius: 4px"
+          >
+            <v-list-item-title class="font-weight-medium">{{
+              room.name
+            }}</v-list-item-title>
             <v-list-item-subtitle>
               {{ room.squareMeters }} m²
             </v-list-item-subtitle>
+
+            <template v-slot:append>
+              <v-select
+                v-model="room.roomType"
+                :items="roomTypeItems"
+                item-title="title"
+                item-value="value"
+                density="compact"
+                hide-details
+                hide-selected
+                variant="outlined"
+                class="ml-2"
+                style="max-width: 150px"
+                @update:modelValue="renumberAllRooms"
+                @click.stop
+              ></v-select>
+            </template>
           </v-list-item>
         </v-list>
         <v-list-item
@@ -1523,7 +1543,7 @@ const loadBlueprint = (blueprint) => {
   floor.value = blueprint.floor || 1;
   canvasWidthCells.value = blueprint.width || 40;
   canvasHeightCells.value = blueprint.height || 40;
-  rooms.value = [];
+  // rooms.value = [];
   roomGrid.value = null;
 
   //to create or resize canvas
@@ -1558,27 +1578,29 @@ const loadBlueprint = (blueprint) => {
       labelX: 0,
       labelY: 0,
     }));
+  } else {
+    rooms.value = [];
   }
 
   nextTick(() => {
     draw();
-    calculateRoomAreas();
+    updateRoomGridAndLabels();
   });
 };
 
-const onFindRoomsHover = () => {
-  if (rooms.value.length > 0) {
-    showRoomLabels.value = true;
-    draw();
-  }
-};
+// const onFindRoomsHover = () => {
+//   if (rooms.value.length > 0) {
+//     showRoomLabels.value = true;
+//     draw();
+//   }
+// };
 
-const onFindRoomsLeave = () => {
-  if (showRoomLabels.value) {
-    showRoomLabels.value = false;
-    draw();
-  }
-};
+// const onFindRoomsLeave = () => {
+//   if (showRoomLabels.value) {
+//     showRoomLabels.value = false;
+//     draw();
+//   }
+// };
 
 const drawRoomLabel = (ctx, text, x, y) => {
   ctx.fillStyle = theme.global.current.value.colors.primary;
@@ -1594,6 +1616,28 @@ const getRoomTypeName = (value) => {
   return item ? item.title : "N/A";
 };
 
+// room nametype & number
+const renumberAllRooms = () => {
+  if (rooms.value.length === 0) return;
+
+  // get room types present
+  const roomTypes = [...new Set(rooms.value.map((r) => r.roomType))];
+
+  roomTypes.forEach((type) => {
+    const roomTypeName = getRoomTypeName(type);
+
+    // find room of this type
+    const roomsOfType = rooms.value
+      .filter((r) => r.roomType === type)
+      .sort((a, b) => a.labelY - b.labelY || a.labelX - b.labelX);
+
+    // assign name & number
+    roomsOfType.forEach((room, index) => {
+      room.name = `${roomTypeName} ${index + 1}`;
+    });
+  });
+};
+
 const calculateRoomAreas = () => {
   if (walls.value.length === 0) {
     rooms.value = [];
@@ -1604,10 +1648,14 @@ const calculateRoomAreas = () => {
 
   isCalculatingRooms.value = true;
 
+  const oldRooms = [...rooms.value];
+  const oldGrid = roomGrid.value;
+  const usedOldIds = new Set(); // track old rooms
+
   const width = canvasWidthCells.value;
   const height = canvasHeightCells.value;
 
-  // creating double grid
+  // double grid for squaremeter calc
   const gridWidth = width * 2 + 1;
   const gridHeight = height * 2 + 1;
   const grid = Array(gridHeight)
@@ -1634,26 +1682,39 @@ const calculateRoomAreas = () => {
   floodFill(grid, 0, 0, -1, 0, gridWidth, gridHeight);
 
   const foundRooms = [];
-  const oldRooms = [...rooms.value];
-  rooms.value = [];
 
   // Iterate over cells
   for (let y = 1; y < gridHeight; y += 2) {
     for (let x = 1; x < gridWidth; x += 2) {
       if (grid[y][x] === 0) {
-        const oldRoom = oldRooms.find((r) => r.labelX === x && r.labelY === y);
+        // check old grid for old room id
+        const oldRoomId = oldGrid ? oldGrid[y]?.[x] : undefined;
+        const oldRoom = oldRoomId
+          ? oldRooms.find((r) => r.id === oldRoomId)
+          : undefined;
 
-        const newRoomId = oldRoom ? oldRoom.id : generateUUID();
-        const roomName = oldRoom
-          ? oldRoom.name
-          : `Room ${foundRooms.length + 1}`;
-        const roomType = oldRoom ? oldRoom.roomType : 0;
+        let roomIdToAssign;
+        let roomType;
+        let roomName;
+
+        if (oldRoom && !usedOldIds.has(oldRoom.id)) {
+          //old room
+          roomIdToAssign = oldRoom.id;
+          roomType = oldRoom.roomType;
+          roomName = oldRoom.name;
+          usedOldIds.add(oldRoom.id);
+        } else {
+          // new room or split old room
+          roomIdToAssign = generateUUID();
+          roomType = 0;
+          roomName = "";
+        }
 
         const roomData = floodFill(
           grid,
           x,
           y,
-          newRoomId,
+          roomIdToAssign,
           0,
           gridWidth,
           gridHeight
@@ -1676,7 +1737,7 @@ const calculateRoomAreas = () => {
           }
 
           foundRooms.push({
-            id: newRoomId,
+            id: roomIdToAssign,
             name: roomName,
             roomType: roomType,
             squareMeters: roomData.squareMeters,
@@ -1690,14 +1751,127 @@ const calculateRoomAreas = () => {
 
   rooms.value = foundRooms;
   roomGrid.value = grid;
+  // renumber rooms
+  renumberAllRooms();
+
   isCalculatingRooms.value = false;
 
   if (foundRooms.length > 0 && !oldRooms.length) {
-    showSnackbar(`Found ${foundRooms.length} room(s)!`);
+    showSnackbar(`Found ${foundRooms.length} rooms!`);
   } else if (walls.value.length > 0 && foundRooms.length === 0) {
-    showSnackbar("Could not find any fully enclosed rooms.", "error");
+    showSnackbar("Could not find any rooms.", "error");
   }
 
+  draw();
+};
+
+const updateRoomGridAndLabels = () => {
+  if (walls.value.length === 0) {
+    rooms.value = [];
+    roomGrid.value = null;
+    draw();
+    return;
+  }
+
+  const width = canvasWidthCells.value;
+  const height = canvasHeightCells.value;
+  const gridWidth = width * 2 + 1;
+  const gridHeight = height * 2 + 1;
+  const grid = Array(gridHeight)
+    .fill(null)
+    .map(() => Array(gridWidth).fill(0));
+
+  // mark walls on grid
+  walls.value.forEach((wall) => {
+    const x1 = Math.round(wall.startX / GRID_SIZE) * 2;
+    const y1 = Math.round(wall.startY / GRID_SIZE) * 2;
+    const x2 = Math.round(wall.endX / GRID_SIZE) * 2;
+    const y2 = Math.round(wall.endY / GRID_SIZE) * 2;
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        if (y >= 0 && y < gridHeight && x >= 0 && x < gridWidth) {
+          grid[y][x] = 1; // 1 is wall
+        }
+      }
+    }
+  });
+  floodFill(grid, 0, 0, -1, 0, gridWidth, gridHeight);
+
+  // label for existing rooms
+  const roomsToUpdate = [...rooms.value];
+  const foundRoomBlobs = [];
+
+  for (let y = 1; y < gridHeight; y += 2) {
+    for (let x = 1; x < gridWidth; x += 2) {
+      if (grid[y][x] === 0) {
+        // room blob, dk id
+        const tempId = generateUUID();
+        const roomData = floodFill(
+          grid,
+          x,
+          y,
+          tempId,
+          0,
+          gridWidth,
+          gridHeight
+        );
+
+        if (roomData.squareMeters > 0) {
+          // center cell calc
+          const centerX = (roomData.minX + roomData.maxX) / 2;
+          const centerY = (roomData.minY + roomData.maxY) / 2;
+          let bestCell = [0, 0];
+          let minDistance = Infinity;
+          for (const cell of roomData.allCells) {
+            const distance = Math.hypot(cell[0] - centerX, cell[1] - centerY);
+            if (distance < minDistance) {
+              minDistance = distance;
+              bestCell = cell;
+            }
+          }
+
+          // blob center
+          const labelX = bestCell[0];
+          const labelY = bestCell[1];
+
+          // check if any room matches this label position
+          const matchingRoom = roomsToUpdate.find(
+            (r) => r.labelX === labelX && r.labelY === labelY
+          );
+
+          if (matchingRoom) {
+            // match loaded room, update grid with read id
+            floodFill(
+              grid,
+              x,
+              y,
+              matchingRoom.id,
+              tempId,
+              gridWidth,
+              gridHeight
+            );
+            matchingRoom.squareMeters = roomData.squareMeters;
+          } else {
+            // new room then add to room list
+            const newRoom = {
+              id: tempId,
+              name: "New Room",
+              roomType: 0,
+              squareMeters: roomData.squareMeters,
+              labelX: labelX,
+              labelY: labelY,
+            };
+            roomsToUpdate.push(newRoom);
+          }
+        }
+      }
+    }
+  }
+
+  rooms.value = roomsToUpdate;
+  roomGrid.value = grid;
+
+  renumberAllRooms();
   draw();
 };
 
