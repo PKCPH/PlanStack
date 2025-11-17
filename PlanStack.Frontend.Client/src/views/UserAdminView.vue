@@ -128,7 +128,7 @@ const fetchUsers = async () => {
 
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(USERS_API_URL)}`;
-    const result = await apiFetch("https:localhost:7207/users", {
+    const result = await apiFetch(proxiedUrl, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
