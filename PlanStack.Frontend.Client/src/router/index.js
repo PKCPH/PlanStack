@@ -92,13 +92,13 @@ export const routes = [
     path: "/adminruleset",
     name: "RuleSet Overview",
     component: AdminRuleSetView,
-    icon: "mdi-file-document-multiple-outline", // ruleset icon
+    icon: "mdi-book-multiple",
   },
   {
     path: "/useradmin",
     name: "User Overview",
     component: UserAdminView,
-    icon: "mdi-account-group-outline", // user group icon
+    icon: "mdi-shield-crown-outline",
   },
 ];
 
