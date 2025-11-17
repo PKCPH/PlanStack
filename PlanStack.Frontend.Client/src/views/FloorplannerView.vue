@@ -1453,7 +1453,7 @@ const mapRoomsAndComponentsToPayload = () => {
     const gridX = cellX * 2 + 1;
     const gridY = cellY * 2 + 1;
 
-    if (grid[gridY] && grid[gridY][gridX] !== undefined) {
+    if (grid && grid[gridY] && grid[gridY][gridX] !== undefined) {
       const roomId = grid[gridY][gridX];
 
       if (typeof roomId === "string") {
