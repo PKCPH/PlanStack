@@ -984,6 +984,15 @@ const handleDeleteBlueprint = async () => {
     showSnackbar("Blueprint deleted successfully.", "success");
     isDeleteDialogVisible.value = false;
     await fetchBlueprints();
+    // After fetching, select another blueprint if available, else hide canvas
+    if (blueprintsList.value.length > 0) {
+      // Default to the first blueprint in the list
+      loadBlueprint(blueprintsList.value[0]);
+    } else {
+      // No blueprints left, hide canvas
+      showCanvas.value = false;
+      clearFloorplan();
+    }
   } catch (error) {
     console.error("Error deleting blueprint:", error);
     showSnackbar(`Delete failed: ${error.message}`, "error");
