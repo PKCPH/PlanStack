@@ -2,6 +2,7 @@
 using PlanStack.Backend.Database.Repositories;
 using PlanStack.Backend.WebAPI.Controllers.Resources.Validation;
 using PlanStack.Shared.Enums;
+using PlanStack.Backend.WebAPI.Services.Helpers;
 
 namespace PlanStack.Backend.WebAPI.Services
 {
@@ -10,6 +11,7 @@ namespace PlanStack.Backend.WebAPI.Services
         private readonly BlueprintBuildingStructureRepository _blueprintBuildingStructureRepository;
         private readonly BlueprintComponentRepository _blueprintComponentRepository;
         private readonly BlueprintStandardRepository _blueprintStandardRepository;
+        private readonly BlueprintRepository _blueprintRepository;
         private readonly RoomRepository _roomRepository;
         private readonly StandardRepository _standardRepository;
         private readonly StandardRuleSetRepository _standardRuleSetRepository;
@@ -18,6 +20,7 @@ namespace PlanStack.Backend.WebAPI.Services
             BlueprintBuildingStructureRepository blueprintBuildingStructureRepository,
             BlueprintComponentRepository blueprintComponentRepository,
             BlueprintStandardRepository blueprintStandardRepository,
+            BlueprintRepository blueprintRepository,
             RoomRepository roomRepository,
             StandardRepository standardRepository,
             StandardRuleSetRepository standardRuleSetRepository
@@ -26,6 +29,7 @@ namespace PlanStack.Backend.WebAPI.Services
             _blueprintBuildingStructureRepository = blueprintBuildingStructureRepository;
             _blueprintComponentRepository = blueprintComponentRepository;
             _blueprintStandardRepository = blueprintStandardRepository;
+            _blueprintRepository = blueprintRepository;
             _roomRepository = roomRepository;
             _standardRepository = standardRepository;
             _standardRuleSetRepository = standardRuleSetRepository;
@@ -65,21 +69,37 @@ namespace PlanStack.Backend.WebAPI.Services
                     {
                         case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
                         case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
-                        case RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_EXACT_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
-                            validationResource = await ValidateComponentPerRoomOverAreaAsync(blueprintId, standardRuleSet, validationResource);
+                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_EXACT_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                            validationResource = await ValidateComponentPerRoomByAreaAsync(blueprintId, standardRuleSet, validationResource);
                             if (!validationResource.IsValid)
                             {
-                                validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room{GetRoomAreaConditionDescription(standardRuleSet)} must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
+                                validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room{ValidationHelper.GetRoomAreaConditionDescription(standardRuleSet)} must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
                             }
                             break;
 
-                        case RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
-                            // TODO: Implement and call the correct validation method here
-                            // validationResource = await ValidateRoomAreaSizeOverRatioAsync(blueprintId, standardRuleSet, validationResource);
-                            // if (!validationResource.IsValid)
-                            // {
-                            //     validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room over {standardRuleSet.DefinitionValue} sqm must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
-                            // }
+                        case RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_BATHROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_LIVING_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_KITCHEN_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_DINING_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_OFFICE_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_BEDROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                            validationResource = await ValidateRoomTypeAreaSizeOverRatioAsync(blueprintId, standardRuleSet, validationResource);
+                            if (!validationResource.IsValid)
+                            {
+                                var roomType = ValidationHelper.GetRoomTypeFromDefinition(standardRuleSet.RuleSet.Definition);
+                                validationResource.Errors.Add(
+                                    $"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Every {roomType} must be over {standardRuleSet.DefinitionValue} sqm and have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}."
+                                );
+                            }
+                            break;
+
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_PER_OCCUPANCY when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BLUEPRINT:
+                            validationResource = await ValidateComponentByOccupancyAsync(blueprintId, standardRuleSet, validationResource);
+                            if (!validationResource.IsValid)
+                            {
+                                validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}'");
+                            }
                             break;
                     }
                 }
@@ -90,8 +110,8 @@ namespace PlanStack.Backend.WebAPI.Services
         }
         #endregion
 
-        #region ValidateComponentPerRoomOverAreaAsync
-        public async Task<ValidationResource> ValidateComponentPerRoomOverAreaAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
+        #region ValidateComponentPerRoomByAreaAsync
+        public async Task<ValidationResource> ValidateComponentPerRoomByAreaAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
         {
             var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId, true);
 
@@ -109,7 +129,7 @@ namespace PlanStack.Backend.WebAPI.Services
                     .Where(x => x.SquareMeters < standardRuleSet.DefinitionValue)
                     .ToList();
             }
-            else if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_EXACT_RATIO)
+            else if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_EXACT_RATIO)
             {
                 roomsByDefinitionValue = rooms.Entities
                     .Where(x => x.SquareMeters == standardRuleSet.DefinitionValue)
@@ -172,15 +192,115 @@ namespace PlanStack.Backend.WebAPI.Services
         }
         #endregion
 
-        private string GetRoomAreaConditionDescription(StandardRuleSet standardRuleSet)
+        #region ValidateComponentByOccupancyAsync
+        public async Task<ValidationResource> ValidateComponentByOccupancyAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
         {
-            return standardRuleSet.RuleSet.Definition switch
+            var blueprint = await _blueprintRepository.GetAsync(blueprintId);
+
+            if (blueprint.MaxOccupancy <= 0)
             {
-                RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_OVER_RATIO => $" over {standardRuleSet.DefinitionValue} sqm",
-                RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO => $" under {standardRuleSet.DefinitionValue} sqm",
-                RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_EXACT_RATIO => $" matching {standardRuleSet.DefinitionValue} sqm",
-                _ => string.Empty
-            };
+                validationResource.IsValid = false;
+                validationResource.Errors.Add("Blueprint does not have a valid maximum occupancy defined.");
+                return validationResource;
+            }
+
+            var components = await _blueprintComponentRepository.GetAllByBlueprintIdAsync(blueprintId, true);
+
+            var componentToValidate = components.Entities.Where(c => c.Component != null && c.Component.Category.ToString() == standardRuleSet.RuleSet.ObjectTypeComparison.ToString()).ToList();
+
+            if (componentToValidate.Count == 0)
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add($"No components of type {standardRuleSet.RuleSet.ObjectTypeComparison} found in the blueprint.");
+                return validationResource;
+            }
+
+            var blueprintOccupancy = blueprint.MaxOccupancy;
+            var occupancyRatio = standardRuleSet.DefinitionValue;
+
+            var requiredComponents = (float)Math.Ceiling((float)blueprintOccupancy / (float)occupancyRatio);
+
+            if (standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.MINIMUM)
+            {
+                if (componentToValidate.Count < requiredComponents)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the minimum required {standardRuleSet.RuleSet.ObjectTypeComparison} of {requiredComponents} for occupancy of {blueprint.MaxOccupancy}.");
+                    return validationResource;
+                }
+            }
+            else if (standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.MAXIMUM)
+            {
+                if (componentToValidate.Count > requiredComponents)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint exceeds the maximum allowed {standardRuleSet.RuleSet.ObjectTypeComparison} of {requiredComponents} for occupancy of {blueprint.MaxOccupancy}.");
+                    return validationResource;
+                }
+            }
+            else if (standardRuleSet.RuleSet.Comparison == RuleSetComparisonEnum.EXACT)
+            {
+                if (componentToValidate.Count != requiredComponents)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the exact required {standardRuleSet.RuleSet.ObjectTypeComparison} of {requiredComponents} for occupancy of {blueprint.MaxOccupancy}.");
+                    return validationResource;
+                }
+            }
+
+            validationResource.IsValid = true;
+
+            return validationResource;
         }
+        #endregion
+
+        #region ValidateRoomTypeAreaSizeOverRatioAsync
+        public async Task<ValidationResource> ValidateRoomTypeAreaSizeOverRatioAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
+        {
+            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId, true);
+
+            if (rooms == null)
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add("No rooms associated with the blueprint.");
+                return validationResource;
+            }
+
+            var nonMatchingRooms = new List<string>();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_BATHROOM_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.RoomType == RoomTypeEnum.BATHROOM && x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_LIVING_ROOM_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.RoomType == RoomTypeEnum.LIVING_ROOM && x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_KITCHEN_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.RoomType == RoomTypeEnum.KITCHEN && x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_DINING_ROOM_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.RoomType == RoomTypeEnum.DINING_ROOM && x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_OFFICE_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.RoomType == RoomTypeEnum.OFFICE && x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_BEDROOM_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.RoomType == RoomTypeEnum.BEDROOM && x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO)
+                nonMatchingRooms = rooms.Entities.Where(x => x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
+
+            if (nonMatchingRooms.Count == 0)
+                validationResource.IsValid = true;
+            else
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add(
+                    $"The following rooms do not have more than {standardRuleSet.DefinitionValue} sqm: {string.Join(", ", nonMatchingRooms)}"
+                );
+            }
+
+            return validationResource;
+        }
+        #endregion
     }
 }

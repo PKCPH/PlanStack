@@ -11,13 +11,19 @@ namespace PlanStack.Backend.Database.Repositories
         }
 
         #region GetAllByBlueprintIdAsync
-        public async Task<BaseQueryResult<BlueprintComponent>> GetAllByBlueprintIdAsync(int blueprintId)
+        public async Task<BaseQueryResult<BlueprintComponent>> GetAllByBlueprintIdAsync(int blueprintId, bool includeRelated = false)
         {
             var result = new BaseQueryResult<BlueprintComponent>();
             var query = context.Set<BlueprintComponent>().AsQueryable();
 
             // Filtering
             query = query.Where(x => x.BlueprintId == blueprintId);
+
+            // Include relations
+            if (includeRelated)
+            {
+                query = query.Include(x => x.Component);
+            }
 
             // Querying
             var entities = await query.ToListAsync();

@@ -7,6 +7,7 @@
         LIVING_ROOM = 2,
         KITCHEN = 3,
         DINING_ROOM = 4,
+        OFFICE = 5,
 
         WALL = 20,
         WINDOW = 21,
@@ -27,6 +28,9 @@
         ROOM = 71,
         BLUEPRINT = 72,
         COMPONENT = 73,
+
+        AREA = 81,
+        OCCUPANCY = 82,
 
         Other = 99
     }
