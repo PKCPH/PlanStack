@@ -154,7 +154,7 @@
           {{
             currentTool === "placeComponent"
               ? "Select Item"
-              : "Select Wall Type"
+              : "Select Structure"
           }}
         </v-list-subheader>
 
@@ -196,9 +196,9 @@
         </v-btn-group>
       </div>
 
-      <v-list-subheader v-if="currentTool === 'placeComponent'"
+      <!-- <v-list-subheader v-if="currentTool === 'placeComponent'"
         >Component Type</v-list-subheader
-      >
+      > -->
       <v-select
         v-if="currentTool === 'placeComponent'"
         v-model="selectedComponentCategory"
