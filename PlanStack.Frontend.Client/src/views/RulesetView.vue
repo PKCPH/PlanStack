@@ -18,6 +18,7 @@
           prepend-icon="mdi-plus"
           size="small"
           variant="tonal"
+          :disabled="isSaving"
         >
           Add Rule
         </v-btn>
@@ -56,7 +57,7 @@
         lines="two"
         style="max-height: 500px; overflow-y: auto"
       >
-        <v-list-item v-for="(item, index) in rulesets" :key="index">
+        <v-list-item v-for="(item, index) in rulesets" :key="item.id || index">
           <v-list-item-title>{{ item.userDefinedName }}</v-list-item-title>
           <v-list-item-subtitle v-if="item.ruleSet">
             <strong>Rule:</strong>
@@ -78,35 +79,23 @@
               class="mr-1"
               @click.stop="openEditDialog(item, index)"
               title="Edit"
+              :disabled="isSaving"
             ></v-btn>
             <v-btn
               color="red-lighten-1"
               icon="mdi-delete"
               variant="text"
               size="small"
-              @click.stop="removeRule(index)"
+              @click.stop="removeRule(index, item)"
               title="Delete"
+              :loading="isSaving && editingItemIndex === index"
+              :disabled="isSaving"
             ></v-btn>
           </template>
         </v-list-item>
       </v-list>
 
-      <v-divider></v-divider>
-
-      <!-- save all -->
-      <div class="pa-4 d-flex">
-        <v-spacer></v-spacer>
-        <v-btn
-          color="success"
-          @click="handleSaveAll"
-          :loading="isSaving"
-          prepend-icon="mdi-content-save"
-          size="large"
-          variant="flat"
-        >
-          Save All Changes
-        </v-btn>
-      </div>
+      <v-divider v-if="!isLoading && rulesets.length > 0"></v-divider>
     </v-sheet>
 
     <!-- create edit dialog -->
@@ -182,9 +171,14 @@
             color="grey-darken-1"
             variant="text"
             @click="isEditDialogVisible = false"
+            :disabled="isSaving"
             >Cancel</v-btn
           >
-          <v-btn color="success" variant="flat" @click="handleSaveRule"
+          <v-btn
+            color="success"
+            variant="flat"
+            @click="handleSaveRule"
+            :loading="isSaving"
             >Save Rule</v-btn
           >
         </v-card-actions>
@@ -306,11 +300,35 @@ const showSnackbar = (text, color = "success") => {
   snackbar.value = true;
 };
 
+// give full rulesets from api
+const hydrateRulesets = (apiRules) => {
+  return (apiRules || []).map((apiRule) => {
+    // full base rule from baseRulesets
+    const baseRule = baseRulesets.value.find(
+      (r) => r.id === apiRule.ruleSet.id
+    );
+
+    const cleanBaseRule = { ...baseRule };
+    delete cleanBaseRule.displayName;
+
+    return {
+      ...apiRule,
+      ruleSetId: apiRule.ruleSet.id,
+      standardId: parseInt(standardId.value),
+      // Overwrite ruleset from api
+      ruleSet: cleanBaseRule || null,
+    };
+  });
+};
+
 // fetchstandards
 const fetchStandardDetails = async () => {
   isLoading.value = true;
   error.value = null;
   try {
+    // loading
+    await fetchBaseRulesets();
+
     const url = `${STANDARDS_API_URL}/${standardId.value}`;
     const result = await apiFetch(url, {
       method: "GET",
@@ -318,8 +336,9 @@ const fetchStandardDetails = async () => {
     });
     if (!result.ok) throw new Error("API Error");
     standard.value = result.data;
-    // store local rulesets
-    rulesets.value = result.data.ruleSets || [];
+
+    // hydrate rulesets
+    rulesets.value = hydrateRulesets(result.data.ruleSets);
   } catch (e) {
     console.error(`Error fetching ${STANDARDS_API_URL}:`, e);
     error.value = "Failed to load standard details.";
@@ -330,6 +349,9 @@ const fetchStandardDetails = async () => {
 
 // fetch base rulesets
 const fetchBaseRulesets = async () => {
+  // Prevent fetching if already loaded
+  if (baseRulesets.value.length > 0) return;
+
   isLoadingBaseRulesets.value = true;
   try {
     const result = await apiFetch(BASE_RULESETS_API_URL, {
@@ -357,7 +379,7 @@ const openEditDialog = (item, index) => {
   if (item) {
     //edit
     isEditing.value = true;
-    editingItem.value = Object.assign({}, item);
+    editingItem.value = JSON.parse(JSON.stringify(item));
     editingItemIndex.value = index;
   } else {
     //create
@@ -373,50 +395,9 @@ const openEditDialog = (item, index) => {
   }
   isEditDialogVisible.value = true;
 };
-
-const handleSaveRule = async () => {
-  const { valid } = await formRef.value.validate();
-  if (!valid) return;
-
-  const baseRule = baseRulesets.value.find(
-    (r) => r.id === editingItem.value.ruleSetId
-  );
-
-  const cleanBaseRule = { ...baseRule };
-  delete cleanBaseRule.displayName;
-
-  const itemToSave = {
-    userDefinedName: editingItem.value.userDefinedName,
-    definitionValue: editingItem.value.definitionValue,
-    comparisonValue: editingItem.value.comparisonValue,
-    ruleSetId: editingItem.value.ruleSetId,
-    standardId: editingItem.value.standardId,
-
-    ruleSet: cleanBaseRule,
-
-    // id if editing existing
-    ...(editingItem.value.id && { id: editingItem.value.id }),
-  };
-
-  if (isEditing.value && editingItemIndex.value > -1) {
-    //update existing
-    rulesets.value.splice(editingItemIndex.value, 1, itemToSave);
-  } else {
-    //add new
-    rulesets.value.push(itemToSave);
-  }
-
-  isEditDialogVisible.value = false;
-};
-
-const removeRule = (index) => {
-  rulesets.value.splice(index, 1);
-  showSnackbar("Rule removed locally. Press 'Save All Changes' to commit.");
-};
-
-// payload for api
-const handleSaveAll = async () => {
+const syncChangesToApi = async () => {
   isSaving.value = true;
+  let success = false;
 
   // ruleset array
   const rulesetPayload = rulesets.value.map((localRule) => {
@@ -426,26 +407,24 @@ const handleSaveAll = async () => {
       comparisonValue: localRule.comparisonValue,
       standardId: localRule.standardId,
       ruleSetId: localRule.ruleSetId,
-      // add id if exists
       ...(localRule.id && { id: localRule.id }),
     };
   });
 
-  // standard payload
+  // full payload
   const payload = {
-    ...standard.value,
-
-    //overwrite rulesets
+    id: standard.value.id,
+    name: standard.value.name,
+    description: standard.value.description,
+    type: standard.value.type,
+    isPublic: standard.value.isPublic,
+    user: null, // As it was before
     ruleSets: rulesetPayload,
   };
 
-  // remove fields if update
-  delete payload.createdAt;
-  delete payload.updatedAt;
-  payload.user = null; // null for now
+  console.log("Syncing payload:", JSON.stringify(payload, null, 2));
 
-  console.log("Saving payload:", JSON.stringify(payload, null, 2));
-
+  // send reqeust
   try {
     const url = `${STANDARDS_API_URL}/${standardId.value}`;
     const response = await apiFetch(url, {
@@ -462,18 +441,76 @@ const handleSaveAll = async () => {
       throw new Error(errorMsg);
     }
 
-    showSnackbar("All rules saved");
     await fetchStandardDetails();
+    showSnackbar("Changes saved successfully!", "success");
+    success = true;
   } catch (e) {
     console.error("Error saving:", e);
     showSnackbar(`Error: ${e.message}`, "error");
+    await fetchStandardDetails();
   } finally {
     isSaving.value = false;
+    return success;
+  }
+};
+
+const handleSaveRule = async () => {
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
+
+  isSaving.value = true;
+
+  // full item to save
+  const baseRule = baseRulesets.value.find(
+    (r) => r.id === editingItem.value.ruleSetId
+  );
+  const cleanBaseRule = { ...baseRule };
+  delete cleanBaseRule.displayName;
+
+  const itemToSave = {
+    userDefinedName: editingItem.value.userDefinedName,
+    definitionValue: editingItem.value.definitionValue,
+    comparisonValue: editingItem.value.comparisonValue,
+    ruleSetId: editingItem.value.ruleSetId,
+    standardId: editingItem.value.standardId,
+    ruleSet: cleanBaseRule,
+    ...(editingItem.value.id && { id: editingItem.value.id }),
+  };
+
+  if (isEditing.value && editingItemIndex.value > -1) {
+    rulesets.value.splice(editingItemIndex.value, 1, itemToSave);
+  } else {
+    rulesets.value.push(itemToSave);
+  }
+
+  //sync to api
+  const success = await syncChangesToApi();
+
+  if (success) {
+    isEditDialogVisible.value = false;
+  } else {
+    isSaving.value = false;
+  }
+};
+
+const removeRule = async (index, item) => {
+  editingItemIndex.value = index;
+  isSaving.value = true;
+
+  // remove locallist
+  const removedRule = rulesets.value.splice(index, 1)[0];
+  try {
+    await syncChangesToApi();
+    showSnackbar("Rule removed successfully.");
+  } catch (e) {
+    rulesets.value.splice(index, 0, removedRule);
+    showSnackbar("Failed to remove rule, reverting changes.", "error");
+  } finally {
+    editingItemIndex.value = -1;
   }
 };
 
 onMounted(() => {
   fetchStandardDetails();
-  fetchBaseRulesets();
 });
 </script>

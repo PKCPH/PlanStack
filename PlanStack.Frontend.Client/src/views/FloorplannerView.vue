@@ -2,8 +2,25 @@
   <v-container class="py-10" max-width="800">
     <div class="text-center mb-6">
       <h1 class="text-h4 font-weight-bold text-grey-darken-3">
-        Floorplans for {{ projectName }}
+        Project: {{ projectName }}
       </h1>
+      <div
+        v-if="activeBlueprintId && selectedStandardNames.length > 0"
+        class="text-subtitle-1 text-grey-darken-1 mt-2"
+      >
+        Standards: {{ selectedStandardNames.join(", ") }}
+        <v-btn
+          color="info"
+          @click="validateBlueprint"
+          :disabled="!activeBlueprintId || isValidating"
+          :loading="isValidating"
+          variant="tonal"
+          size="small"
+          prepend-icon="mdi-check-decagram"
+        >
+          Validate
+        </v-btn>
+      </div>
     </div>
 
     <div
@@ -117,38 +134,6 @@
         </v-list-item>
       </v-list>
 
-      <!-- <div v-else class="px-4 mb-4 text-caption text-grey-darken-1">
-        Select a blueprint to see details, or create a new one.
-      </div> -->
-
-      <!-- <v-row class="mb-4" dense>
-        <v-col>
-          <v-btn
-            color="primary"
-            block
-            @click="openUpdateDialog"
-            :disabled="!activeBlueprintId"
-            variant="tonal"
-            prepend-icon="mdi-pencil"
-          >
-            Edit Details
-          </v-btn>
-        </v-col>
-        <v-col>
-          <v-btn
-            color="success"
-            block
-            @click="handleSave"
-            :disabled="!activeBlueprintId"
-            :loading="isSaving"
-            variant="flat"
-            prepend-icon="mdi-content-save"
-          >
-            Save
-          </v-btn>
-        </v-col>
-      </v-row> -->
-
       <div class="d-flex justify-space-between align-center mb-2">
         <v-list-subheader class="pa-0">
           {{
@@ -196,9 +181,6 @@
         </v-btn-group>
       </div>
 
-      <!-- <v-list-subheader v-if="currentTool === 'placeComponent'"
-        >Component Type</v-list-subheader
-      > -->
       <v-select
         v-if="currentTool === 'placeComponent'"
         v-model="selectedComponentCategory"
@@ -421,6 +403,22 @@
               </v-col>
             </v-row>
 
+            <v-list-subheader>Standards</v-list-subheader>
+            <v-select
+              v-model="selectedStandards"
+              :items="availableStandards"
+              item-title="name"
+              item-value="id"
+              label="Select Standards (Optional)"
+              density="compact"
+              multiple
+              chips
+              closable-chips
+              :loading="isLoadingStandards"
+              :error-messages="standardsError"
+              class="mb-2"
+            ></v-select>
+
             <v-list-subheader>Canvas size (in cells)</v-list-subheader>
             <v-row>
               <v-col cols="6">
@@ -523,6 +521,7 @@ const blueprintDescription = ref("");
 const maxOccupancy = ref(0);
 const floor = ref(1);
 const activeBlueprintId = ref(null);
+const selectedStandards = ref([]);
 
 // dialog and form states
 const isDetailsDialogVisible = ref(false);
@@ -540,6 +539,8 @@ const BUILDING_STRUCTURES_API_URL =
   "http://planstack.dk/api/buildingstructures";
 const COMPONENTS_API_URL = "http://planstack.dk/api/components";
 const PROJECTS_API_URL = "http://planstack.dk/api/projects";
+const STANDARDS_API_URL = "http://planstack.dk/api/standards";
+const VALIDATE_API_URL = "http://planstack.dk/api/blueprints/validate";
 
 //building structure states
 const buildingStructureTypes = ref([]);
@@ -552,6 +553,11 @@ const componentTypes = ref([]);
 const isLoadingComponentTypes = ref(false);
 const componentTypesError = ref(null);
 const currentComponentId = ref(null);
+
+// standards states
+const availableStandards = ref([]);
+const isLoadingStandards = ref(false);
+const standardsError = ref(null);
 
 // room enums
 const roomTypeItems = ref([
@@ -582,11 +588,25 @@ const COLOR_PALETTE = [
 
 //saving states
 const isSaving = ref(false);
+const isValidating = ref(false);
 
 // loading states
 const blueprintsList = ref([]);
 const isLoadingList = ref(false);
 const listErrorMessage = ref("");
+
+// get selected standard names
+const selectedStandardNames = computed(() => {
+  if (!selectedStandards.value || !availableStandards.value) {
+    return [];
+  }
+  return selectedStandards.value
+    .map((id) => {
+      const standard = availableStandards.value.find((s) => s.id === id);
+      return standard ? standard.name : null;
+    })
+    .filter((name) => name);
+});
 
 const canvasStyle = computed(() => ({
   transform: `scale(${canvasScale.value})`,
@@ -610,6 +630,7 @@ const openCreateDialog = () => {
   floor.value = 1;
   canvasWidthCells.value = 40;
   canvasHeightCells.value = 40;
+  selectedStandards.value = [];
   walls.value = [];
   placedComponents.value = [];
   rooms.value = [];
@@ -714,6 +735,31 @@ const fetchComponentTypes = async (category = null) => {
     componentTypesError.value = `Failed to load component types: ${error.message}`;
   } finally {
     isLoadingComponentTypes.value = false;
+  }
+};
+
+// Get standards
+const fetchStandards = async () => {
+  isLoadingStandards.value = true;
+  standardsError.value = null;
+  try {
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
+      STANDARDS_API_URL
+    )}`;
+    const response = await apiFetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
+    }
+    const data = await response.json();
+    availableStandards.value = data.entities;
+  } catch (error) {
+    console.error("Error fetching standards:", error);
+    standardsError.value = `Failed to load standards: ${error.message}`;
+  } finally {
+    isLoadingStandards.value = false;
   }
 };
 
@@ -1498,6 +1544,24 @@ const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
 
   const { components, rooms } = mapRoomsAndComponentsToPayload();
 
+  let standardsPayload = [];
+  if (activeBlueprintId.value) {
+    // if update
+    standardsPayload = selectedStandards.value.map((standardId) => {
+      return {
+        blueprintId: activeBlueprintId.value,
+        standardId: standardId,
+      };
+    });
+  } else {
+    // if create
+    standardsPayload = selectedStandards.value.map((standardId) => {
+      return {
+        standardId: standardId,
+      };
+    });
+  }
+
   const apiPayload = {
     ...(activeBlueprintId.value && { id: activeBlueprintId.value }),
 
@@ -1513,7 +1577,7 @@ const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
     components: components,
     rooms: rooms,
     projectId: projectId.value,
-    standards: [],
+    standards: standardsPayload,
   };
   console.log("Saving to api:", JSON.stringify(apiPayload, null, 2));
 
@@ -1540,7 +1604,10 @@ const loadBlueprint = (blueprint) => {
   floor.value = blueprint.floor || 1;
   canvasWidthCells.value = blueprint.width || 40;
   canvasHeightCells.value = blueprint.height || 40;
-  // rooms.value = [];
+
+  selectedStandards.value = blueprint.standards
+    ? blueprint.standards.map((s) => s.standard.id)
+    : [];
   roomGrid.value = null;
 
   //to create or resize canvas
@@ -1872,6 +1939,43 @@ const updateRoomGridAndLabels = () => {
   draw();
 };
 
+const validateBlueprint = async () => {
+  isValidating.value = true;
+  try {
+    const url = `${VALIDATE_API_URL}/${activeBlueprintId.value}`;
+    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
+
+    const response = await apiFetch(proxiedUrl, {
+      method: "GET",
+      headers: { Host: "planstack.dk" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API returned error: Status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.isValid) {
+      showSnackbar("Blueprint is valid!", "success");
+    } else {
+      const errorMsg =
+        data.errors.length > 0
+          ? data.errors.join(", ")
+          : "No specific errors from validation.";
+      showSnackbar(`Blueprint is invalid: ${errorMsg}`, "error");
+    }
+  } catch (error) {
+    console.error("Error validating blueprint:", error);
+    showSnackbar(
+      `Validation failed: ${error.message || "An unknown error occurred"}.`,
+      "error"
+    );
+  } finally {
+    isValidating.value = false;
+  }
+};
+
 const floodFill = (
   grid,
   startX,
@@ -1964,6 +2068,7 @@ onMounted(() => {
   fetchBlueprints();
   fetchBuildingStructureTypes();
   fetchComponentTypes();
+  fetchStandards();
 });
 </script>
 
