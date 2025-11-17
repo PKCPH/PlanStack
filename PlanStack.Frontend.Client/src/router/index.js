@@ -13,6 +13,7 @@ import ProjectView from "../views/ProjectView.vue";
 import UnauthorizedView from "../views/UnauthorizedView.vue";
 import RulesetView from "../views/RulesetView.vue";
 import UserAdminView from "../views/UserAdminView.vue";
+import AdminRuleSetView from "../views/AdminRuleSetView.vue";
 
 export const routes = [
   {
@@ -82,6 +83,11 @@ export const routes = [
     component: RulesetView,
   },
   {
+    path: "/adminruleset",
+    name: "AdminRuleSet",
+    component: AdminRuleSetView,
+  },
+  {
     path: "/useradmin",
     name: "UserAdmin",
     component: UserAdminView,
@@ -98,20 +104,23 @@ router.beforeEach((to, from, next) => {
   const authRequired = !publicPages.includes(to.name);
   const user = getCurrentUser();
 
-  if (to.name === 'Components' && (!user || !user.roles.includes('Admin'))) {
-    return next({ name: 'Unauthorized' });
+  if (to.name === "Components" && (!user || !user.roles.includes("Admin"))) {
+    return next({ name: "Unauthorized" });
   }
 
-  if (to.name === 'Building Structures' && (!user || !user.roles.includes('Admin'))) {
-    return next({ name: 'Unauthorized' });
+  if (
+    to.name === "Building Structures" &&
+    (!user || !user.roles.includes("Admin"))
+  ) {
+    return next({ name: "Unauthorized" });
   }
 
-    if (to.name === 'UserAdmin' && (!user || !user.roles.includes('Admin'))) {
-    return next({ name: 'Unauthorized' });
+  if (to.name === "UserAdmin" && (!user || !user.roles.includes("Admin"))) {
+    return next({ name: "Unauthorized" });
   }
 
   if (authRequired && !user) {
-    return next({ name: 'Login' });
+    return next({ name: "Login" });
   }
   next();
 });
