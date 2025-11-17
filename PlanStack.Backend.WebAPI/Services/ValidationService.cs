@@ -52,16 +52,35 @@ namespace PlanStack.Backend.WebAPI.Services
 
                 var standardRuleSets = await _standardRuleSetRepository.GetAllByStandardIdAsync(standard.Id);
 
+                if (standardRuleSets == null || standardRuleSets.Entities.Count == 0)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"No rule sets associated with the standard '{standard.Name}'.");
+                    return validationResource;
+                }
+
                 foreach (var standardRuleSet in standardRuleSets.Entities)
                 {
-                    // TODO - Eventually switch case between all rule set definitions
-                    if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_OVER_RATIO && standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM)
+                    switch (standardRuleSet.RuleSet.Definition)
                     {
-                        validationResource = await ValidateComponentPerRoomOverAreaAsync(blueprintId, standardRuleSet, validationResource);
-                        if (validationResource.IsValid == false)
-                        {
-                            validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room over {standardRuleSet.DefinitionValue} sqm must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
-                        }
+                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                        case RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_EXACT_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                            validationResource = await ValidateComponentPerRoomOverAreaAsync(blueprintId, standardRuleSet, validationResource);
+                            if (!validationResource.IsValid)
+                            {
+                                validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room{GetRoomAreaConditionDescription(standardRuleSet)} must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
+                            }
+                            break;
+
+                        case RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                            // TODO: Implement and call the correct validation method here
+                            // validationResource = await ValidateRoomAreaSizeOverRatioAsync(blueprintId, standardRuleSet, validationResource);
+                            // if (!validationResource.IsValid)
+                            // {
+                            //     validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}': Each room over {standardRuleSet.DefinitionValue} sqm must have at least one {standardRuleSet.RuleSet.ObjectTypeComparison}.");
+                            // }
+                            break;
                     }
                 }
 
@@ -83,18 +102,34 @@ namespace PlanStack.Backend.WebAPI.Services
                 return validationResource;
             }
 
-            var roomsOverDefinitionValue = rooms.Entities
-                .Where(x => x.SquareMeters > standardRuleSet.DefinitionValue)
-                .ToList();
+            var roomsByDefinitionValue = new List<Room>();
+            if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO)
+            {
+                roomsByDefinitionValue = rooms.Entities
+                    .Where(x => x.SquareMeters < standardRuleSet.DefinitionValue)
+                    .ToList();
+            }
+            else if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_EXACT_RATIO)
+            {
+                roomsByDefinitionValue = rooms.Entities
+                    .Where(x => x.SquareMeters == standardRuleSet.DefinitionValue)
+                    .ToList();
+            }
+            else
+            {
+                roomsByDefinitionValue = rooms.Entities
+                    .Where(x => x.SquareMeters > standardRuleSet.DefinitionValue)
+                    .ToList();
+            }
 
-            if (roomsOverDefinitionValue.Count == 0)
+            if (roomsByDefinitionValue.Count == 0)
             {
                 validationResource.IsValid = false;
                 validationResource.Errors.Add($"No rooms with square meters over {standardRuleSet.DefinitionValue} with the blueprint.");
                 return validationResource;
             }
 
-            foreach (var room in roomsOverDefinitionValue)
+            foreach (var room in roomsByDefinitionValue)
             {
                 var componentToValidate = room.Components
                     .Where(c => c.Component != null && c.Component.Category.ToString() == standardRuleSet.RuleSet.ObjectTypeComparison.ToString())
@@ -136,5 +171,16 @@ namespace PlanStack.Backend.WebAPI.Services
             return validationResource;
         }
         #endregion
+
+        private string GetRoomAreaConditionDescription(StandardRuleSet standardRuleSet)
+        {
+            return standardRuleSet.RuleSet.Definition switch
+            {
+                RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_OVER_RATIO => $" over {standardRuleSet.DefinitionValue} sqm",
+                RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO => $" under {standardRuleSet.DefinitionValue} sqm",
+                RuleSetDefinitionEnum.BY_BLUEPRINT_AREA_EXACT_RATIO => $" matching {standardRuleSet.DefinitionValue} sqm",
+                _ => string.Empty
+            };
+        }
     }
 }

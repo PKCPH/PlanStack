@@ -13,6 +13,7 @@ import ProjectView from "../views/ProjectView.vue";
 import UnauthorizedView from "../views/UnauthorizedView.vue";
 import RulesetView from "../views/RulesetView.vue";
 import UserAdminView from "../views/UserAdminView.vue";
+import SessionTimeOutView from "../views/SessionTimeOutView.vue";
 
 export const routes = [
   {
@@ -75,6 +76,11 @@ export const routes = [
     path: "/unauthorized",
     name: "Unauthorized",
     component: UnauthorizedView,
+  },
+  {
+    path: "/session-timeout",
+    name: "SessionTimeout",
+    component: SessionTimeOutView,
   },
   {
     path: "/standard/:standardId/rulesets",

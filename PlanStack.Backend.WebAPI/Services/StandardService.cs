@@ -21,15 +21,15 @@ namespace PlanStack.Backend.WebAPI.Services
         #region SaveRuleSetsToStandardAsync
         public async Task SaveRuleSetsToStandardAsync(int standardId, List<StandardRuleSetSaveResource> saveResources)
         {
+            // Null check
+            if (saveResources == null)
+                return;
+
+            if (saveResources.Count == 0)
+                return;
+
             try
             {
-                // Remove existing relations
-                var existingRelations = await _standardRuleSetRepository.GetAllByStandardIdAsync(standardId);
-                foreach (var relation in existingRelations.Entities)
-                {
-                    _standardRuleSetRepository.Remove(relation);
-                }
-
                 // Add new relations
                 foreach (var saveResource in saveResources)
                 {

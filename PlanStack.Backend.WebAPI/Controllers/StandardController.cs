@@ -116,8 +116,7 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
             try
             {
-                if (updateResource.RuleSets.Count > 0)
-                    await _standardService.SaveRuleSetsToStandardAsync(entity.Id, updateResource.RuleSets);
+                await _standardService.SaveRuleSetsToStandardAsync(entity.Id, updateResource.RuleSets);
             }
             catch (Exception ex)
             {

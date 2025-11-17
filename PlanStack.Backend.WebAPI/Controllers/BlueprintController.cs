@@ -171,10 +171,10 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
             try
             {
-                    await _blueprintService.SaveRoomsToBlueprintAsync(entity.Id, saveResource.Rooms);
-                    await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity.Id, saveResource.BuildingStructures);
-                    await _blueprintService.SaveComponentsToBlueprintAsync(entity.Id, saveResource.Components);
-                    await _blueprintService.SaveStandardsToBlueprintAsync(entity.Id, saveResource.Standards);
+                await _blueprintService.SaveRoomsToBlueprintAsync(entity.Id, saveResource.Rooms);
+                await _blueprintService.SaveBuildingStructuresToBlueprintAsync(entity.Id, saveResource.BuildingStructures);
+                await _blueprintService.SaveComponentsToBlueprintAsync(entity.Id, saveResource.Components);
+                await _blueprintService.SaveStandardsToBlueprintAsync(entity.Id, saveResource.Standards);
             }
             catch (Exception ex)
             {

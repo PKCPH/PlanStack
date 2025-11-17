@@ -6,6 +6,32 @@
 
         <v-toolbar-title>Planstack</v-toolbar-title>
 
+
+          <!-- Auth actions: Logout (if logged in), Register/Login (if not logged in) -->
+          <v-list-item
+            v-if="isLoggedIn"
+            prepend-icon="mdi-logout"
+            title="Logout"
+            @click="logout"
+          ></v-list-item>
+          <v-list-item
+            v-else
+            prepend-icon="mdi-login"
+            title="Login"
+            :to="'/login'"
+            router
+            exact
+          ></v-list-item>
+          <v-list-item
+            v-if="!isLoggedIn"
+            prepend-icon="mdi-account-plus"
+            title="Register"
+            :to="'/register'"
+            router
+            exact
+          ></v-list-item>
+
+
         <v-app-bar-nav-icon
           v-if="isToolsDrawerAvailable"
           icon
@@ -20,6 +46,7 @@
         <v-divider></v-divider>
 
         <v-list density="compact" nav>
+          <!-- Main menu items -->
           <v-list-item
             v-for="item in menuItems"
             :key="item.title"
@@ -29,12 +56,21 @@
             router
             exact
           ></v-list-item>
-          <v-list-item
-            v-if="isLoggedIn"
-            prepend-icon="mdi-logout"
-            title="Logout"
-            @click="logout"
-          ></v-list-item>
+
+          <!-- Admin Panel subtitle and items -->
+          <template v-if="adminPanelItems.length">
+            <v-subheader class="admin-panel-subheader">Admin Panel</v-subheader>
+            <v-list-item
+              v-for="item in adminPanelItems"
+              :key="item.title"
+              :to="item.route"
+              :prepend-icon="item.icon || 'mdi-circle-medium'"
+              :title="item.title"
+              router
+              exact
+            ></v-list-item>
+          </template>
+
         </v-list>
       </v-navigation-drawer>
 
@@ -83,41 +119,58 @@ const showRightDrawer = computed({
   },
 });
 
-const menuItems = computed(() => {
-  const hiddenForLoggedIn = ["Register", "Login"];
-  const hiddenForLoggedOut = [
-    "Components",
-    "Account",
-    "Building Structures",
-    "Standards",
-    "Projects",
-    "UserAdmin",
-  ];
-  const hiddenAlways = ["Unauthorized", "Floorplans", "Rulesets"]; 
-  const hiddenForUser = [
-    "Components",
-    "Building Structures",
-    "UserAdmin",
-  ];
+const hiddenForLoggedOut = [
+  "Components",
+  "Account",
+  "Building Structures",
+  "Standards",
+  "Projects",
+  "UserAdmin",
+];
 
+const hiddenAlways = [
+  "Unauthorized", 
+  "Floorplans", 
+  "Rulesets", 
+  "Register", 
+  "Login", 
+  "SessionTimeout"
+];
+
+const hiddenForUser = [
+  "Components",
+  "Building Structures",
+  "UserAdmin",
+];
+
+const menuItems = computed(() => {
+  // Main menu: exclude hiddenAlways, hiddenForUser, and admin-only items
+  const user = getCurrentUser();
   return routes
     .filter((route) => {
       if (!route.name) return false;
       if (hiddenAlways.includes(route.name)) return false;
+      if (hiddenForUser.includes(route.name)) return false;
+      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name)) return false;
+      return true;
+    })
+    .map((route) => ({
+      title: route.name,
+      route: route.path,
+      icon: route.icon,
+    }));
+});
 
-      const user = getCurrentUser();
-      if (user && user.roles && user.roles.includes('User') && hiddenForUser.includes(route.name)) {
-        return false;
-      }
-
-      if (isLoggedIn.value && hiddenForLoggedIn.includes(route.name)) {
-        return false;
-      }
-
-      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name)) {
-        return false;
-      }
-
+const adminPanelItems = computed(() => {
+  const user = getCurrentUser();
+  if (!user || !user.roles || !user.roles.includes('Admin')) return [];
+  // Only show hiddenForUser routes for admin
+  return routes
+    .filter((route) => {
+      if (!route.name) return false;
+      if (!hiddenForUser.includes(route.name)) return false;
+      if (hiddenAlways.includes(route.name)) return false;
+      if (!isLoggedIn.value && hiddenForLoggedOut.includes(route.name)) return false;
       return true;
     })
     .map((route) => ({
@@ -132,3 +185,16 @@ const logout = () => {
   router.push("/");
 };
 </script>
+<style scoped>
+.admin-panel-subheader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  font-weight: bold;
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+</style>

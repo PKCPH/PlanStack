@@ -67,7 +67,7 @@ export async function apiFetch(url, options = {}) {
       console.warn("Unauthorized");
       setToken(null); 
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        window.location.href = '/session-timeout';
       }
     }
 
