@@ -1,4 +1,5 @@
-﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
+﻿using PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint.BlueprintStandard;
+using PlanStack.Backend.WebAPI.Controllers.Resources.Shared;
 
 namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 {
@@ -11,6 +12,8 @@ namespace PlanStack.Backend.WebAPI.Controllers.Resources.Blueprint
 
         #region Relations
         public string ProjectId { get; set; }
+
+        public virtual List<BlueprintStandardCreateResource> Standards { get; set; }
         #endregion
     }
 }

@@ -43,6 +43,9 @@ namespace PlanStack.Backend.WebAPI.Controllers
         [HttpPost()]
         public async Task<ActionResult<BlueprintResource>> Create([FromBody] BlueprintCreateResource createResource)
         {
+            if (createResource.ProjectId == null)
+                return Ok(new { success = false, message = $"Server Crash: ProjectId is required." });
+
             //Map entity
             var entity = _mapper.Map<BlueprintCreateResource, Blueprint>(createResource);
 
@@ -54,6 +57,18 @@ namespace PlanStack.Backend.WebAPI.Controllers
 
             // Save changes
             await _unitOfWork.SaveChangesAsync();
+
+            try
+            {
+                await _blueprintService.CreateStandardsToBlueprintAsync(entity.Id, createResource.Standards);
+
+                // Save standard changes
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { success = false, message = $"Server Crash: {ex.Message}" });
+            }
 
             // Map entity to resource
             var resource = _mapper.Map<Blueprint, BlueprintResource>(entity);

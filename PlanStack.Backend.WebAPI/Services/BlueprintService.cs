@@ -230,5 +230,50 @@ namespace PlanStack.Backend.WebAPI.Services
             }
         }
         #endregion
+
+        #region CreateStandardsToBlueprintAsync
+        public async Task CreateStandardsToBlueprintAsync(int blueprintId, List<BlueprintStandardCreateResource> createResources)
+        {
+            try
+            {
+                // Remove existing relations
+                var existingRelations = await _blueprintStandardRepository.GetAllByBlueprintIdAsync(blueprintId);
+                foreach (var relation in existingRelations.Entities)
+                {
+                    _blueprintStandardRepository.Remove(relation);
+                }
+
+                // Null check
+                if (createResources == null)
+                    return;
+
+                if (createResources.Count == 0)
+                    return;
+
+                // Add new relations
+                foreach (var createResource in createResources)
+                {
+                    var standard = await _standardRepository.GetAsync(createResource.StandardId);
+                    if (standard != null)
+                    {
+                        var newRelation = new BlueprintStandard
+                        {
+                            BlueprintId = blueprintId,
+                            StandardId = standard.Id,
+
+                            CreatedAt = DateTime.Now,
+                            UpdatedAt = DateTime.Now
+                        };
+                        _blueprintStandardRepository.Add(newRelation);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error saving blueprint standards for blueprint '{blueprintId}'.", ex);
+            }
+        }
+        #endregion
+
     }
 }
