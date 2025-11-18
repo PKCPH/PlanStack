@@ -54,7 +54,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { setToken } from "../components/api/auth.js";
 
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
 const API_BASE_URL = "http://planstack.dk/api";
 const REGISTER_API_URL = `${API_BASE_URL}/auth/register`;
 const LOGIN_API_URL = `${API_BASE_URL}/auth/login`;

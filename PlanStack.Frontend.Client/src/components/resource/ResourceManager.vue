@@ -161,7 +161,7 @@ const props = defineProps({
 const emit = defineEmits(["select"]);
 
 // corsproxy for api
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
 
 // component states
 const items = ref([]);

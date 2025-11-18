@@ -575,7 +575,7 @@ const snackbarText = ref("");
 const snackbarColor = ref("success");
 
 // API Logic Integration
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
 const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
 const BUILDING_STRUCTURES_API_URL =
   "http://planstack.dk/api/buildingstructures";
