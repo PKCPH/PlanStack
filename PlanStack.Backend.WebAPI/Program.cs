@@ -18,11 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDevelopment", builder => builder.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
-    options.AddPolicy("AllowProduction", builder =>
-        builder.WithOrigins("http://planstack.dk", "https://corsproxy.io")
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials());
+    options.AddPolicy("AllowProduction", builder => builder.WithOrigins("https://planstack.dk").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 });
 
 //Adding Connection
@@ -160,14 +156,8 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseRouting();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("AllowDevelopment");
-}
-else if (app.Environment.IsProduction())
-{
-    app.UseCors("AllowProduction");
-}
+app.UseCors("AllowDevelopment");
+app.UseCors("AllowProduction");
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -175,6 +165,8 @@ app.UseStaticFiles(new StaticFileOptions
         Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
     RequestPath = "/Uploads"
 });
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
