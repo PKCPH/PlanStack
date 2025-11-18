@@ -94,7 +94,7 @@ const register = async () => {
       REGISTER_API_URL
     )}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await fetch(REGISTER_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -155,7 +155,7 @@ const login = async (email, password) => {
   try {
     const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(LOGIN_API_URL)}`;
 
-    const response = await fetch(proxiedUrl, {
+    const response = await fetch(LOGIN_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
