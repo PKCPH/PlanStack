@@ -135,7 +135,12 @@
                     v-model="formData.category"
                     :items="categoryOptions.filter((c, i) => i !== 0)"
                     label="Category"
-                    :rules="[v => v !== null && v !== undefined ? true : 'This field is required']"
+                    :rules="[
+                      (v) =>
+                        v !== null && v !== undefined
+                          ? true
+                          : 'This field is required',
+                    ]"
                     density="compact"
                   ></v-select>
                 </v-col>
@@ -231,10 +236,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { apiFetch } from '../components/api/auth.js';
-import categoryOptions from '../assets/enums/buildingStructureCategoryOptions.json';
+import { apiFetch } from "../components/api/auth.js";
+import categoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
 const API_BASE_URL = "http://planstack.dk";
 const STRUCTURES_API_URL = `${API_BASE_URL}/api/buildingstructures`;
 
@@ -335,16 +340,12 @@ const fetchStructures = async () => {
 };
 
 const getCategoryName = (value) => {
-  const category = categoryOptions.find(
-    (c, i) => i !== 0 && c.value === value
-  );
+  const category = categoryOptions.find((c, i) => i !== 0 && c.value === value);
   return category ? category.title : "Unknown";
 };
 
 const getCategoryColor = (value) => {
-  const category = categoryOptions.find(
-    (c, i) => i !== 0 && c.value === value
-  );
+  const category = categoryOptions.find((c, i) => i !== 0 && c.value === value);
   return category ? category.color : "grey";
 };
 

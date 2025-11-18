@@ -159,7 +159,12 @@
                     v-model="formData.category"
                     :items="categoryOptions.filter((c, i) => i !== 0)"
                     label="Category"
-                    :rules="[v => v !== null && v !== undefined ? true : 'This field is required']"
+                    :rules="[
+                      (v) =>
+                        v !== null && v !== undefined
+                          ? true
+                          : 'This field is required',
+                    ]"
                     density="compact"
                   ></v-select>
                 </v-col>
@@ -305,10 +310,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { apiFetch } from '../components/api/auth.js';
-import categoryOptions from '../assets/enums/componentCategoryOptions.json';
+import { apiFetch } from "../components/api/auth.js";
+import categoryOptions from "../assets/enums/componentCategoryOptions.json";
 
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
 const API_BASE_URL = "http://planstack.dk";
 const COMPONENTS_API_URL = `${API_BASE_URL}/api/components`;
 

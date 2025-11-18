@@ -14,12 +14,16 @@
       >
         <!-- standards count -->
         <template v-slot:item.standards="{ item }">
-          <span>{{ Array.isArray(item.standards) ? item.standards.length : 0 }}</span>
+          <span>{{
+            Array.isArray(item.standards) ? item.standards.length : 0
+          }}</span>
         </template>
 
         <!-- projects count -->
         <template v-slot:item.projects="{ item }">
-          <span>{{ Array.isArray(item.projects) ? item.projects.length : 0 }}</span>
+          <span>{{
+            Array.isArray(item.projects) ? item.projects.length : 0
+          }}</span>
         </template>
 
         <!-- actions -->
@@ -88,7 +92,7 @@
 import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
 
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
 const API_BASE_URL = "http://planstack.dk/api";
 const USERS_API_URL = `${API_BASE_URL}/users`;
 
