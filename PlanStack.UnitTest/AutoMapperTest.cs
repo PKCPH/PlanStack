@@ -50,14 +50,41 @@ namespace PlanStack.UnitTests
             var resourceEntity = new BuildingStructureResource
             {
                 Id = 1,
+                Name = "Wooden Wall",
+                Description = "A sturdy wooden wall.",
                 Category = BuildingStructureCategoryEnum.WALL,
-                Material = "Concrete",
+                Material = "Wood",
                 Price = 200
             };
 
             var autoMapperDataModel = _mapper.Map<BuildingStructureResource, BuildingStructure>(resourceEntity);
 
             autoMapperDataModel.Should().BeEquivalentTo(resourceEntity);
+        }
+
+        public void lol()
+        {
+            var resourceModel = new BuildingStructureResource
+            {
+                Id = 1,
+                Name = "Wooden Wall",
+                Description = "A sturdy wooden wall.",
+                Category = BuildingStructureCategoryEnum.WALL,
+                Material = "Wood",
+                Price = 200
+            };
+
+            var dataModel = new BuildingStructure
+            {
+                Id = resourceModel.Id,
+                Name = resourceModel.Name,
+                Description = resourceModel.Description,
+                Category = resourceModel.Category,
+                Material = resourceModel.Material,
+                Price = resourceModel.Price,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
         }
     }
 }

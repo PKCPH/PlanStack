@@ -94,7 +94,7 @@ namespace PlanStack.Backend.WebAPI.Services
                             }
                             break;
 
-                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_PER_OCCUPANCY when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BLUEPRINT:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_PER_OCCUPANCY when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.OCCUPANCY:
                             validationResource = await ValidateComponentByOccupancyAsync(blueprintId, standardRuleSet, validationResource);
                             if (!validationResource.IsValid)
                             {

@@ -23,8 +23,10 @@ namespace PlanStack.UnitTests
             context.BuildingStructures.Add(new BuildingStructure
             {
                 Id = 1,
+                Name = "Wooden Wall",
+                Description = "A sturdy wooden wall.",
                 Category = BuildingStructureCategoryEnum.WALL,
-                Material = "Concrete",
+                Material = "Wood",
                 Price = 200
             });
             context.SaveChanges();
@@ -84,9 +86,11 @@ namespace PlanStack.UnitTests
             var entityToAdd = new BuildingStructure
             {
                 Id = 2,
+                Name = "Concrete Wall",
+                Description = "A sturdy concrete wall.",
                 Category = BuildingStructureCategoryEnum.WALL,
-                Material = "Wood",
-                Price = 400
+                Material = "Concrete",
+                Price = 200
             };
 
             // Act
