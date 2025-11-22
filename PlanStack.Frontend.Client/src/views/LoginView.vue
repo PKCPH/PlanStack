@@ -47,10 +47,9 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { setToken } from "../components/api/auth.js";
+import { API_CONFIG } from "../components/api/config.js";
 
-const CORS_PROXY_URL = "";
-const API_BASE_URL = "http://planstack.dk/api";
-const LOGIN_API_URL = `${API_BASE_URL}/auth/login`;
+const LOGIN_API_URL = API_CONFIG.ENDPOINTS.LOGIN;
 
 const formRef = ref(null);
 const isRegistering = ref(false);
@@ -76,9 +75,7 @@ const login = async (email, password) => {
   };
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(LOGIN_API_URL)}`;
-
-    const response = await fetch(proxiedUrl, {
+    const response = await fetch(LOGIN_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

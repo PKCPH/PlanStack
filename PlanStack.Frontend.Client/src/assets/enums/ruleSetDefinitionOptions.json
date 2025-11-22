@@ -1,0 +1,21 @@
+[
+  { "title": "By Room Quantity In Blueprint", "value": 0 },
+  { "title": "By Bathroom Quantity In Blueprint", "value": 1 },
+  { "title": "By Living Room Quantity In Blueprint", "value": 2 },
+  { "title": "By Kitchen Quantity In Blueprint", "value": 3 },
+  { "title": "By Dining Room Quantity In Blueprint", "value": 7 },
+  { "title": "By Office Quantity In Blueprint", "value": 8 },
+  { "title": "By Bedroom Quantity In Blueprint", "value": 18 },
+  { "title": "By Component In Room Area Under Ratio", "value": 4 },
+  { "title": "By Component In Room Area Exact Ratio", "value": 5 },
+  { "title": "By Component In Room Area Over Ratio", "value": 6 },
+  { "title": "By Room Area Size Over Ratio", "value": 11 },
+  { "title": "By Bathroom Area Size Over Ratio", "value": 12 },
+  { "title": "By Living Room Area Size Over Ratio", "value": 13 },
+  { "title": "By Kitchen Area Size Over Ratio", "value": 14 },
+  { "title": "By Dining Room Area Size Over Ratio", "value": 15 },
+  { "title": "By Office Area Size Over Ratio", "value": 16 },
+  { "title": "By Bedroom Area Size Over Ratio", "value": 17 },
+  { "title": "By Component Quantity Per Occupancy", "value": 9 },
+  { "title": "Other", "value": 99 }
+]

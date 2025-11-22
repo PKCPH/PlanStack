@@ -312,10 +312,9 @@
 import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
 import categoryOptions from "../assets/enums/componentCategoryOptions.json";
+import { API_CONFIG } from "../components/api/config.js";
 
-const CORS_PROXY_URL = "";
-const API_BASE_URL = "http://planstack.dk";
-const COMPONENTS_API_URL = `${API_BASE_URL}/api/components`;
+const COMPONENTS_API_URL = API_CONFIG.ENDPOINTS.COMPONENTS;
 
 const dialog = ref(false);
 const formRef = ref(null);
@@ -400,8 +399,7 @@ const fetchComponents = async () => {
   componentsList.value = [];
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(COMPONENTS_API_URL)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(COMPONENTS_API_URL, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -432,8 +430,8 @@ const transformImageUrl = (imgPath) => {
     return "";
   }
   const fileName = imgPath.split(/[\\\/]/).pop();
-  const webUrl = `${API_BASE_URL}/api/Uploads/${fileName}`;
-  return `${CORS_PROXY_URL}${encodeURIComponent(webUrl)}`;
+  const webUrl = `${API_CONFIG.BASE_URL}/api/Uploads/${fileName}`;
+  return `${webUrl}`;
 };
 
 const getCategoryName = (value) => {
@@ -487,9 +485,7 @@ const confirmDelete = async () => {
   const url = `${COMPONENTS_API_URL}/${id}`;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
@@ -544,9 +540,7 @@ const handleSave = async () => {
     : COMPONENTS_API_URL;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: method,
       headers: { Host: "planstack.dk" },
       body: payload,

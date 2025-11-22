@@ -1,0 +1,5 @@
+[
+  { "title": "Minimum", "value": 0 },
+  { "title": "Maximum", "value": 1 },
+  { "title": "Exact", "value": 2 }
+]

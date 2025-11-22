@@ -238,10 +238,9 @@
 import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
 import categoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
+import { API_CONFIG } from "../components/api/config.js";
 
-const CORS_PROXY_URL = "";
-const API_BASE_URL = "http://planstack.dk";
-const STRUCTURES_API_URL = `${API_BASE_URL}/api/buildingstructures`;
+const STRUCTURES_API_URL = API_CONFIG.ENDPOINTS.BUILDING_STRUCTURES;
 
 const dialog = ref(false);
 const formRef = ref(null);
@@ -312,8 +311,7 @@ const fetchStructures = async () => {
   structureList.value = [];
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(STRUCTURES_API_URL)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(STRUCTURES_API_URL, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -386,9 +384,7 @@ const confirmDelete = async () => {
   const url = `${STRUCTURES_API_URL}/${id}`;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
@@ -442,9 +438,7 @@ const handleSave = async () => {
     : STRUCTURES_API_URL;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: method,
       headers: {
         Host: "planstack.dk",

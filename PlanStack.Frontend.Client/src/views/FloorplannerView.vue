@@ -520,6 +520,7 @@ import { apiFetch } from "../components/api/auth.js";
 import componentCategoryOptions from "../assets/enums/componentCategoryOptions.json";
 import buildingStructureCategoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 import { generateUUID } from "@/components/floorplanner/UuidGenerator.js";
+import { API_CONFIG } from "../components/api/config.js";
 
 const theme = useTheme();
 const route = useRoute();
@@ -575,14 +576,13 @@ const snackbarText = ref("");
 const snackbarColor = ref("success");
 
 // API Logic Integration
-const CORS_PROXY_URL = "";
-const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
-const BUILDING_STRUCTURES_API_URL =
-  "http://planstack.dk/api/buildingstructures";
-const COMPONENTS_API_URL = "http://planstack.dk/api/components";
-const PROJECTS_API_URL = "http://planstack.dk/api/projects";
-const STANDARDS_API_URL = "http://planstack.dk/api/standards";
-const VALIDATE_API_URL = "http://planstack.dk/api/blueprints/validate";
+
+const BLUEPRINTS_API_URL = API_CONFIG.ENDPOINTS.BLUEPRINTS;
+const BUILDING_STRUCTURES_API_URL = API_CONFIG.ENDPOINTS.BUILDING_STRUCTURES;
+const COMPONENTS_API_URL = API_CONFIG.ENDPOINTS.COMPONENTS;
+const PROJECTS_API_URL = API_CONFIG.ENDPOINTS.PROJECTS;
+const STANDARDS_API_URL = API_CONFIG.ENDPOINTS.STANDARDS;
+const VALIDATE_API_URL = API_CONFIG.ENDPOINTS.VALIDATE_BLUEPRINT;
 
 //building structure states
 const buildingStructureTypes = ref([]);
@@ -720,8 +720,7 @@ const fetchBuildingStructureTypes = async (category = null) => {
     if (category !== null) {
       url += `?Category=${category}`;
     }
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -762,8 +761,7 @@ const fetchComponentTypes = async (category = null) => {
     if (category !== null) {
       url += `?Category=${category}`;
     }
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -790,10 +788,7 @@ const fetchStandards = async () => {
   isLoadingStandards.value = true;
   standardsError.value = null;
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
-      STANDARDS_API_URL
-    )}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(STANDARDS_API_URL, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -839,9 +834,8 @@ const fetchProjectDetails = async () => {
 
   try {
     const url = `${PROJECTS_API_URL}/${projectId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -863,9 +857,8 @@ const fetchBlueprints = async () => {
   listErrorMessage.value = "";
   try {
     const blueprintApiUrl = `${BLUEPRINTS_API_URL}?projectId=${projectId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(blueprintApiUrl)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(blueprintApiUrl, {
       method: "GET",
       headers: {
         Host: "planstack.dk",
@@ -902,9 +895,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
     : BLUEPRINTS_API_URL;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: method,
       headers: {
         "Content-Type": "application/json",
@@ -969,9 +960,8 @@ const handleDeleteBlueprint = async () => {
   isDeleting.value = true;
   try {
     const url = `${BLUEPRINTS_API_URL}/${activeBlueprintId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
@@ -2031,9 +2021,8 @@ const validateBlueprint = async () => {
   isValidating.value = true;
   try {
     const url = `${VALIDATE_API_URL}/${activeBlueprintId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });

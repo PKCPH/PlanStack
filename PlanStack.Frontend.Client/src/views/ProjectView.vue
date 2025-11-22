@@ -43,11 +43,12 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import ResourceManager from "@/components/resource/ResourceManager.vue";
+import { API_CONFIG } from "@/components/api/config.js";
+import buildingTypeItems from "@/assets/enums/buildingTypeOptions.json";
 
 const router = useRouter();
 
-const API_BASE_URL = "http://planstack.dk/api";
-const PROJECTS_API_URL = `${API_BASE_URL}/projects`;
+const PROJECTS_API_URL = API_CONFIG.ENDPOINTS.PROJECTS;
 
 const newProject = ref({
   name: "",
@@ -55,23 +56,16 @@ const newProject = ref({
   buildingType: null,
 });
 
-const buildingTypeItems = ref([
-  { title: "House", value: 0 },
-  { title: "Mansion", value: 1 },
-  { title: "Apartment", value: 2 },
-  { title: "Office", value: 3 },
-  { title: "Parking lot", value: 4 },
-  { title: "Park", value: 5 },
-  { title: "Other", value: 99 },
-]);
-//form validatino
+//form validation
 const rules = {
   required: (v) => !!v || "This field is required",
-  requiredSelect: (v) => v !== null || "This field is required",
+  requiredSelect: (v) => {
+    return (v !== null && v !== undefined) || "This field is required";
+  },
 };
 
 const getBuildingType = (value) => {
-  const item = buildingTypeItems.value.find((item) => item.value === value);
+  const item = buildingTypeItems.find((item) => item.value === value);
   return item ? item.title : "unknown type";
 };
 

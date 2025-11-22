@@ -44,12 +44,11 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import ResourceManager from "@/components/resource/ResourceManager.vue";
+import { API_CONFIG } from "../components/api/config.js";
 
 const router = useRouter();
 
-const API_BASE_URL = "http://planstack.dk/api";
-const STANDARDS_API_URL = `${API_BASE_URL}/standards`;
-
+const STANDARDS_API_URL = API_CONFIG.ENDPOINTS.STANDARDS;
 const newStandard = ref({
   name: "",
   description: "",
