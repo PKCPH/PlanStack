@@ -239,7 +239,7 @@ import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
 import categoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 
-const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
+const CORS_PROXY_URL = "";
 const API_BASE_URL = "http://planstack.dk";
 const STRUCTURES_API_URL = `${API_BASE_URL}/api/buildingstructures`;
 

@@ -114,7 +114,7 @@ async function submitPasswordChange() {
 
   isChangingPassword.value = true;
 
-  const CORS_PROXY_URL = "https://proxy.corsfix.com/?";
+  const CORS_PROXY_URL = "";
   const API_BASE_URL = "http://planstack.dk/api";
   const USER_API_URL = `${API_BASE_URL}/users`;
   const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(USER_API_URL)}`;
