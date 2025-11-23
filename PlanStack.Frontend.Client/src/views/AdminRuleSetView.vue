@@ -6,23 +6,52 @@
   >
     <template #list-item="{ item }">
       <v-list-item-title class="font-weight-medium">
-        {{ getDefinitionName(item.definition) }}
-        {{ getComparisonName(item.comparison) }}
+        {{ item.name }}
       </v-list-item-title>
-      <v-list-item-subtitle>
-        Defines:
-        <v-chip size="small" class="ml-1">{{
-          getObjectTypeName(item.objectTypeDefinition)
-        }}</v-chip>
+
+      <v-list-item-subtitle class="mt-1">
+        <strong>Logic:</strong> Measured
+        {{ getObjectTypeName(item.objectTypeDefinition) }}
+        {{ getDefinitionName(item.definition) }} with
+        {{ getComparisonName(item.comparison) }} amount of
+        {{ getObjectTypeName(item.objectTypeComparison) }}
       </v-list-item-subtitle>
-      <v-list-item-subtitle>
-        Compares:
-        <v-chip size="small" class="ml-1">{{
-          getObjectTypeName(item.objectTypeComparison)
-        }}</v-chip>
+
+      <v-list-item-subtitle class="mt-1">
+        <v-chip
+          size="x-small"
+          label
+          class="mr-1"
+          v-if="item.objectTypeDefinition"
+        >
+          DefObj: {{ getObjectTypeName(item.objectTypeDefinition) }}
+        </v-chip>
+        <v-chip size="x-small" label v-if="item.objectTypeComparison">
+          CompObj: {{ getObjectTypeName(item.objectTypeComparison) }}
+        </v-chip>
       </v-list-item-subtitle>
     </template>
+
     <template #form-fields="{ model }">
+      <v-text-field
+        v-model="model.name"
+        label="Rule Title"
+        placeholder="e.g. Max 2 Bathrooms"
+        :rules="[rules.required]"
+        class="mb-2"
+        density="compact"
+        variant="outlined"
+      ></v-text-field>
+      <v-text-field
+        v-model="model.description"
+        label="Rule Desciprtion"
+        placeholder="e.g. There can be a maximum of 2 bathrooms per blueprint"
+        :rules="[rules.required]"
+        class="mb-2"
+        density="compact"
+        variant="outlined"
+      ></v-text-field>
+
       <v-select
         v-model="model.definition"
         :items="definitionItems"
@@ -81,7 +110,8 @@ import { API_CONFIG } from "../components/api/config.js";
 // api
 const RULESETS_API_URL = API_CONFIG.ENDPOINTS.RULESETS;
 const emptyRuleModel = ref({
-  definition: null,
+  name: "",
+  definition: "",
   comparison: null,
   objectTypeDefinition: null,
   objectTypeComparison: null,
@@ -92,17 +122,15 @@ const rules = {
   requiredSelect: (v) => v !== null || "This field is required",
 };
 
-const getDefinitionName = (value) => {
-  const item = definitionItems.value.find((item) => item.value === value);
-  return item ? item.title : "Not Assigned";
-};
-const getComparisonName = (value) => {
-  const item = comparisonItems.value.find((item) => item.value === value);
-  return item ? item.title : "Not Assigned";
-};
-const getObjectTypeName = (value) => {
-  if (value === null || value === undefined) return "Not Assigned";
-  const item = objectTypeItems.value.find((item) => item.value === value);
-  return item ? item.title : "Not Assigned";
-};
+const createLookup =
+  (items, defaultText = "Not Assigned") =>
+  (value) => {
+    if (value === null || value === undefined) return defaultText;
+    const item = items.find((i) => i.value === value);
+    return item ? item.title : defaultText;
+  };
+
+const getDefinitionName = createLookup(definitionItems);
+const getComparisonName = createLookup(comparisonItems);
+const getObjectTypeName = createLookup(objectTypeItems, "N/A");
 </script>
