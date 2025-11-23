@@ -556,6 +556,7 @@ const hoveredWall = ref(null);
 const hoveredComponent = ref(null);
 const hoverPoint = ref(null);
 const isPlacingHorizontal = ref(true);
+const isLoadingBlueprint = ref(false);
 
 // Blueprint form fields state
 const blueprintName = ref("");
@@ -1671,8 +1672,10 @@ const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
   }
 };
 
-const loadBlueprint = (blueprint) => {
+const loadBlueprint = async (blueprint) => {
   console.log("Loading blueprint:", blueprint);
+
+  isLoadingBlueprint.value = true;
 
   // form fields to set
   activeBlueprintId.value = blueprint.id;
@@ -1686,11 +1689,12 @@ const loadBlueprint = (blueprint) => {
   selectedStandards.value = blueprint.standards
     ? blueprint.standards.map((s) => s.standard.id)
     : [];
-  roomGrid.value = null;
 
-  //to create or resize canvas
+  // clear grid and create and resize canvas
+  roomGrid.value = null;
   createCanvas();
 
+  // load walls
   if (blueprint.buildingStructures && blueprint.buildingStructures.length > 0) {
     walls.value = mapBlueprintStructuresToWalls(blueprint.buildingStructures);
     showSnackbar(`Loaded blueprint: ${blueprint.name}`);
@@ -1703,6 +1707,7 @@ const loadBlueprint = (blueprint) => {
     );
   }
 
+  // load components
   if (blueprint.components && blueprint.components.length > 0) {
     placedComponents.value = mapBlueprintComponentsToPlaced(
       blueprint.components
@@ -1711,12 +1716,13 @@ const loadBlueprint = (blueprint) => {
     placedComponents.value = [];
   }
 
+  // load rooms
   if (blueprint.rooms && blueprint.rooms.length > 0) {
     rooms.value = blueprint.rooms.map((r, index) => ({
       id: r.id || generateUUID(),
       name: r.name || `Room ${index + 1}`,
       squareMeters: r.squareMeters,
-      roomType: r.roomType ?? 0,
+      roomType: Number(r.roomType),
       labelX: 0,
       labelY: 0,
     }));
@@ -1724,10 +1730,12 @@ const loadBlueprint = (blueprint) => {
     rooms.value = [];
   }
 
-  nextTick(() => {
-    draw();
-    updateRoomGridAndLabels();
-  });
+  await nextTick();
+
+  updateRoomGridAndLabels();
+  renumberAllRooms();
+  draw();
+  isLoadingBlueprint.value = false;
 };
 
 // const onFindRoomsHover = () => {
@@ -1754,8 +1762,12 @@ const drawRoomLabel = (ctx, text, x, y) => {
 
 // roomtypes
 const getRoomTypeName = (value) => {
-  const item = roomTypeItems.value.find((item) => item.value === value);
-  return item ? item.title : "N/A";
+  // nullcheck
+  if (value === null || value === undefined) return;
+  //convert numbervalue to room type title
+  const numericValue = Number(value);
+  const item = roomTypeItems.value.find((item) => item.value === numericValue);
+  return item.title;
 };
 
 // room nametype & number
@@ -1940,13 +1952,13 @@ const updateRoomGridAndLabels = () => {
   floodFill(grid, 0, 0, -1, 0, gridWidth, gridHeight);
 
   // label for existing rooms
-  const roomsToUpdate = [...rooms.value];
-  const foundRoomBlobs = [];
+  let roomsToUpdate = [...rooms.value];
+
+  const assignedRoomIds = new Set();
 
   for (let y = 1; y < gridHeight; y += 2) {
     for (let x = 1; x < gridWidth; x += 2) {
       if (grid[y][x] === 0) {
-        // room blob, dk id
         const tempId = generateUUID();
         const roomData = floodFill(
           grid,
@@ -1977,11 +1989,19 @@ const updateRoomGridAndLabels = () => {
           const labelY = bestCell[1];
 
           // check if any room matches this label position
-          const matchingRoom = roomsToUpdate.find(
+          let matchingRoom = roomsToUpdate.find(
             (r) => r.labelX === labelX && r.labelY === labelY
           );
 
+          if (!matchingRoom) {
+            matchingRoom = roomsToUpdate.find(
+              (r) =>
+                r.labelX === 0 && r.labelY === 0 && !assignedRoomIds.has(r.id)
+            );
+          }
+
           if (matchingRoom) {
+            assignedRoomIds.add(matchingRoom.id);
             // match loaded room, update grid with read id
             floodFill(
               grid,
@@ -1993,6 +2013,8 @@ const updateRoomGridAndLabels = () => {
               gridHeight
             );
             matchingRoom.squareMeters = roomData.squareMeters;
+            matchingRoom.labelX = labelX;
+            matchingRoom.labelY = labelY;
           } else {
             // new room then add to room list
             const newRoom = {
@@ -2010,7 +2032,7 @@ const updateRoomGridAndLabels = () => {
     }
   }
 
-  rooms.value = roomsToUpdate;
+  rooms.value = roomsToUpdate.filter((r) => r.labelX !== 0 && r.labelY !== 0);
   roomGrid.value = grid;
 
   renumberAllRooms();
@@ -2119,10 +2141,10 @@ const floodFill = (
   return { squareMeters, minX, maxX, minY, maxY, allCells };
 };
 
-// recalculate rooms when walls change
 watch(
   walls,
   () => {
+    if (isLoadingBlueprint.value) return; // preventing double room calc on load
     calculateRoomAreas();
   },
   { deep: true }
