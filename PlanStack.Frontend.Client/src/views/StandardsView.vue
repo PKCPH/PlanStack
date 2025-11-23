@@ -45,6 +45,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import ResourceManager from "@/components/resource/ResourceManager.vue";
 import { API_CONFIG } from "../components/api/config.js";
+import { rules } from "@/configuration/rules.js";
 
 const router = useRouter();
 
@@ -62,11 +63,6 @@ const standardTypeItems = ref([
   { title: "Structural Integrity", value: 3 },
   { title: "Other", value: 99 },
 ]);
-
-//form validation
-const rules = {
-  required: (v) => !!v || "This field is required",
-};
 
 const selectStandard = (standard) => {
   // for routering to ruleset

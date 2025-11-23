@@ -313,6 +313,7 @@ import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
 import categoryOptions from "../assets/enums/componentCategoryOptions.json";
 import { API_CONFIG } from "../components/api/config.js";
+import { rules } from "@/configuration/rules.js";
 
 const COMPONENTS_API_URL = API_CONFIG.ENDPOINTS.COMPONENTS;
 
@@ -366,12 +367,6 @@ const tableHeaders = ref([
   { title: "Width", key: "width" },
   { title: "Actions", key: "actions", sortable: false, align: "end" },
 ]);
-
-// validation
-const rules = {
-  required: [(v) => !!v || "This field is required"],
-  requiredFile: [(v) => !!v || "A file is required"],
-};
 
 const openDialog = () => {
   editingId.value = null;

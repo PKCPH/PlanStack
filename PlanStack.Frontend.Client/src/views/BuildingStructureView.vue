@@ -239,6 +239,7 @@ import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
 import categoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 import { API_CONFIG } from "../components/api/config.js";
+import { rules } from "@/configuration/rules.js";
 
 const STRUCTURES_API_URL = API_CONFIG.ENDPOINTS.BUILDING_STRUCTURES;
 
@@ -279,11 +280,6 @@ const tableHeaders = ref([
   { title: "Price", key: "price" },
   { title: "Actions", key: "actions", sortable: false, align: "end" },
 ]);
-
-// validation
-const rules = {
-  required: [(v) => !!v || "This field is required"],
-};
 
 const openDialog = () => {
   editingId.value = null;

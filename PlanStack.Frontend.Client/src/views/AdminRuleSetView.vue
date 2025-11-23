@@ -106,7 +106,7 @@ import definitionItems from "@/assets/enums/ruleSetDefinitionOptions.json";
 import comparisonItems from "@/assets/enums/ruleSetComparisonOptions.json";
 import objectTypeItems from "@/assets/enums/ruleSetObjectTypeOptions.json";
 import { API_CONFIG } from "../components/api/config.js";
-
+import { rules } from "@/configuration/rules.js";
 // api
 const RULESETS_API_URL = API_CONFIG.ENDPOINTS.RULESETS;
 const emptyRuleModel = ref({
@@ -116,11 +116,6 @@ const emptyRuleModel = ref({
   objectTypeDefinition: null,
   objectTypeComparison: null,
 });
-
-const rules = {
-  required: (v) => (v !== null && v !== "") || "This field is required",
-  requiredSelect: (v) => v !== null || "This field is required",
-};
 
 const createLookup =
   (items, defaultText = "Not Assigned") =>

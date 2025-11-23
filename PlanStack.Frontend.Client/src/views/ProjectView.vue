@@ -45,6 +45,7 @@ import { useRouter } from "vue-router";
 import ResourceManager from "@/components/resource/ResourceManager.vue";
 import { API_CONFIG } from "@/components/api/config.js";
 import buildingTypeItems from "@/assets/enums/buildingTypeOptions.json";
+import { rules } from "@/configuration/rules.js";
 
 const router = useRouter();
 
@@ -55,14 +56,6 @@ const newProject = ref({
   description: "",
   buildingType: null,
 });
-
-//form validation
-const rules = {
-  required: (v) => !!v || "This field is required",
-  requiredSelect: (v) => {
-    return (v !== null && v !== undefined) || "This field is required";
-  },
-};
 
 const getBuildingType = (value) => {
   const item = buildingTypeItems.find((item) => item.value === value);

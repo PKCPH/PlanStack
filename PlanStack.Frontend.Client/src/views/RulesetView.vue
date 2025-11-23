@@ -199,6 +199,7 @@ import { API_CONFIG } from "../components/api/config.js";
 import definitionItems from "@/assets/enums/ruleSetDefinitionOptions.json";
 import comparisonItems from "@/assets/enums/ruleSetComparisonOptions.json";
 import objectTypeItems from "@/assets/enums/ruleSetObjectTypeOptions.json";
+import { rules } from "@/configuration/rules.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -224,11 +225,6 @@ const isEditDialogVisible = ref(false);
 const isEditing = ref(false);
 const editingItem = ref({});
 const editingItemIndex = ref(-1);
-
-const rules = {
-  required: (v) => (v !== null && v !== "") || "This field is required",
-  requiredSelect: (v) => v !== null || "This field is required",
-};
 
 const getDefinitionName = (value) => {
   const item = definitionItems.value.find((item) => item.value === value);
