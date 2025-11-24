@@ -65,9 +65,9 @@ namespace PlanStack.Backend.WebAPI.Services
                 {
                     switch (standardRuleSet.RuleSet.Definition)
                     {
-                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
-                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
-                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_EXACT_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_UNDER_RATIO:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_IN_ROOM_AREA_EXACT_RATIO:
                             validationResource = await ValidateComponentPerRoomByAreaAsync(blueprintId, standardRuleSet, validationResource);
                             if (!validationResource.IsValid)
                             {
@@ -75,13 +75,13 @@ namespace PlanStack.Backend.WebAPI.Services
                             }
                             break;
 
-                        case RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
-                        case RuleSetDefinitionEnum.BY_BATHROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
-                        case RuleSetDefinitionEnum.BY_LIVING_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
-                        case RuleSetDefinitionEnum.BY_KITCHEN_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
-                        case RuleSetDefinitionEnum.BY_DINING_ROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
-                        case RuleSetDefinitionEnum.BY_OFFICE_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
-                        case RuleSetDefinitionEnum.BY_BEDROOM_AREA_SIZE_OVER_RATIO when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.AREA:
+                        case RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_BATHROOM_AREA_SIZE_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_LIVING_ROOM_AREA_SIZE_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_KITCHEN_AREA_SIZE_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_DINING_ROOM_AREA_SIZE_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_OFFICE_AREA_SIZE_OVER_RATIO:
+                        case RuleSetDefinitionEnum.BY_BEDROOM_AREA_SIZE_OVER_RATIO:
                             validationResource = await ValidateRoomTypeAreaSizeOverRatioAsync(blueprintId, standardRuleSet, validationResource);
                             if (!validationResource.IsValid)
                             {
@@ -141,7 +141,7 @@ namespace PlanStack.Backend.WebAPI.Services
         {
             var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId);
 
-            if (rooms.Count == 0)
+            if (rooms.Entities.Count == 0)
             {
                 validationResource.IsValid = false;
                 validationResource.Errors.Add("Blueprint does not have any rooms defined.");
@@ -159,7 +159,7 @@ namespace PlanStack.Backend.WebAPI.Services
                 return validationResource;
             }
 
-            var roomsType = standardRuleSet.RuleSet.Definition switch
+            var roomsWithType = standardRuleSet.RuleSet.Definition switch
             {
                 RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BATHROOM => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.BATHROOM).ToList(),
                 RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_LIVING_ROOM => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.LIVING_ROOM).ToList(),
@@ -170,7 +170,7 @@ namespace PlanStack.Backend.WebAPI.Services
                 _ => rooms.Entities
             };
 
-            if (roomsType.Count == 0)
+            if (roomsWithType.Count == 0)
             {
                 validationResource.IsValid = false;
                 validationResource.Errors.Add($"No rooms of type {ValidationHelper.GetRoomTypeFromDefinition(standardRuleSet.RuleSet.Definition)} found in the blueprint.");
@@ -179,19 +179,28 @@ namespace PlanStack.Backend.WebAPI.Services
 
             var requiredAmount = standardRuleSet.DefinitionValue;
 
-            roomsType.ForEach(r =>
+            foreach (var room in roomsWithType)
             {
-                var componentsInRoom = r.Components
+                if (room.Components == null || room.Components.Count == 0)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Room '{room.Name}' does not have any components.");
+                    continue;
+                }
+
+                var componentsInRoom = room.Components
                     .Where(c => c.Component != null && c.Component.Category.ToString() == standardRuleSet.RuleSet.ObjectTypeDefinition.ToString())
                     .ToList();
+
                 if (componentsInRoom.Count < requiredAmount)
                 {
                     validationResource.IsValid = false;
-                    validationResource.Errors.Add($"Room '{r.Name}' does not have enough components of type {standardRuleSet.RuleSet.ObjectTypeDefinition}.");
+                    validationResource.Errors.Add($"Room '{room.Name}' does not have enough components of type {standardRuleSet.RuleSet.ObjectTypeDefinition}.");
                 }
-            });
+            }
 
-            validationResource.IsValid = true;
+            if (validationResource.Errors.Count == 0)
+                validationResource.IsValid = true;
 
             return validationResource;
         }
@@ -200,9 +209,9 @@ namespace PlanStack.Backend.WebAPI.Services
         #region ValidateRoomsInBlueprintAsync
         public async Task<ValidationResource> ValidateRoomsInBlueprintAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
         {
-            var blueprint = await _blueprintRepository.GetAsync(blueprintId);
+            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId);
 
-            if (blueprint.Rooms.Count == 0)
+            if (rooms.Entities.Count == 0)
             {
                 validationResource.IsValid = false;
                 validationResource.Errors.Add("Blueprint does not have any rooms defined.");
@@ -213,7 +222,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM)
             {
-                if (blueprint.Rooms.Count < requiredRoomCount)
+                if (rooms.Entities.Count < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
                     validationResource.Errors.Add($"Blueprint does not meet the required room count of {requiredRoomCount}.");
@@ -223,7 +232,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BATHROOM)
             {
-                var bathroomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.BATHROOM);
+                var bathroomCount = rooms.Entities.Count(r => r.RoomType == RoomTypeEnum.BATHROOM);
                 if (bathroomCount < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
@@ -234,7 +243,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.LIVING_ROOM)
             {
-                var livingRoomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.LIVING_ROOM);
+                var livingRoomCount = rooms.Entities.Count(r => r.RoomType == RoomTypeEnum.LIVING_ROOM);
                 if (livingRoomCount < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
@@ -245,7 +254,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.KITCHEN)
             {
-                var kitchenCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.KITCHEN);
+                var kitchenCount = rooms.Entities.Count(r => r.RoomType == RoomTypeEnum.KITCHEN);
                 if (kitchenCount < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
@@ -256,7 +265,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.DINING_ROOM)
             {
-                var diningRoomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.DINING_ROOM);
+                var diningRoomCount = rooms.Entities.Count(r => r.RoomType == RoomTypeEnum.DINING_ROOM);
                 if (diningRoomCount < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
@@ -267,7 +276,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.OFFICE)
             {
-                var officeCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.OFFICE);
+                var officeCount = rooms.Entities.Count(r => r.RoomType == RoomTypeEnum.OFFICE);
                 if (officeCount < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
@@ -278,7 +287,7 @@ namespace PlanStack.Backend.WebAPI.Services
 
             if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BEDROOM)
             {
-                var bedroomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.BEDROOM);
+                var bedroomCount = rooms.Entities.Count(r => r.RoomType == RoomTypeEnum.BEDROOM);
                 if (bedroomCount < requiredRoomCount)
                 {
                     validationResource.IsValid = false;
@@ -287,7 +296,8 @@ namespace PlanStack.Backend.WebAPI.Services
                 }
             }
 
-            validationResource.IsValid = true;
+            if (validationResource.Errors.Count == 0)
+                validationResource.IsValid = true;
 
             return validationResource;
         }
@@ -369,7 +379,8 @@ namespace PlanStack.Backend.WebAPI.Services
                 }
             }
 
-            validationResource.IsValid = true;
+            if (validationResource.Errors.Count == 0)
+                validationResource.IsValid = true;
 
             return validationResource;
         }
@@ -431,7 +442,8 @@ namespace PlanStack.Backend.WebAPI.Services
                 }
             }
 
-            validationResource.IsValid = true;
+            if (validationResource.Errors.Count == 0)
+                validationResource.IsValid = true;
 
             return validationResource;
         }
@@ -472,7 +484,7 @@ namespace PlanStack.Backend.WebAPI.Services
             if (standardRuleSet.RuleSet.Definition == RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO)
                 nonMatchingRooms = rooms.Entities.Where(x => x.SquareMeters <= standardRuleSet.DefinitionValue).Select(x => x.Name).ToList();
 
-            if (nonMatchingRooms.Count == 0)
+            if (nonMatchingRooms.Count == 0 && validationResource.Errors.Count == 0)
                 validationResource.IsValid = true;
             else
             {
