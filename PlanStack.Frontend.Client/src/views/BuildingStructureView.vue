@@ -116,7 +116,7 @@
               <v-text-field
                 v-model="formData.name"
                 label="Name"
-                :rules="rules.required"
+                :rules="[rules.required]"
                 density="compact"
                 class="mb-2"
               ></v-text-field>
@@ -135,12 +135,7 @@
                     v-model="formData.category"
                     :items="categoryOptions.filter((c, i) => i !== 0)"
                     label="Category"
-                    :rules="[
-                      (v) =>
-                        v !== null && v !== undefined
-                          ? true
-                          : 'This field is required',
-                    ]"
+                    :rules="[rules.requiredSelect]"
                     density="compact"
                   ></v-select>
                 </v-col>
