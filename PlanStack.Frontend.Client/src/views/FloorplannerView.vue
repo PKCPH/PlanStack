@@ -521,12 +521,7 @@ import componentCategoryOptions from "../assets/enums/componentCategoryOptions.j
 import buildingStructureCategoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 import { generateUUID } from "@/components/floorplanner/UuidGenerator.js";
 import { API_CONFIG } from "../components/api/config.js";
-import {
-  snapToGrid,
-  isPointNearWall,
-  isPointNearComponent,
-  floodFill,
-} from "@/utils/Math.js";
+import { snapToGrid, isPointNearWall, floodFill } from "@/utils/Math.js";
 
 const theme = useTheme();
 const route = useRoute();
@@ -996,6 +991,21 @@ const handleDeleteBlueprint = async () => {
   } finally {
     isDeleting.value = false;
   }
+};
+
+const isPointNearComponent = (px, py, component) => {
+  const { width, height } = getComponentDetails(component.componentId);
+
+  // dimensions based on rotation
+  const w_px = (component.isHorizontal ? width : height) * GRID_SIZE;
+  const h_px = (component.isHorizontal ? height : width) * GRID_SIZE;
+
+  const x1 = component.x;
+  const x2 = component.x + w_px;
+  const y1 = component.y;
+  const y2 = component.y + h_px;
+
+  return px >= x1 && px <= x2 && py >= y1 && py <= y2;
 };
 
 // Drawing Helpers
