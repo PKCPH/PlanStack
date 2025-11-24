@@ -156,9 +156,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
     app.UseCors("AllowDevelopment");
-if (app.Environment.IsProduction())
+//if (app.Environment.IsProduction())
     app.UseCors("AllowProduction");
 
 app.UseStaticFiles(new StaticFileOptions
