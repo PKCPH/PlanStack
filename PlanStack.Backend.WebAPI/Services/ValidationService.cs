@@ -8,7 +8,6 @@ namespace PlanStack.Backend.WebAPI.Services
 {
     public class ValidationService
     {
-        private readonly BlueprintBuildingStructureRepository _blueprintBuildingStructureRepository;
         private readonly BlueprintComponentRepository _blueprintComponentRepository;
         private readonly BlueprintStandardRepository _blueprintStandardRepository;
         private readonly BlueprintRepository _blueprintRepository;
@@ -26,7 +25,6 @@ namespace PlanStack.Backend.WebAPI.Services
             StandardRuleSetRepository standardRuleSetRepository
         )
         {
-            _blueprintBuildingStructureRepository = blueprintBuildingStructureRepository;
             _blueprintComponentRepository = blueprintComponentRepository;
             _blueprintStandardRepository = blueprintStandardRepository;
             _blueprintRepository = blueprintRepository;
@@ -101,10 +99,195 @@ namespace PlanStack.Backend.WebAPI.Services
                                 validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}'");
                             }
                             break;
+
+                        case RuleSetDefinitionEnum.BY_ROOM_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM:
+                        case RuleSetDefinitionEnum.BY_BATHROOM_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BATHROOM:
+                        case RuleSetDefinitionEnum.BY_LIVING_ROOM_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.LIVING_ROOM:
+                        case RuleSetDefinitionEnum.BY_KITCHEN_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.KITCHEN:
+                        case RuleSetDefinitionEnum.BY_DINING_ROOM_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.DINING_ROOM:
+                        case RuleSetDefinitionEnum.BY_OFFICE_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.OFFICE:
+                        case RuleSetDefinitionEnum.BY_BEDROOM_QUANTITY_IN_BLUEPRINT when standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BEDROOM:
+                            validationResource = await ValidateRoomsInBlueprintAsync(blueprintId, standardRuleSet, validationResource);
+                            if (!validationResource.IsValid)
+                            {
+                                validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}'");
+                            }
+                            break;
+
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_ROOM:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BATHROOM:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_LIVING_ROOM:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_KITCHEN:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_DINING_ROOM:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_OFFICE:
+                        case RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BEDROOM:
+                            validationResource = await ValidateComponentByRoomTypeAsync(blueprintId, standardRuleSet, validationResource);
+                            if (!validationResource.IsValid)
+                            {
+                                validationResource.Errors.Add($"Validation failed for standard '{standard.Name}' - Rule Set '{standardRuleSet.RuleSet.Name}'");
+                            }
+                            break;
                     }
                 }
 
             }
+
+            return validationResource;
+        }
+        #endregion
+
+        #region ValidateComponentByRoomTypeAsync
+        public async Task<ValidationResource> ValidateComponentByRoomTypeAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
+        {
+            var rooms = await _roomRepository.GetAllByBlueprintIdAsync(blueprintId);
+
+            if (rooms.Count == 0)
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add("Blueprint does not have any rooms defined.");
+                return validationResource;
+            }
+
+            var components = await _blueprintComponentRepository.GetAllByBlueprintIdAsync(blueprintId, true);
+
+            var componentToValidate = components.Entities.Where(c => c.Component != null && c.Component.Category.ToString() == standardRuleSet.RuleSet.ObjectTypeDefinition.ToString()).ToList();
+
+            if (componentToValidate.Count == 0)
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add($"No components of type {standardRuleSet.RuleSet.ObjectTypeDefinition} found in the blueprint.");
+                return validationResource;
+            }
+
+            var roomsType = standardRuleSet.RuleSet.Definition switch
+            {
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BATHROOM => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.BATHROOM).ToList(),
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_LIVING_ROOM => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.LIVING_ROOM).ToList(),
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_KITCHEN => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.KITCHEN).ToList(),
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_DINING_ROOM => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.DINING_ROOM).ToList(),
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_OFFICE => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.OFFICE).ToList(),
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BEDROOM => rooms.Entities.Where(r => r.RoomType == RoomTypeEnum.BEDROOM).ToList(),
+                _ => rooms.Entities
+            };
+
+            if (roomsType.Count == 0)
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add($"No rooms of type {ValidationHelper.GetRoomTypeFromDefinition(standardRuleSet.RuleSet.Definition)} found in the blueprint.");
+                return validationResource;
+            }
+
+            var requiredAmount = standardRuleSet.DefinitionValue;
+
+            roomsType.ForEach(r =>
+            {
+                var componentsInRoom = r.Components
+                    .Where(c => c.Component != null && c.Component.Category.ToString() == standardRuleSet.RuleSet.ObjectTypeDefinition.ToString())
+                    .ToList();
+                if (componentsInRoom.Count < requiredAmount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Room '{r.Name}' does not have enough components of type {standardRuleSet.RuleSet.ObjectTypeDefinition}.");
+                }
+            });
+
+            validationResource.IsValid = true;
+
+            return validationResource;
+        }
+        #endregion
+
+        #region ValidateRoomsInBlueprintAsync
+        public async Task<ValidationResource> ValidateRoomsInBlueprintAsync(int blueprintId, StandardRuleSet standardRuleSet, ValidationResource validationResource)
+        {
+            var blueprint = await _blueprintRepository.GetAsync(blueprintId);
+
+            if (blueprint.Rooms.Count == 0)
+            {
+                validationResource.IsValid = false;
+                validationResource.Errors.Add("Blueprint does not have any rooms defined.");
+                return validationResource;
+            }
+
+            var requiredRoomCount = standardRuleSet.DefinitionValue;
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.ROOM)
+            {
+                if (blueprint.Rooms.Count < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required room count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BATHROOM)
+            {
+                var bathroomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.BATHROOM);
+                if (bathroomCount < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required bathroom count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.LIVING_ROOM)
+            {
+                var livingRoomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.LIVING_ROOM);
+                if (livingRoomCount < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required living room count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.KITCHEN)
+            {
+                var kitchenCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.KITCHEN);
+                if (kitchenCount < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required kitchen count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.DINING_ROOM)
+            {
+                var diningRoomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.DINING_ROOM);
+                if (diningRoomCount < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required dining room count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.OFFICE)
+            {
+                var officeCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.OFFICE);
+                if (officeCount < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required office count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            if (standardRuleSet.RuleSet.ObjectTypeDefinition == RuleSetObjectTypeEnum.BEDROOM)
+            {
+                var bedroomCount = blueprint.Rooms.Count(r => r.RoomType == RoomTypeEnum.BEDROOM);
+                if (bedroomCount < requiredRoomCount)
+                {
+                    validationResource.IsValid = false;
+                    validationResource.Errors.Add($"Blueprint does not meet the required bedroom count of {requiredRoomCount}.");
+                    return validationResource;
+                }
+            }
+
+            validationResource.IsValid = true;
 
             return validationResource;
         }

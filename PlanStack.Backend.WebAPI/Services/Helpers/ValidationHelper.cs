@@ -27,7 +27,13 @@ namespace PlanStack.Backend.WebAPI.Services.Helpers
                 RuleSetDefinitionEnum.BY_OFFICE_AREA_SIZE_OVER_RATIO => "office",
                 RuleSetDefinitionEnum.BY_BEDROOM_AREA_SIZE_OVER_RATIO => "bedroom",
                 RuleSetDefinitionEnum.BY_ROOM_AREA_SIZE_OVER_RATIO => "room",
-                _ => "room"
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BATHROOM => "BATHROOM",
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_LIVING_ROOM => "LIVING_ROOM",
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_KITCHEN => "KITCHEN",
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_DINING_ROOM => "DINING_ROOM",
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_OFFICE => "OFFICE",
+                RuleSetDefinitionEnum.BY_COMPONENT_QUANTITY_IN_BEDROOM => "BEDROOM",
+                _ => "ROOM"
             };
         }
     }
