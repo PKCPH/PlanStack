@@ -227,16 +227,16 @@ const editingItem = ref({});
 const editingItemIndex = ref(-1);
 
 const getDefinitionName = (value) => {
-  const item = definitionItems.value.find((item) => item.value === value);
+  const item = definitionItems.find((item) => item.value === value);
   return item ? item.title : "N/A";
 };
 const getComparisonName = (value) => {
-  const item = comparisonItems.value.find((item) => item.value === value);
+  const item = comparisonItems.find((item) => item.value === value);
   return item ? item.title : "N/A";
 };
 const getObjectTypeName = (value) => {
   if (value === null) return "N/A";
-  const item = objectTypeItems.value.find((item) => item.value === value);
+  const item = objectTypeItems.find((item) => item.value === value);
   return item ? item.title : "N/A";
 };
 
