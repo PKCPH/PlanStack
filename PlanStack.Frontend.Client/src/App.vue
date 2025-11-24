@@ -57,9 +57,10 @@
 
           <!-- Admin Panel subtitle and items -->
           <template v-if="adminPanelItems.length">
-            <v-list-subheader>
-              class="admin-panel-subheader">Admin Panel</v-list-subheader
+            <v-list-subheader class="admin-panel-subheader"
+              >Admin Panel</v-list-subheader
             >
+
             <v-list-item
               v-for="item in adminPanelItems"
               :key="item.title"
