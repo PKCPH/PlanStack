@@ -147,17 +147,19 @@ await DatabaseInitializer.SeedComponentsAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 // Enable Swagger
-//if (app.Environment.IsDevelopment())
-//{
-app.UseSwagger();
-app.UseSwaggerUI();
-//}
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseCors("AllowDevelopment");
-app.UseCors("AllowProduction");
+if (app.Environment.IsDevelopment())
+    app.UseCors("AllowDevelopment");
+if (app.Environment.IsProduction())
+    app.UseCors("AllowProduction");
 
 app.UseStaticFiles(new StaticFileOptions
 {
