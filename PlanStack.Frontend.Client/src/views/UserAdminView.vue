@@ -91,11 +91,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { apiFetch } from "../components/api/auth.js";
+import { API_CONFIG } from "../components/api/config.js";
 
-const CORS_PROXY_URL = "";
-const API_BASE_URL = "http://planstack.dk/api";
-const USERS_API_URL = `${API_BASE_URL}/users`;
-
+const USERS_API_URL = API_CONFIG.ENDPOINTS.USERS;
 // table
 const users = ref([]);
 const isLoading = ref(false);
@@ -131,8 +129,7 @@ const fetchUsers = async () => {
   users.value = [];
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(USERS_API_URL)}`;
-    const result = await apiFetch(proxiedUrl, {
+    const result = await apiFetch(USERS_API_URL, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -168,9 +165,8 @@ const handleDeleteUser = async () => {
 
   try {
     const url = `${USERS_API_URL}/${itemToDelete.value.email}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });

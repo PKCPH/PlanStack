@@ -1,0 +1,18 @@
+@font-face {
+  font-family: "Campton";
+  src: url("@/assets/fonts/Campton-BoldDEMO.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Campton";
+  src: url("@/assets/fonts/Campton-LightDEMO.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+.v-application .text-h1,
+.v-application .text-h2 {
+  font-family: "Campton", sans-serif !important;
+}

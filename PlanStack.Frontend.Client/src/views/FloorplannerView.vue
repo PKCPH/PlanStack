@@ -520,6 +520,13 @@ import { apiFetch } from "../components/api/auth.js";
 import componentCategoryOptions from "../assets/enums/componentCategoryOptions.json";
 import buildingStructureCategoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 import { generateUUID } from "@/components/floorplanner/UuidGenerator.js";
+import { API_CONFIG } from "../components/api/config.js";
+import {
+  snapToGrid,
+  isPointNearWall,
+  isPointNearComponent,
+  floodFill,
+} from "@/utils/Math.js";
 
 const theme = useTheme();
 const route = useRoute();
@@ -550,11 +557,12 @@ const showCanvas = ref(false);
 const canvasWidthCells = ref(40);
 const canvasHeightCells = ref(40);
 const finalCanvasSize = ref({ width: 0, height: 0 });
-const ERASE_TOLERANCE = 10;
+//const ERASE_TOLERANCE = 10;
 const hoveredWall = ref(null);
 const hoveredComponent = ref(null);
 const hoverPoint = ref(null);
 const isPlacingHorizontal = ref(true);
+const isLoadingBlueprint = ref(false);
 
 // Blueprint form fields state
 const blueprintName = ref("");
@@ -575,14 +583,13 @@ const snackbarText = ref("");
 const snackbarColor = ref("success");
 
 // API Logic Integration
-const CORS_PROXY_URL = "";
-const BLUEPRINTS_API_URL = "http://planstack.dk/api/blueprints";
-const BUILDING_STRUCTURES_API_URL =
-  "http://planstack.dk/api/buildingstructures";
-const COMPONENTS_API_URL = "http://planstack.dk/api/components";
-const PROJECTS_API_URL = "http://planstack.dk/api/projects";
-const STANDARDS_API_URL = "http://planstack.dk/api/standards";
-const VALIDATE_API_URL = "http://planstack.dk/api/blueprints/validate";
+
+const BLUEPRINTS_API_URL = API_CONFIG.ENDPOINTS.BLUEPRINTS;
+const BUILDING_STRUCTURES_API_URL = API_CONFIG.ENDPOINTS.BUILDING_STRUCTURES;
+const COMPONENTS_API_URL = API_CONFIG.ENDPOINTS.COMPONENTS;
+const PROJECTS_API_URL = API_CONFIG.ENDPOINTS.PROJECTS;
+const STANDARDS_API_URL = API_CONFIG.ENDPOINTS.STANDARDS;
+const VALIDATE_API_URL = API_CONFIG.ENDPOINTS.VALIDATE_BLUEPRINT;
 
 //building structure states
 const buildingStructureTypes = ref([]);
@@ -720,8 +727,7 @@ const fetchBuildingStructureTypes = async (category = null) => {
     if (category !== null) {
       url += `?Category=${category}`;
     }
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -762,8 +768,7 @@ const fetchComponentTypes = async (category = null) => {
     if (category !== null) {
       url += `?Category=${category}`;
     }
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -790,10 +795,7 @@ const fetchStandards = async () => {
   isLoadingStandards.value = true;
   standardsError.value = null;
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
-      STANDARDS_API_URL
-    )}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(STANDARDS_API_URL, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -839,9 +841,8 @@ const fetchProjectDetails = async () => {
 
   try {
     const url = `${PROJECTS_API_URL}/${projectId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -863,9 +864,8 @@ const fetchBlueprints = async () => {
   listErrorMessage.value = "";
   try {
     const blueprintApiUrl = `${BLUEPRINTS_API_URL}?projectId=${projectId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(blueprintApiUrl)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(blueprintApiUrl, {
       method: "GET",
       headers: {
         Host: "planstack.dk",
@@ -902,9 +902,7 @@ const saveBlueprintToAPI = async (blueprintData) => {
     : BLUEPRINTS_API_URL;
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: method,
       headers: {
         "Content-Type": "application/json",
@@ -969,9 +967,8 @@ const handleDeleteBlueprint = async () => {
   isDeleting.value = true;
   try {
     const url = `${BLUEPRINTS_API_URL}/${activeBlueprintId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });
@@ -1000,9 +997,6 @@ const handleDeleteBlueprint = async () => {
     isDeleting.value = false;
   }
 };
-
-// snap coordinates to grid
-const snapToGrid = (coord) => Math.round(coord / GRID_SIZE) * GRID_SIZE;
 
 // Drawing Helpers
 const drawGrid = (ctx, canvas) => {
@@ -1142,36 +1136,6 @@ const draw = () => {
       drawRoomLabel(ctx, room.name, canvasX, canvasY);
     });
   }
-};
-const isPointNearWall = (px, py, wall) => {
-  const { startX, startY, endX, endY } = wall;
-
-  const l2 = (endX - startX) ** 2 + (endY - startY) ** 2;
-  if (l2 === 0) return false; // Not a segment
-
-  let t =
-    ((px - startX) * (endX - startX) + (py - startY) * (endY - startY)) / l2;
-  t = Math.max(0, Math.min(1, t));
-  const closestX = startX + t * (endX - startX);
-  const closestY = startY + t * (endY - startY);
-  const distance = Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
-
-  return distance <= WALL_THICKNESS + ERASE_TOLERANCE;
-};
-
-const isPointNearComponent = (px, py, component) => {
-  const { width, height } = getComponentDetails(component.componentId);
-
-  // dimensions based on rotation
-  const w_px = (component.isHorizontal ? width : height) * GRID_SIZE;
-  const h_px = (component.isHorizontal ? height : width) * GRID_SIZE;
-
-  const x1 = component.x;
-  const x2 = component.x + w_px;
-  const y1 = component.y;
-  const y2 = component.y + h_px;
-
-  return px >= x1 && px <= x2 && py >= y1 && py <= y2;
 };
 
 // event handlers
@@ -1681,8 +1645,10 @@ const handleSave = async ({ validate = false, closeDialog = false } = {}) => {
   }
 };
 
-const loadBlueprint = (blueprint) => {
+const loadBlueprint = async (blueprint) => {
   console.log("Loading blueprint:", blueprint);
+
+  isLoadingBlueprint.value = true;
 
   // form fields to set
   activeBlueprintId.value = blueprint.id;
@@ -1696,11 +1662,12 @@ const loadBlueprint = (blueprint) => {
   selectedStandards.value = blueprint.standards
     ? blueprint.standards.map((s) => s.standard.id)
     : [];
-  roomGrid.value = null;
 
-  //to create or resize canvas
+  // clear grid and create and resize canvas
+  roomGrid.value = null;
   createCanvas();
 
+  // load walls
   if (blueprint.buildingStructures && blueprint.buildingStructures.length > 0) {
     walls.value = mapBlueprintStructuresToWalls(blueprint.buildingStructures);
     showSnackbar(`Loaded blueprint: ${blueprint.name}`);
@@ -1713,6 +1680,7 @@ const loadBlueprint = (blueprint) => {
     );
   }
 
+  // load components
   if (blueprint.components && blueprint.components.length > 0) {
     placedComponents.value = mapBlueprintComponentsToPlaced(
       blueprint.components
@@ -1721,12 +1689,13 @@ const loadBlueprint = (blueprint) => {
     placedComponents.value = [];
   }
 
+  // load rooms
   if (blueprint.rooms && blueprint.rooms.length > 0) {
     rooms.value = blueprint.rooms.map((r, index) => ({
       id: r.id || generateUUID(),
       name: r.name || `Room ${index + 1}`,
       squareMeters: r.squareMeters,
-      roomType: r.roomType ?? 0,
+      roomType: Number(r.roomType),
       labelX: 0,
       labelY: 0,
     }));
@@ -1734,25 +1703,13 @@ const loadBlueprint = (blueprint) => {
     rooms.value = [];
   }
 
-  nextTick(() => {
-    draw();
-    updateRoomGridAndLabels();
-  });
+  await nextTick();
+
+  updateRoomGridAndLabels();
+  renumberAllRooms();
+  draw();
+  isLoadingBlueprint.value = false;
 };
-
-// const onFindRoomsHover = () => {
-//   if (rooms.value.length > 0) {
-//     showRoomLabels.value = true;
-//     draw();
-//   }
-// };
-
-// const onFindRoomsLeave = () => {
-//   if (showRoomLabels.value) {
-//     showRoomLabels.value = false;
-//     draw();
-//   }
-// };
 
 const drawRoomLabel = (ctx, text, x, y) => {
   ctx.fillStyle = theme.global.current.value.colors.primary;
@@ -1764,8 +1721,12 @@ const drawRoomLabel = (ctx, text, x, y) => {
 
 // roomtypes
 const getRoomTypeName = (value) => {
-  const item = roomTypeItems.value.find((item) => item.value === value);
-  return item ? item.title : "N/A";
+  // nullcheck
+  if (value === null || value === undefined) return;
+  //convert numbervalue to room type title
+  const numericValue = Number(value);
+  const item = roomTypeItems.value.find((item) => item.value === numericValue);
+  return item.title;
 };
 
 // room nametype & number
@@ -1950,13 +1911,13 @@ const updateRoomGridAndLabels = () => {
   floodFill(grid, 0, 0, -1, 0, gridWidth, gridHeight);
 
   // label for existing rooms
-  const roomsToUpdate = [...rooms.value];
-  const foundRoomBlobs = [];
+  let roomsToUpdate = [...rooms.value];
+
+  const assignedRoomIds = new Set();
 
   for (let y = 1; y < gridHeight; y += 2) {
     for (let x = 1; x < gridWidth; x += 2) {
       if (grid[y][x] === 0) {
-        // room blob, dk id
         const tempId = generateUUID();
         const roomData = floodFill(
           grid,
@@ -1987,11 +1948,19 @@ const updateRoomGridAndLabels = () => {
           const labelY = bestCell[1];
 
           // check if any room matches this label position
-          const matchingRoom = roomsToUpdate.find(
+          let matchingRoom = roomsToUpdate.find(
             (r) => r.labelX === labelX && r.labelY === labelY
           );
 
+          if (!matchingRoom) {
+            matchingRoom = roomsToUpdate.find(
+              (r) =>
+                r.labelX === 0 && r.labelY === 0 && !assignedRoomIds.has(r.id)
+            );
+          }
+
           if (matchingRoom) {
+            assignedRoomIds.add(matchingRoom.id);
             // match loaded room, update grid with read id
             floodFill(
               grid,
@@ -2003,6 +1972,8 @@ const updateRoomGridAndLabels = () => {
               gridHeight
             );
             matchingRoom.squareMeters = roomData.squareMeters;
+            matchingRoom.labelX = labelX;
+            matchingRoom.labelY = labelY;
           } else {
             // new room then add to room list
             const newRoom = {
@@ -2020,7 +1991,7 @@ const updateRoomGridAndLabels = () => {
     }
   }
 
-  rooms.value = roomsToUpdate;
+  rooms.value = roomsToUpdate.filter((r) => r.labelX !== 0 && r.labelY !== 0);
   roomGrid.value = grid;
 
   renumberAllRooms();
@@ -2031,9 +2002,8 @@ const validateBlueprint = async () => {
   isValidating.value = true;
   try {
     const url = `${VALIDATE_API_URL}/${activeBlueprintId.value}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -2064,76 +2034,10 @@ const validateBlueprint = async () => {
   }
 };
 
-const floodFill = (
-  grid,
-  startX,
-  startY,
-  newValue,
-  targetValue,
-  width,
-  height
-) => {
-  if (grid[startY][startX] !== targetValue) {
-    return { squareMeters: 0 };
-  }
-
-  let squareMeters = 0;
-  let minX = Infinity,
-    maxX = -Infinity,
-    minY = Infinity,
-    maxY = -Infinity;
-  const allCells = [];
-  const queue = [[startX, startY]];
-  grid[startY][startX] = newValue;
-
-  while (queue.length > 0) {
-    const [x, y] = queue.shift();
-
-    // checking if its a cell center
-    if (x % 2 === 1 && y % 2 === 1) {
-      squareMeters++;
-      allCells.push([x, y]);
-
-      // Update bounding box
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-
-    // checking neighbors
-    const neighbors = [
-      [x + 1, y],
-      [x - 1, y],
-      [x, y + 1],
-      [x, y - 1],
-      [x + 1, y + 1],
-      [x - 1, y - 1],
-      [x + 1, y - 1],
-      [x - 1, y + 1],
-    ];
-
-    for (const [nx, ny] of neighbors) {
-      // checking bounds and target value
-      if (
-        nx >= 0 &&
-        nx < width &&
-        ny >= 0 &&
-        ny < height &&
-        grid[ny][nx] === targetValue
-      ) {
-        grid[ny][nx] = newValue;
-        queue.push([nx, ny]);
-      }
-    }
-  }
-  return { squareMeters, minX, maxX, minY, maxY, allCells };
-};
-
-// recalculate rooms when walls change
 watch(
   walls,
   () => {
+    if (isLoadingBlueprint.value) return; // preventing double room calc on load
     calculateRoomAreas();
   },
   { deep: true }

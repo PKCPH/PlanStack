@@ -1,0 +1,9 @@
+[
+  { "title": "House", "value": 0 },
+  { "title": "Mansion", "value": 1 },
+  { "title": "Apartment", "value": 2 },
+  { "title": "Office", "value": 3 },
+  { "title": "Parking lot", "value": 4 },
+  { "title": "Park", "value": 5 },
+  { "title": "Other", "value": 99 }
+]

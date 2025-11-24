@@ -1,15 +1,27 @@
 <template>
   <v-container class="py-10" fluid>
-      <div class="hero-text">
-        <h1 class="text-h4 font-weight-bold text-grey-darken-3">Planstack</h1>
-        <h1>Welcome</h1>
-      </div>
+    <div class="hero-text">
+      <v-row class="align-center justify-center">
+        <v-col md="auto" class="d-flex justify-center">
+          <div>
+            <h1 class="text-h1 font-weight-bold mb-2">PLANSTACK</h1>
+            <h2 class="text-h2" style="line-height: 1.4">
+              Design Simply<br />Validate Instantly
+            </h2>
+          </div>
+        </v-col>
+
+        <v-col md="auto" class="d-flex justify-center">
+          <v-img :src="logoImage" min-width="500" class="hero-logo"></v-img>
+        </v-col>
+      </v-row>
+    </div>
     <div class="hero-video-container">
       <video
         ref="videoA"
         :src="videoSrcA"
         class="hero-video"
-        :class="{ 'visible': isVideoAVisible, 'hidden': !isVideoAVisible }"
+        :class="{ visible: isVideoAVisible, hidden: !isVideoAVisible }"
         autoplay
         muted
         playsinline
@@ -19,7 +31,7 @@
         ref="videoB"
         :src="videoSrcB"
         class="hero-video"
-        :class="{ 'visible': !isVideoAVisible, 'hidden': isVideoAVisible }"
+        :class="{ visible: !isVideoAVisible, hidden: isVideoAVisible }"
         autoplay
         muted
         playsinline
@@ -29,19 +41,22 @@
   </v-container>
 </template>
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick } from "vue";
+import logoImage from "@/assets/graphics/logo.png";
 
 const videoFiles = [
-  '/videos/planstackvid1.mp4',
-  '/videos/planstackvid2.mp4',
-  '/videos/planstackvid3.mp4',
+  "/videos/planstackvid1.mp4",
+  "/videos/planstackvid2.mp4",
+  "/videos/planstackvid3.mp4",
 ];
 
 const videoA = ref(null);
 const videoB = ref(null);
 const isVideoAVisible = ref(true);
-const videoSrcA = ref(videoFiles[Math.floor(Math.random() * videoFiles.length)]);
-const videoSrcB = ref('');
+const videoSrcA = ref(
+  videoFiles[Math.floor(Math.random() * videoFiles.length)]
+);
+const videoSrcB = ref("");
 let currentVideoIndex = videoFiles.indexOf(videoSrcA.value);
 
 function getNextVideoIndex(excludeIndex) {
@@ -55,7 +70,7 @@ function getNextVideoIndex(excludeIndex) {
 function onVideoEnded(which) {
   // Prepare the next video source
   const nextIndex = getNextVideoIndex(currentVideoIndex);
-  if (which === 'A') {
+  if (which === "A") {
     videoSrcB.value = videoFiles[nextIndex];
     nextTick(() => {
       if (videoB.value) {
@@ -135,6 +150,6 @@ onMounted(() => {
   text-align: center;
   margin-top: 48px;
   color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 </style>

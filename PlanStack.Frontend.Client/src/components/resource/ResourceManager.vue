@@ -160,9 +160,6 @@ const props = defineProps({
 
 const emit = defineEmits(["select"]);
 
-// corsproxy for api
-const CORS_PROXY_URL = "";
-
 // component states
 const items = ref([]);
 const isLoading = ref(false);
@@ -195,10 +192,7 @@ const fetchItems = async () => {
   items.value = [];
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(
-      props.apiEndpoint
-    )}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(props.apiEndpoint, {
       method: "GET",
       headers: { Host: "planstack.dk" },
     });
@@ -247,8 +241,7 @@ const handleSave = async () => {
   const payload = { ...editingItem.value };
 
   try {
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: method,
       headers: {
         "Content-Type": "application/json",
@@ -282,9 +275,8 @@ const handleDelete = async () => {
 
   try {
     const url = `${props.apiEndpoint}/${deletingItem.value.id}`;
-    const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(url)}`;
 
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(url, {
       method: "DELETE",
       headers: { Host: "planstack.dk" },
     });

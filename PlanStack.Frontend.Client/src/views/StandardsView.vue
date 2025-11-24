@@ -44,12 +44,12 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import ResourceManager from "@/components/resource/ResourceManager.vue";
+import { API_CONFIG } from "../components/api/config.js";
+import { rules } from "@/configuration/rules.js";
 
 const router = useRouter();
 
-const API_BASE_URL = "http://planstack.dk/api";
-const STANDARDS_API_URL = `${API_BASE_URL}/standards`;
-
+const STANDARDS_API_URL = API_CONFIG.ENDPOINTS.STANDARDS;
 const newStandard = ref({
   name: "",
   description: "",
@@ -63,11 +63,6 @@ const standardTypeItems = ref([
   { title: "Structural Integrity", value: 3 },
   { title: "Other", value: 99 },
 ]);
-
-//form validation
-const rules = {
-  required: (v) => !!v || "This field is required",
-};
 
 const selectStandard = (standard) => {
   // for routering to ruleset

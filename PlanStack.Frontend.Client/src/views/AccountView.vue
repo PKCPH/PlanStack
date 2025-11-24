@@ -79,6 +79,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { getCurrentUser, apiFetch } from "../components/api/auth.js";
+import { API_CONFIG } from "../components/api/config.js";
 
 const user = ref(null);
 const showDialog = ref(false);
@@ -114,13 +115,10 @@ async function submitPasswordChange() {
 
   isChangingPassword.value = true;
 
-  const CORS_PROXY_URL = "";
-  const API_BASE_URL = "http://planstack.dk/api";
-  const USER_API_URL = `${API_BASE_URL}/users`;
-  const proxiedUrl = `${CORS_PROXY_URL}${encodeURIComponent(USER_API_URL)}`;
+  const USER_API_URL = API_CONFIG.ENDPOINTS.USERS;
 
   try {
-    const response = await apiFetch(proxiedUrl, {
+    const response = await apiFetch(USER_API_URL, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

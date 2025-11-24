@@ -6,23 +6,52 @@
   >
     <template #list-item="{ item }">
       <v-list-item-title class="font-weight-medium">
-        {{ getDefinitionName(item.definition) }}
-        {{ getComparisonName(item.comparison) }}
+        {{ item.name }}
       </v-list-item-title>
-      <v-list-item-subtitle>
-        Defines:
-        <v-chip size="small" class="ml-1">{{
-          getObjectTypeName(item.objectTypeDefinition)
-        }}</v-chip>
+
+      <v-list-item-subtitle class="mt-1">
+        <strong>Logic:</strong> Measured
+        {{ getObjectTypeName(item.objectTypeDefinition) }}
+        {{ getDefinitionName(item.definition) }} with
+        {{ getComparisonName(item.comparison) }} amount of
+        {{ getObjectTypeName(item.objectTypeComparison) }}
       </v-list-item-subtitle>
-      <v-list-item-subtitle>
-        Compares:
-        <v-chip size="small" class="ml-1">{{
-          getObjectTypeName(item.objectTypeComparison)
-        }}</v-chip>
+
+      <v-list-item-subtitle class="mt-1">
+        <v-chip
+          size="x-small"
+          label
+          class="mr-1"
+          v-if="item.objectTypeDefinition"
+        >
+          DefObj: {{ getObjectTypeName(item.objectTypeDefinition) }}
+        </v-chip>
+        <v-chip size="x-small" label v-if="item.objectTypeComparison">
+          CompObj: {{ getObjectTypeName(item.objectTypeComparison) }}
+        </v-chip>
       </v-list-item-subtitle>
     </template>
+
     <template #form-fields="{ model }">
+      <v-text-field
+        v-model="model.name"
+        label="Rule Title"
+        placeholder="e.g. Max 2 Bathrooms"
+        :rules="[rules.required]"
+        class="mb-2"
+        density="compact"
+        variant="outlined"
+      ></v-text-field>
+      <v-text-field
+        v-model="model.description"
+        label="Rule Desciprtion"
+        placeholder="e.g. There can be a maximum of 2 bathrooms per blueprint"
+        :rules="[rules.required]"
+        class="mb-2"
+        density="compact"
+        variant="outlined"
+      ></v-text-field>
+
       <v-select
         v-model="model.definition"
         :items="definitionItems"
@@ -73,82 +102,30 @@
 <script setup>
 import { ref } from "vue";
 import ResourceManager from "@/components/resource/ResourceManager.vue";
+import definitionItems from "@/assets/enums/ruleSetDefinitionOptions.json";
+import comparisonItems from "@/assets/enums/ruleSetComparisonOptions.json";
+import objectTypeItems from "@/assets/enums/ruleSetObjectTypeOptions.json";
+import { API_CONFIG } from "../components/api/config.js";
+import { rules } from "@/configuration/rules.js";
 // api
-const API_BASE_URL = "http://planstack.dk/api";
-const RULESETS_API_URL = `${API_BASE_URL}/rulesets`;
-
+const RULESETS_API_URL = API_CONFIG.ENDPOINTS.RULESETS;
 const emptyRuleModel = ref({
-  definition: null,
+  name: "",
+  definition: "",
   comparison: null,
   objectTypeDefinition: null,
   objectTypeComparison: null,
 });
 
-// RuleSetDefinitionEnum
-const definitionItems = ref([
-  { title: "By Distance", value: 0 },
-  { title: "Blueprint Area Over Ratio", value: 1 },
-  { title: "Blueprint Area Exact Ratio", value: 2 },
-  { title: "Blueprint Area Under Ratio", value: 3 },
-  { title: "Room Area Under Ratio", value: 4 },
-  { title: "Room Area Exact Ratio", value: 10 },
-  { title: "Room Area Over Ratio", value: 5 },
-  { title: "Total Quantity Under Ratio", value: 6 },
-  { title: "Total Quantity Over Ratio", value: 7 },
-  { title: "Occupancy Over Ratio", value: 8 },
-  { title: "Occupancy Under Ratio", value: 9 },
-  { title: "Other", value: 99 },
-]);
-// RuleSetComparisonEnum
-const comparisonItems = ref([
-  { title: "Minimum", value: 0 },
-  { title: "Maximum", value: 1 },
-  { title: "Exact", value: 2 },
-]);
+const createLookup =
+  (items, defaultText = "Not Assigned") =>
+  (value) => {
+    if (value === null || value === undefined) return defaultText;
+    const item = items.find((i) => i.value === value);
+    return item ? item.title : defaultText;
+  };
 
-// RuleSetObjectTypeEnum
-const objectTypeItems = ref([
-  { title: "Bathroom", value: 0 },
-  { title: "Bedroom", value: 1 },
-  { title: "Living Room", value: 2 },
-  { title: "Kitchen", value: 3 },
-  { title: "Dining Room", value: 4 },
-  { title: "Wall", value: 20 },
-  { title: "Window", value: 21 },
-  { title: "Door", value: 22 },
-  { title: "Toilet", value: 41 },
-  { title: "Fire Safety Equipment", value: 42 },
-  { title: "Fridge", value: 43 },
-  { title: "Stove", value: 44 },
-  { title: "Sink", value: 45 },
-  { title: "Kitchen Counter", value: 46 },
-  { title: "Couch", value: 47 },
-  { title: "Table", value: 48 },
-  { title: "Chair", value: 49 },
-  { title: "Bed", value: 50 },
-  { title: "Closet", value: 51 },
-  { title: "Room", value: 71 },
-  { title: "Blueprint", value: 72 },
-  { title: "Component", value: 73 },
-  { title: "Other", value: 99 },
-]);
-
-const rules = {
-  required: (v) => (v !== null && v !== "") || "This field is required",
-  requiredSelect: (v) => v !== null || "This field is required",
-};
-
-const getDefinitionName = (value) => {
-  const item = definitionItems.value.find((item) => item.value === value);
-  return item ? item.title : "Not Assigned";
-};
-const getComparisonName = (value) => {
-  const item = comparisonItems.value.find((item) => item.value === value);
-  return item ? item.title : "Not Assigned";
-};
-const getObjectTypeName = (value) => {
-  if (value === null || value === undefined) return "Not Assigned";
-  const item = objectTypeItems.value.find((item) => item.value === value);
-  return item ? item.title : "Not Assigned";
-};
+const getDefinitionName = createLookup(definitionItems);
+const getComparisonName = createLookup(comparisonItems);
+const getObjectTypeName = createLookup(objectTypeItems, "N/A");
 </script>
