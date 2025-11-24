@@ -73,6 +73,18 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar
+      v-model="snackbar"
+      :color="snackbarColor"
+      :timeout="3000"
+      location="top"
+    >
+      {{ snackbarText }}
+
+      <template v-slot:actions>
+        <v-btn variant="text" @click="snackbar = false"> Close </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -91,6 +103,16 @@ const passwordForm = ref({
 const passwordError = ref("");
 const isChangingPassword = ref(false);
 const passwordFormRef = ref(null);
+
+const snackbar = ref(false);
+const snackbarText = ref("");
+const snackbarColor = ref("success");
+
+const showSnackbar = (text, color = "success") => {
+  snackbarText.value = text;
+  snackbarColor.value = color;
+  snackbar.value = true;
+};
 
 onMounted(() => {
   user.value = getCurrentUser();
@@ -135,13 +157,14 @@ async function submitPasswordChange() {
       passwordForm.value.currentPassword = "";
       passwordForm.value.newPassword = "";
       passwordForm.value.confirmNewPassword = "";
-      alert("Password changed successfully!");
+      showSnackbar("Password changed successfully!", "success");
     } else {
       const data = await response.json();
       passwordError.value = data.errorMessage || "Failed to change password.";
     }
   } catch (err) {
     passwordError.value = "Network error.";
+    showSnackbar("Network error occurred", "error");
   } finally {
     isChangingPassword.value = false;
   }

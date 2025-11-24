@@ -33,7 +33,7 @@
         v-model="model.type"
         :items="standardTypeItems"
         label="Standard Type"
-        :rules="[rules.required]"
+        :rules="[rules.selectedRequired]"
         class="mb-2"
       ></v-select>
     </template>
@@ -50,6 +50,7 @@ import { rules } from "@/configuration/rules.js";
 const router = useRouter();
 
 const STANDARDS_API_URL = API_CONFIG.ENDPOINTS.STANDARDS;
+
 const newStandard = ref({
   name: "",
   description: "",
