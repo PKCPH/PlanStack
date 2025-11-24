@@ -140,7 +140,7 @@
               <v-text-field
                 v-model="formData.name"
                 label="Name"
-                :rules="rules.required"
+                :rules="[rules.required]"
                 density="compact"
                 class="mb-2"
               ></v-text-field>
@@ -159,12 +159,7 @@
                     v-model="formData.category"
                     :items="categoryOptions.filter((c, i) => i !== 0)"
                     label="Category"
-                    :rules="[
-                      (v) =>
-                        v !== null && v !== undefined
-                          ? true
-                          : 'This field is required',
-                    ]"
+                    :rules="[rules.requiredSelect]"
                     density="compact"
                   ></v-select>
                 </v-col>
@@ -229,7 +224,7 @@
                 v-model="formData.imgFile"
                 label="Component Image"
                 accept="image/*"
-                :rules="editingId ? [] : rules.requiredFile"
+                :rules="editingId ? [] : [rules.requiredFile]"
                 :hint="
                   editingId
                     ? 'Leave this field blank to keep existing image'
@@ -425,7 +420,7 @@ const transformImageUrl = (imgPath) => {
     return "";
   }
   const fileName = imgPath.split(/[\\\/]/).pop();
-  const webUrl = `${API_CONFIG.BASE_URL}/api/Uploads/${fileName}`;
+  const webUrl = `${API_CONFIG.BASE_URL}/Uploads/${fileName}`;
   return `${webUrl}`;
 };
 
