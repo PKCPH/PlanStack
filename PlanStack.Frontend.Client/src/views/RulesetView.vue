@@ -157,7 +157,6 @@
                   v-model.number="editingItem.comparisonValue"
                   label="Comparison Value"
                   type="number"
-                  :rules="[rules.required]"
                   class="mb-2"
                   density="compact"
                 ></v-text-field>
