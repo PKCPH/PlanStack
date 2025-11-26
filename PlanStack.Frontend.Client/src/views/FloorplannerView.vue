@@ -521,12 +521,7 @@ import componentCategoryOptions from "../assets/enums/componentCategoryOptions.j
 import buildingStructureCategoryOptions from "../assets/enums/buildingStructureCategoryOptions.json";
 import { generateUUID } from "@/components/floorplanner/UuidGenerator.js";
 import { API_CONFIG } from "../components/api/config.js";
-import {
-  snapToGrid,
-  isPointNearWall,
-  isPointNearComponent,
-  floodFill,
-} from "@/utils/Math.js";
+import { snapToGrid, isPointNearWall, floodFill } from "@/utils/Math.js";
 
 const theme = useTheme();
 const route = useRoute();
@@ -596,6 +591,7 @@ const buildingStructureTypes = ref([]);
 const isLoadingStructureTypes = ref(false);
 const structureTypesError = ref(null);
 const currentBuildingStructureId = ref(1);
+const selectedBuildingStructureCategory = ref(null);
 
 // component states
 const componentTypes = ref([]);
@@ -713,7 +709,6 @@ const toggleComponentRotation = () => {
   draw();
 };
 
-const selectedBuildingStructureCategory = ref(null);
 watch(selectedBuildingStructureCategory, (newCategory) => {
   fetchBuildingStructureTypes(newCategory);
 });
@@ -998,6 +993,21 @@ const handleDeleteBlueprint = async () => {
   }
 };
 
+const isPointNearComponent = (px, py, component) => {
+  const { width, height } = getComponentDetails(component.componentId);
+
+  // dimensions based on rotation
+  const w_px = (component.isHorizontal ? width : height) * GRID_SIZE;
+  const h_px = (component.isHorizontal ? height : width) * GRID_SIZE;
+
+  const x1 = component.x;
+  const x2 = component.x + w_px;
+  const y1 = component.y;
+  const y2 = component.y + h_px;
+
+  return px >= x1 && px <= x2 && py >= y1 && py <= y2;
+};
+
 // Drawing Helpers
 const drawGrid = (ctx, canvas) => {
   ctx.strokeStyle = GRID_COLOR;
@@ -1062,8 +1072,8 @@ const drawComponent = (
 const draw = () => {
   const canvas = canvasRef.value;
   if (!canvas) return;
+  //resets canvas
   const ctx = canvas.getContext("2d");
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid(ctx, canvas);
 
@@ -1086,6 +1096,7 @@ const draw = () => {
 
   // draw walls
   walls.value.forEach((wall) => {
+    //hovering logic
     const isHovered = hoveredWall.value && wall === hoveredWall.value;
     const color = isHovered
       ? ERASE_HIGHLIGHT_COLOR

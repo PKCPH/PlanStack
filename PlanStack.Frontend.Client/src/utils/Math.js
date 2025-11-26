@@ -21,21 +21,6 @@ export const isPointNearWall = (px, py, wall) => {
   return distance <= WALL_THICKNESS + ERASE_TOLERANCE;
 };
 
-export const isPointNearComponent = (px, py, component) => {
-  const { width, height } = getComponentDetails(component.componentId);
-
-  // dimensions based on rotation
-  const w_px = (component.isHorizontal ? width : height) * GRID_SIZE;
-  const h_px = (component.isHorizontal ? height : width) * GRID_SIZE;
-
-  const x1 = component.x;
-  const x2 = component.x + w_px;
-  const y1 = component.y;
-  const y2 = component.y + h_px;
-
-  return px >= x1 && px <= x2 && py >= y1 && py <= y2;
-};
-
 export const floodFill = (
   grid,
   startX,
