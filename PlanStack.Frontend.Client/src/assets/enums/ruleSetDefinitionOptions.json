@@ -16,6 +16,12 @@
   { "title": "By Dining Room Area Size Over Ratio", "value": 15 },
   { "title": "By Office Area Size Over Ratio", "value": 16 },
   { "title": "By Bedroom Area Size Over Ratio", "value": 17 },
-  { "title": "By Component Quantity Per Occupancy", "value": 9 },
+  { "title": "By Component Quantity In Room", "value": 19 },
+  { "title": "By Component Quantity In Bathroom", "value": 20 },
+  { "title": "By Component Quantity In Living Room", "value": 21 },
+  { "title": "By Component Quantity In Kitchen", "value": 22 },
+  { "title": "By Component Quantity In Dining Room", "value": 23 },
+  { "title": "By Component Quantity In Office", "value": 24 },
+  { "title": "By Component Quantity In Bedroom", "value": 25 },
   { "title": "Other", "value": 99 }
 ]
