@@ -591,6 +591,7 @@ const buildingStructureTypes = ref([]);
 const isLoadingStructureTypes = ref(false);
 const structureTypesError = ref(null);
 const currentBuildingStructureId = ref(1);
+const selectedBuildingStructureCategory = ref(null);
 
 // component states
 const componentTypes = ref([]);
@@ -708,7 +709,6 @@ const toggleComponentRotation = () => {
   draw();
 };
 
-const selectedBuildingStructureCategory = ref(null);
 watch(selectedBuildingStructureCategory, (newCategory) => {
   fetchBuildingStructureTypes(newCategory);
 });
@@ -1072,8 +1072,8 @@ const drawComponent = (
 const draw = () => {
   const canvas = canvasRef.value;
   if (!canvas) return;
+  //resets canvas
   const ctx = canvas.getContext("2d");
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid(ctx, canvas);
 
@@ -1096,6 +1096,7 @@ const draw = () => {
 
   // draw walls
   walls.value.forEach((wall) => {
+    //hovering logic
     const isHovered = hoveredWall.value && wall === hoveredWall.value;
     const color = isHovered
       ? ERASE_HIGHLIGHT_COLOR
